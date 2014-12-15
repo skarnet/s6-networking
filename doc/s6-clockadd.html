@@ -1,0 +1,61 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-clockadd program</title>
+    <meta name="Description" content="s6-networking: the s6-clockadd program" />
+    <meta name="Keywords" content="s6-networking s6-clockadd tai clock tai64 tai64n tai64na clockadd setting the system clock" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-clockadd</tt> program </h1>
+
+<p>
+<tt>s6-clockadd</tt> adjusts the system clock depending on the input
+provided by a time client.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-taiclock <em>server</em> | s6-clockadd [ -f ] [ -e <em>errmax</em> ]
+</pre>
+
+<ul>
+ <li> s6-clockadd reads its stdin, expecting input from a program such
+<a href="s6-taiclock.html">s6-taiclock</a> or
+<a href="s6-sntpclock.html">s6-sntpclock</a> (which get time from a
+time server). </li>
+ <li> It sets the system clock so the system time becomes the one
+given by the server. Then it exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-f</tt>&nbsp;: force. Normally, s6-clockadd exits 1 if the
+time discrepancy read from stdin is bigger than <em>errmax</em>
+milliseconds. If this
+option is set, it will print a warning message, but still set the
+system time and exit 0. </li>
+ <li> <tt>-e&nbsp;<em>errmax</em></tt>&nbsp;: accept a maximum time
+discrepancy of <em>errmax</em> milliseconds. By default, <em>errmax</em>
+is 2000. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-clockadd must be run as root. The client getting the time
+from a time server, however, does not have to. </li>
+</ul>
+
+</body>
+</html>

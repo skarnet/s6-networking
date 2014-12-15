@@ -1,0 +1,124 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the ident library interface</title>
+    <meta name="Description" content="s6-networking: the ident library interface" />
+    <meta name="Keywords" content="s6-networking net ident library libs6net ident RFC 1413" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">libs6net</a><br />
+<a href="../">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>ident</tt> library interface </h1>
+
+<p>
+ The following functions and structures are declared in the <tt>s6-networking/ident.h</tt> header,
+and implemented in the <tt>libs6net.a</tt> or <tt>libs6net.so</tt> library.
+</p>
+
+<h2> General information </h2>
+
+<p>
+ <tt>ident</tt> provides a C IDENT client, following RFC 1413.
+</p>
+
+<p>
+ Please note that this protocol is of historical interest exclusively;
+this client, as well as the <a href="../minidentd.html">minidentd</a>
+server, is only provided for convenience and interoperability with
+legacy systems. The IDENT protocol absolutely cannot be relied on for
+any kind of authentication or secure operation.
+</p>
+
+<h2> Functions </h2>
+
+<p>
+ Check the <tt>s6-networking/ident.h</tt> header for the exact function prototypes.
+</p>
+
+<h3> Main interface </h3>
+
+<p>
+<code> int s6net_ident_client (char *s, unsigned int max, ip46_t const *remoteip, uint16 remoteport, ip46_t const *localip, uint16 localport,
+struct taia const *deadline, struct taia *stamp) </code>
+</p>
+
+<p>
+Makes an IDENT request to a server listening on IP <em>remoteip</em> port 113
+about the connection from IP <em>remoteip</em> port <em>remoteport</em> to
+IP <em>localip</em> port <em>localport</em>. Writes the answer into
+preallocated string <em>s</em> of max length <em>max</em>, and returns the
+number of bytes in the answer.
+</p>
+
+<ul>
+ <li> An <a href="http://skarnet.org/software/skalibs/libstddjb/ip46.html">ip46_t</a>
+is a structure holding either an IPv4 address or an IPv6 address. </li>
+ <li> If an error occurs, the function returns -1 and sets errno to a
+suitable value. If no answer can be gotten from the server, the function
+returns 0 and sets errno to a suitable value. </li>
+ <li> If <em>max</em> is too small for <em>s</em> to hold the answer, the
+function returns -1 ENAMETOOLONG.
+This can be avoided by using S6NET_IDENT_REPLY_SIZE
+as <em>max</em>. </li>
+ <li> Negative answers are mapped to errno in the following way:
+  <ul>
+   <li> INVALID-PORT is reported as EINVAL </li>
+   <li> NO-USER is reported as ESRCH </li>
+   <li> HIDDEN-USER is reported as EPERM </li>
+   <li> UNKNOWN-ERROR is reported as EIO </li>
+   <li> extended error codes are reported as EEXIST </li>
+  </ul> </li>
+ <li> *<em>deadline</em> and *<em>stamp</em> are
+<a href="http://skarnet.org/software/skalibs/libstddjb/tai.h">absolute dates</a>:
+*<em>stamp</em> must be an accurate enough approximation of the current time, and
+is automatically updated when the function returns. If no answer has been gotten
+from the server by *<em>deadline</em>, then the call is aborted and returns
+-1 ETIMEDOUT. </li>
+</ul>
+
+<p>
+<code> char const *s6net_ident_error_str (int e) </code>
+</p>
+
+<p>
+ Maps an error code representing a negative answer (i.e. errno when
+<tt>s6net_ident_client</tt> returned 0) to a suitable string.
+</p>
+
+<h3> Low-level functions </h3>
+
+<p>
+<code> int s6net_ident_reply_get (char *s, ip46_t const *ra, uint16 rp, ip46_t const *la, uint16 lp,
+struct taia const *deadline, struct taia *stamp) </code>
+</p>
+
+<p>
+The network part of <tt>s6net_ident_client</tt>. Connects to *<em>ra</em>:113
+and asks the server about (*<em>ra</em>:<em>rp</em>,&nbsp;*<em>la</em>:<em>lp</em>),
+aborting if *<em>deadline</em> goes by. Writes the server answer into <em>s</em>;
+at least S6NET_IDENT_REPLY_SIZE bytes must be preallocated in <em>s</em>.
+Returns -1 if an error occurs, or the number of bytes written into <em>s</em>.
+</p>
+
+<p>
+<code> int s6net_ident_reply_parse (char const *s, uint16 rp, uint16 lp) </code>
+</p>
+
+<p>
+The local part of <tt>s6net_ident_client</tt>. Parses the server answer in
+<em>s</em> for the connection from port <em>rp</em> to port <em>lp</em>.
+Returns -1 EPROTO if the answer does not make sense, 0 if the answer is
+negative, or a positive number if the answer is positive. This number is
+an index where the ID can be found in <em>s</em>.
+</p>
+
+</body>
+</html>

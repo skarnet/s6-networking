@@ -1,0 +1,239 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tcpserver-access program</title>
+    <meta name="Description" content="s6-networking: the s6-tcpserver-access program" />
+    <meta name="Keywords" content="s6-networking s6-tcpserver-access tcp access control tcprules tcpwrappers libwrap" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tcpserver-access</tt> program </h1>
+
+<p>
+<tt>s6-tcpserver-access</tt> is a command-line TCP access
+control tool, and additionally performs some fine-tuning on a
+TCP socket. It is meant to be run after
+<a href="s6-tcpserver.html">s6-tcpserver</a> and before
+the application program on the s6-tcpserver command line,
+just like tcpwrappers' <tt>tcpd</tt> program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tcpserver-access [ -v <em>verbosity</em> ] [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l <em>localname</em> ] [ -B <em>banner</em> ] [ -t <em>timeout</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-tcpserver-access checks it is run under a UCSPI server tool
+such as <a href="s6-tcpserver.html">s6-tcpserver</a>,
+ <a href="s6-tcpserver4.html">s6-tcpserver4</a> or
+ <a href="s6-tcpserver6.html">s6-tcpserver6</a>. </li>
+ <li> It checks that the remote end of the connection fits the
+accepted criteria defined by the database contained in <em>rulesdir</em>
+or <em>rulesfile</em>. If the database tells it to reject the connection,
+the program exits 1. </li>
+ <li> It sets up a few additional environment variables. </li>
+ <li> It executes into <em>prog...</em>,
+unless the first matching rule in the rule database
+includes instructions to override <em>prog...</em>. </li>
+</ul>
+
+<h2> Environment variables </h2>
+
+<p>
+s6-tcpserver-access expects to inherit some environment variables from
+its parent:
+</p>
+
+<ul>
+ <li> PROTO: normally TCP, but could be anything else, like SSL. </li>
+ <li> ${PROTO}REMOTEIP: the remote address of the socket, i.e. the client's
+IP address. This can be IPv4 or (if the underlying skalibs supports it) IPv6. </li>
+ <li> ${PROTO}REMOTEPORT: the remote port of the socket. </li>
+</ul>
+
+<p>
+ Additionally, it exports the following variables before executing into
+<em>prog...</em>:
+</p>
+
+<ul>
+ <li> ${PROTO}LOCALIP: set to the local address of the socket. </li>
+ <li> ${PROTO}LOCALPORT: set to the local port of the socket. </li>
+ <li> ${PROTO}REMOTEINFO: normally unset, but set to the information
+retrieved from ${PROTO}REMOTEIP via the IDENT protocol if the <tt>-R</tt>
+option has been given. </li>
+ <li> ${PROTO}REMOTEHOST: set to the remote host name obtained from
+a DNS lookup. Unset if the <tt>-H</tt> option has been given. </li>
+ <li> ${PROTO}LOCALHOST: set to the local host name obtained from a
+DNS lookup. If the <tt>-l</tt> option has been given, set to
+<em>localname</em> instead. </li>
+</ul>
+
+<p>
+ Also, the access rules database can instruct s6-tcpserver-access to set
+up, or unset, more environment variables, depending on the client address.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be more or less verbose, i.e.
+print more or less information to stderr:
+  <ul>
+   <li> 0: only log error messages. </li>
+   <li> 1: only log error and warning messages, and accepted connections.
+This is the default. </li>
+   <li> 2: also log rejected connections and more warning messages. </li>
+   <li> 3: also log detailed warning messages from DNS and IDENT resolution. </li>
+  </ul> </li>
+ <li> <tt>-W</tt>&nbsp;: non-fatal. If errors happen during DNS or IDENT
+resolution, the connection process is not aborted. However, incorrect or
+incomplete results might still prevent a legitimate connection from being
+authenticated against a DNS name. This is the default. </li>
+ <li> <tt>-w</tt>&nbsp;: fatal. Errors during DNS or IDENT resolution will
+drop the connection. </li>
+ <li> <tt>-D</tt>&nbsp;: disable Nagle's algorithm. Sets the TCP_NODELAY
+flag on the network socket. </li>
+ <li> <tt>-d</tt>&nbsp;: enable Nagle's algorithm. This is the default. </li>
+ <li> <tt>-H</tt>&nbsp;: disable DNS lookups for the ${PROTO}LOCALHOST and
+${PROTO}REMOTEHOST environment variables. </li>
+ <li> <tt>-h</tt>&nbsp;: enable DNS lookups. This is the default. </li>
+ <li> <tt>-R</tt>&nbsp;: disable IDENT lookups for the ${PROTO}REMOTEINFO
+environment variable. This is the default. </li>
+ <li> <tt>-r</tt>&nbsp;: enable IDENT lookups. This should only be done
+for legacy programs that need it. </li>
+ <li> <tt>-P</tt>&nbsp;: no paranoid DNS lookups. This is the default. </li>
+ <li> <tt>-p</tt>&nbsp;: paranoid. After looking up a name for the remote
+host, s6-tcpserver-access will lookup IP addresses for this name, and drop
+the connection if none of the results matches the address the connection
+is originating from. Note that this still does not replace real
+authentication via a cryptographic protocol. </li>
+ <li> <tt>-l&nbsp;<em>localname</em></tt>&nbsp;: use <em>localname</em>
+as the value for the ${PROTO}LOCALHOST environment variable, instead of
+looking it up in the DNS. </li>
+ <li> <tt>-B&nbsp;<em>banner</em></tt>&nbsp;: print <em>banner</em> to
+the network as soon as the connection is attempted, even before
+checking client credentials. The point is to speed up network protocols
+that start with a server-side message. </li>
+ <li> <tt>-t&nbsp;<em>timeout</em></tt>&nbsp;: set a timeout on all the
+operations performed by s6-tcpserver-access. If it is not able to do
+its job in <em>timeout</em> milliseconds, it will instantly exit 99.
+The default is 0, meaning no such timeout. </li>
+ <li> <tt>-i&nbsp;<em>rulesdir</em></tt>&nbsp;: check client credentials
+against a filesystem-based database in the <em>rulesdir</em> directory. </li>
+ <li> <tt>-x&nbsp;<em>rulesfile</em></tt>&nbsp;: check client credentials
+against a <a href="http://en.wikipedia.org/wiki/Cdb_(software)">cdb</a>
+database in the <em>rulesfile</em> file. <tt>-i</tt> and <tt>-x</tt> are
+mutually exclusive. If none of those options is given, no credential checking will be
+performed, and a warning will be emitted on every connection if
+<em>verbosity</em> is 2 or more. </li>
+</ul>
+
+<h2> Access rule checking </h2>
+
+<p>
+ s6-tcpserver-access checks its client connection against
+a ruleset. This ruleset can be implemented:
+</p>
+
+<ul>
+ <li> either in the filesystem as an arborescence of directories and files,
+if the <tt>-i</tt> option has been given. This option is the most flexible
+one: the directory format is simple enough for scripts to understand and
+modify it, and the ruleset can be changed dynamically. This is practical,
+for instance, for roaming users. </li>
+<li> or in a <a href="http://en.wikipedia.org/wiki/Cdb_(software)">CDB
+file</a>, if the <tt>-x</tt> option has been given. This option is the most
+efficient one if the ruleset is static enough: a lot less system calls are
+needed to perform searches in a CDB than in the filesystem. </li>
+</ul>
+
+<p>
+ The exact format of the ruleset is described on the
+<a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a> page.
+</p>
+
+<p>
+s6-tcpserver-access first gets the remote address <em>ip</em> of the
+client and converts it to canonical form. Then it checks it with the
+<a href="libs6net/accessrules.html#ip4">s6net_accessrules_keycheck_ip46()</a>
+function. In other words, it tries to match broader and broader network
+prefixes of <em>ip</em>, from <tt>ip4/</tt><em>ip</em><tt>_32</tt> to
+<tt>ip4/0.0.0.0_0</tt> if <em>ip</em> is v4, or from
+<tt>ip6/</tt><em>ip</em><tt>/128</tt> to <tt>ip6/::_0</tt> if <em>ip</em>
+is v6. If the result is:
+</p>
+
+ <li> S6NET_ACCESSRULES_ERROR: it immediately exits 111. </li>
+ <li> S6NET_ACCESSRULES_DENY: it immediately exits 1. </li>
+ <li> S6NET_ACCESSRULES_ALLOW: it grants access. </li>
+ <li> S6NET_ACCESSRULES_NOTFOUND: more information is needed. </li>
+</ul>
+
+<p>
+ In the last case, if DNS lookups have been deactivated (<tt>-H</tt>) then access
+is denied. But if s6-tcpserver-access is authorized to perform DNS lookups,
+then it gets the remote name of the client, <em>remotehost</em>, and
+checks it with the
+<a href="libs6net/accessrules.html#reversedns">s6net_accessrules_keycheck_reversedns()</a>
+function. In other words, it tries to match shorter and shorter suffixes
+of <em>remotehost</em>, from <tt>reversedns/</tt><em>remotehost</em> to
+<tt>reversedns/@</tt>.
+This time, the connection is denied is the result is anything else than
+S6NET_ACCESSRULES_ALLOW.
+</p>
+
+<p>
+ Note that even if the access check succeeds, the connection can still be
+denied if paranoid mode has been required (<tt>-p</tt>) and a forward DNS query
+on <em>remotehost</em> does not match <em>ip</em>. 
+</p>
+
+<h2> Environment and executable modifications </h2>
+
+<p>
+ s6-tcpserver-access interprets non-empty <tt>env</tt> subdirectories
+and <tt>exec</tt> files
+it finds in the matching rule of the ruleset, as explained
+in the <a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
+page.
+</p>
+
+<ul>
+ <li> An <tt>env</tt> subdirectory is interpreted as if the
+<a href="http://skarnet.org/software/s6/s6-envdir.html">s6-envdir</a>
+command had been called before executing <em>prog</em>: the environment
+is modified according to the contents of <tt>env</tt>. </li>
+ <li> An <tt>exec</tt> file containing <em>newprog</em> completely
+bypasses the rest of s6-tcpserver-access' command line. After
+environment modifications, if any, s6-tcpserver-access execs into
+<tt><a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a> -c <em>newprog</em></tt>. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-tcpserver-access works with
+<a href="s6-tcpserver4.html">s6-tcpserver4</a>, handling IPv4 addresses,
+as well as
+<a href="s6-tcpserver6.html">s6-tcpserver6</a>, handling IPv6 addresses.
+It will automatically detect the remote address type and match it against the
+correct subdatabase. </li>
+ <li> s6-tcpserver-access may perform several DNS queries. For efficiency
+purposes, it does as many of them as possible in parallel. However, if asked
+to do an IDENT query, it does not parallelize it with DNS queries. Take
+that into account when estimating a proper <em>timeout</em> value. </li>
+</ul>
+
+</body>
+</html>

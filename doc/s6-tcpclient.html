@@ -1,0 +1,133 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tcpclient program</title>
+    <meta name="Description" content="s6-networking: the s6-tcpclient program" />
+    <meta name="Keywords" content="s6-networking s6-tcpclient tcpclient ucspi tcp inet network tcp/ip client" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tcpclient</tt> program </h1>
+
+<p>
+<tt>s6-tcpclient</tt> is an
+<a href="http://cr.yp.to/proto/ucspi.txt">UCSPI client tool</a> for
+INET domain sockets. It establishes a TCP connection to a server,
+then executes into a program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tcpclient [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h | -H ] [ -n | -N ] [ -t <em>timeout</em> ] [ -l <em>localname</em> ] [ -T <em>timeoutconn</em> ] [ -i <em>localip</em> ] [ -p <em>localport</em> ] <em>host</em> <em>port</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-tcpclient establishes a TCP connection to host <em>host</em>
+port <em>port</em>. </li>
+ <li> It executes into <em>prog...</em> with descriptor 6 reading from
+the network and descriptor 7 writing to it. </li>
+</ul>
+
+<h2> Host address determination </h2>
+
+<ul>
+ <li> <em>host</em> may be an IP address, in which case s6-tcpclient will
+connect to that IP address. If the underlying skalibs has been
+compiled with IPv6 support, <em>host</em> can be an IPv6 address as
+well as an IPv4 one. </li>
+ <li> <em>host</em> may be a domain name, in which case a DNS
+resolution will be performed on it, and a connection will be tried to
+all the resulting IP addresses in a round-robin fashion, twice:
+first with a small timeout, then with a longer timeout. The first
+address to answer wins. The connection attempt fails if no address
+in the list is able to answer. </li>
+</ul>
+
+<h2> Environment variables </h2>
+
+<p>
+ <em>prog...</em> is run with the following variables set:
+</p>
+
+<ul>
+ <li> PROTO: always set to TCP </li>
+ <li> TCPREMOTEIP: set to the chosen IP address of <em>host</em>. </li>
+ <li> TCPREMOTEPORT: set to <em>port</em>. </li>
+ <li> TCPREMOTEHOST: if the <tt>-H</tt> has been given, set to the
+name obtained by a reverse DNS resolution of the IP address chosen
+for <em>host</em>. Else unset. </li>
+ <li> TCPLOCALHOST: if the <tt>-l</tt> option has been given, set to
+<em>localname</em>. Else set to the name obtained by a reverse DNS
+resolution of the IP address chosen for the local host. </li>
+ <li> TCPREMOTEINFO: if the <tt>-r</tt> option has been given, set
+to the information given by an IDENT server on <em>host</em> about
+the current connection (very unreliable). Else unset. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-q</tt>&nbsp;: be quiet. </li>
+ <li> <tt>-Q</tt>&nbsp;: be normally verbose. This is the default. </li>
+ <li> <tt>-v</tt>&nbsp;: be verbose. </li>
+ <li> <tt>-4</tt>&nbsp;: (only valid if the underlying skalibs has
+IPv6 support) Interpret <em>host</em> as an IPv4 address or make A
+queries to determine its addresses. </li>
+ <li> <tt>-6</tt>&nbsp;: (only valid if the underlying skalibs has
+IPv6 support) Interpret <em>host</em> as an IPv6 address or make
+AAAA queries to determine its addresses. This option and the previous
+one are not mutually exclusive: if both are given, both IPv6 and
+IPv4 addresses will be tried and IPv6 addresses will be given priority.
+If neither option is given, only IPv4 address will be tried. </li>
+ <li> <tt>-d</tt>&nbsp;: don't use the TCP_NODELAY socket option. This
+is the default. </li>
+ <li> <tt>-D</tt>&nbsp;: use the TCP_NODELAY socket option, which disables
+Nagle's algorithm. </li>
+ <li> <tt>-r</tt>&nbsp;: try and obtain a TCPREMOTEINFO string via the
+IDENT protocol. This is obsolete and unreliable, and should only be used for
+compatibility with legacy programs. </li>
+ <li> <tt>-R</tt>&nbsp;: do not use the IDENT protocol. This is the
+default. </li>
+ <li> <tt>-h</tt>&nbsp;: try and obtain the remote host name via DNS.
+This is the default. </li>
+ <li> <tt>-H</tt>&nbsp;: do not try and obtain the remote host name
+via DNS. </li>
+ <li> <tt>-n</tt>&nbsp;: qualify <em>host</em> when resolving it to
+find suitable IP addresses. This is the default. </li>
+ <li> <tt>-N</tt>&nbsp;: do not qualify <em>host</em>. </li>
+ <li> <tt>-t&nbsp;:<em>timeout</em></tt>&nbsp;: put a global timeout
+on the connection attempt. If no fully functional connection has been
+established after <em>timeout</em> seconds, abort the program. By
+default, <em>timeout</em> is 0, which means no timeout. </li>
+ <li> <tt>-i&nbsp;<em>localip</em></tt>&nbsp;: use <em>localip</em> as
+the local socket address for the connection. By default, address selection
+is left to the operating system. </li>
+ <li> <tt>-p&nbsp;<em>localport</em></tt>&nbsp;: use <em>localport</em>
+as the local socket port for the connection. By default, port selection
+is left to the operating system. </li>
+ <li> <tt>-l&nbsp;<em>localname</em></tt>&nbsp;: use <em>localname</em>
+as the value of the TCPLOCALPATH environment variable instead of
+looking it up via the DNS. </li>
+ <li> <tt>-T&nbsp;:<em>timeoutconn</em></tt>&nbsp;: configure the
+connection timeouts. <em>timeoutconn</em> must be of the form
+<em>x</em><tt>+</tt><em>y</em>, where <em>x</em> and <em>y</em> are
+integers. <em>x</em> is the first timeout and <em>y</em> is the
+second one: all suitable addresses for <em>host</em> are first
+tried with a timeout of <em>x</em> seconds, and if all of them
+fail, then they are tried again with a timeout of <em>y</em>
+seconds. (Be aware that the timeout specified with the <tt>-t</tt>
+option overrides everything.) By default, <em>x</em> is 2 and
+<em>y</em> is 58. </li>
+</ul>
+
+</body>
+</html>

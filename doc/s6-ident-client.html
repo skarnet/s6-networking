@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-ident-client program</title>
+    <meta name="Description" content="s6-networking: the s6-ident-client program" />
+    <meta name="Keywords" content="s6-networking minidentd identd ident client rfc 1413" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-ident-client</tt> program </h1>
+
+<p>
+<tt>s6-ident-client</tt> is a command-line client application that
+performs IDENT (RFC 1413) queries.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ident-client [ -t <em>millisecs</em> ] <em>remoteaddr</em> <em>remoteport</em> <em>localaddr</em> <em>localport</em>
+</pre>
+
+<ul>
+ <li> s6-ident-client contacts the IDENT server on address <em>remoteaddr</em>
+port 113 and asks it about the connection from address <em>remoteaddr</em>
+port <em>remoteport</em> to address <em>localaddr</em> port <em>localport</em>. </li>
+ <li> It prints the answer to stdout. </li>
+ <li> It exits 0 if the answer is positive or 1 if the answer is negative,
+in which case it also prints an informative message to stderr. </li>
+ <li> <em>remoteaddr</em> and <em>localaddr</em> can be either IPv4
+or IPv6 addresses; however, they must both be of the same type. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-t&nbsp;<em>millisecs</em></tt>&nbsp;: if no answer has been
+obtained within <em>millisecs</em> milliseconds, s6-ident-client will
+exit 99 with an error message. By default, <em>millisecs</em> is 0,
+which means no time limit. </li>
+</ul>
+
+</body>
+</html>

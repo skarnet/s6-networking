@@ -1,0 +1,48 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-getservbyname program</title>
+    <meta name="Description" content="s6-networking: the s6-getservbyname program" />
+    <meta name="Keywords" content="s6-networking s6-getservbyname getservbyname" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-getservbyname</tt> program </h1>
+
+<p>
+<tt>s6-getservbyname</tt> is a simple command-line interface to the
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/getservbyname.html">getservbyname()</a>
+function, converting a service name and protocole into a port number.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-getservbyname <em>name</em> <em>proto</em>
+</pre>
+
+<ul>
+ <li> <tt>s6-getservbyname</tt> looks up the network services database
+for an entry containing name <em>name</em> and protocol <em>proto</em>. </li>
+ <li> It prints the corresponding port number to stdout, then exits 0. </li>
+ <li> If it cannot find a related entry, it exits 1. </li>
+</ul>
+
+<h2> Example </h2>
+
+<p>
+ On a standard machine with a correct <tt>/etc/services</tt> file and
+a non-garbled NSS configuration:
+ <tt>s6-getservbyname smtp tcp</tt> prints 25.
+</p>
+
+</body>
+</html>

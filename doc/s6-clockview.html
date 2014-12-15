@@ -1,0 +1,41 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-clockview program</title>
+    <meta name="Description" content="s6-networking: the s6-clockview program" />
+    <meta name="Keywords" content="s6-networking s6-clockview tai clock tai64 tai64n tai64na clockview" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-clockview</tt> program </h1>
+
+<p>
+<tt>s6-clockview</tt> prints the time discrepancy between the local
+system clock and the time provided by a time server.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-taiclock <em>server</em> | s6-clockview
+</pre>
+
+<ul>
+ <li> s6-clockview reads its stdin, expecting input from a program such
+<a href="s6-taiclock.html">s6-taiclock</a> or
+<a href="s6-sntpclock.html">s6-sntpclock</a> (which get time from a
+time server). </li>
+ <li> It prints the local system time, and the time given by the
+server, in human-readable form, then exits 0. </li>
+</ul>
+
+</body>
+</html>

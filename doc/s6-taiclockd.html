@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-taiclockd program</title>
+    <meta name="Description" content="s6-networking: the s6-taiclockd program" />
+    <meta name="Keywords" content="s6-networking s6-taiclock tai clock tai64 tai64n tai64na server" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-taiclockd</tt> program </h1>
+
+<p>
+<tt>s6-taiclockd</tt> is a server for the
+<a href="http://cr.yp.to/proto/taiclock.txt">TAICLOCK</a> protocol.
+It's a long-lived program listening to the network and answering
+to TAICLOCK clients such as <a href="s6-taiclock.html">s6-taiclock</a>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-taiclockd [ -i <em>ip</em> ] [ -p <em>port</em> ]
+</pre>
+
+<ul>
+ <li> s6-taiclockd listens to all network addresses on UDP
+port 4014. </li>
+ <li> Whenever it receives a TAICLOCK request, it answers
+immediately with the TAI time given by its local system clock. </li>
+ <li> It runs until killed by a signal. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-i&nbsp;<em>ip</em></tt>&nbsp;: bind to <em>ip</em> instead
+of all available addresses. <em>ip</em> can be IPv4 or IPv6. </li>
+ <li> <tt>-p&nbsp;<em>port</em></tt>&nbsp;: bind to port
+<em>port</em> instead of 4014. </li>
+</ul>
+
+</body>
+</html>

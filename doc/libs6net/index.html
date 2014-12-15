@@ -1,0 +1,63 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6net library interface</title>
+    <meta name="Description" content="s6-networking: the s6net library interface" />
+    <meta name="Keywords" content="s6-networking net s6net library libs6net" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="../">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6net</tt> library interface </h1>
+
+<h2> General information </h2>
+
+<p>
+ <tt>libs6net</tt> is a collection of networking-related utility
+C interfaces, used in the s6-networking executables.
+</p>
+
+<h2> Compiling </h2>
+
+<ul>
+ <li> Make sure the s6-networking headers, as well as the skalibs headers,
+are visible in your header search path. </li>
+ <li> Use <tt>#include &lt;s6-networking/s6net.h&gt;</tt> </li>
+</ul>
+
+<h2> Linking </h2>
+
+<ul>
+ <li> Make sure the s6-networking libraries, as well as the skalibs
+libraries, are visible in your library search path. </li>
+ <li> Link against <tt>-ls6net</tt>, <tt>-lskarnet</tt>, </li>
+<tt>`cat $SYSDEPS/socket.lib`</tt> and
+<tt>`cat $SYSDEPS/tainnow.lib`</tt>, $SYSDEPS being your skalibs
+sysdeps directory. </li>
+</ul>
+
+<h2> Programming </h2>
+
+<p>
+ The <tt>s6-networking/s6net.h</tt> header is actually a
+concatenation of other headers:
+the libs6net is separated into several modules, each of them with its
+own header.
+</p>
+
+<ul>
+ <li> The <a href="accessrules.html">s6-networking/accessrules.h</a> header
+provides function to check credentials against configuration files. </li>
+ <li> The <a href="ident.html">s6-networking/ident.h</a> header provides
+a small IDENT client (RFC 1413). </li>
+</ul>
+
+</body>
+</html>

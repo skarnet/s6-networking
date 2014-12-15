@@ -1,0 +1,166 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-sntpclock program</title>
+    <meta name="Description" content="s6-networking: the s6-sntpclock program" />
+    <meta name="Keywords" content="s6-networking s6-sntpclock sntp clock sntpv4 client" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-sntpclock</tt> program </h1>
+
+<p>
+<tt>s6-sntpclock</tt> is a small SNTP client. It connects to a
+SNTP or NTP server, computes an estimated discrepancy between the
+local clock time and the absolute time given by the server, and
+outputs it on stdout.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-sntpclock [ -f ] [ -v <em>verbosity</em> ] [ -r <em>roundtrips</em> ] [ -t <em>triptimeout</em> ] [ -h <em>throttle</em> ] [ -T <em>totaltimeout</em> ] [ -e <em>errmax</em> ] [ -p <em>port</em> ] <em>ipaddress</em> | s6-clockview
+</pre>
+
+<ul>
+ <li> s6-sntpclock exchanges SNTPv4 messages with a SNTP server
+listening on <em>ipaddress</em>, UDP port 123.
+<em>ipaddress</em> can be IPv4 or IPv6. </li>
+ <li> It computes the mean difference between the absolute time
+given by the system clock and the one given by the server. </li>
+ <li> It prints the difference to stdout in a format understood
+by <a href="s6-clockadd">s6-clockadd</a> and
+<a href="s6-clockview">s6-clockview</a>. It then exits 0. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-f</tt>&nbsp;: force. Normally, s6-sntpclock exits 111 if it cannot
+compute a time with a smaller uncertainty than <em>errmax</em>. If this
+option is set, it will output a time difference and exit 0 even if the
+error is too big. </li>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be more or less verbose.
+By default, <em>verbosity</em> is 1. 0 means only print fatal error
+messages; 3 means trace every exchange with the server. </li>
+ <li> <tt>-r&nbsp;<em>roundtrips</em></tt>&nbsp;: perform <em>roundtrips</em>
+exchanges with the server. By default, <em>roundtrip</em> is 10. A lower
+value yields a higher time uncertainty; a higher value puts more load on
+the server. </li>
+ <li> <tt>-t&nbsp;<em>triptimeout</em></tt>&nbsp;: if a SNTP exchange with
+the server takes more than <em>triptimeout</em> milliseconds, abort this
+exchange and move on to the next one. By default, <em>triptimeout</em>
+is 2000. </li>
+ <li> <tt>-h&nbsp;<em>throttle</em></tt>&nbsp;: wait <em>throttle</em>
+milliseconds between exchanges with the server. A lower value gets the
+final result earlier, but exerts more load on the server. A higher
+value puts a lighter load on the server, but delays the computation.
+By default, <em>throttle</em> is 0. It is recommended to set it to a
+reasonable nonzero value when increasing <em>roundtrips</em>. </li>
+ <li> <tt>-T&nbsp;<em>totaltimeout</em></tt>&nbsp;: if the whole
+operation takes more than <em>totaltimeout</em> milliseconds, abort
+and exit 1. By default, <em>totaltimeout</em> is 10000. </li>
+ <li> <tt>-e&nbsp;<em>errmax</em></tt>&nbsp;: accept a maximum time
+uncertainty of <em>errmax</em> milliseconds. By default, <em>errmax</em>
+is 100. </li>
+ <li> <tt>-p&nbsp;<em>port</em></tt>&nbsp;: contact a server on port
+<em>port</em>. By default, <em>port</em> is 123. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> There are a lot of infelicities in the NTP protocol (which SNTP is
+a subset of). The biggest offender is probably that NTP cannot handle
+a time difference of more than 34 years: if the time given by the NTP
+server is more than 34 years away from the time given by the system clock,
+then NTP just cannot compute. This is a problem for CMOS-less systems,
+where the system clock is initialized to the Unix Epoch. The solution
+is to first manually initialize the system clock with a program such as
+<a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/date.html">date</a> or
+<a href="http://skarnet.org/software/s6-portable-utils/s6-clock.html">s6-clock</a>
+to a closer time (such as 2013-01-01, which will be good up to 2047), then
+contact the NTP server. </li>
+ <li> A less obvious problem with NTP is that it works with UTC time,
+which means that it gives inaccurate results when close to a leap second,
+up to one second off when used during a leap second, and this
+is bound to the use of UTC: there is nothing you can do about it. The
+only solution to get reliable results even around a leap second is to
+use linear time such as TAI; the
+<a href="s6-taiclock.html">s6-taiclock</a> and
+<a href="s6-taiclockd.html">s6-taiclockd</a> programs provide tools to
+do so. </li>
+</ul>
+
+<a name="ntpd" />
+<h2> A word on ntpd </h2>
+
+<p>
+ From a Unix software engineering standpoint, the well-known
+<a href="http://doc.ntp.org/4.1.0/ntpd.htm">ntpd</a> program is an
+eldritch abomination. The main reason for it is that, just like its
+lovely cousin <a href="http://www.isc.org/downloads/bind/">BIND</a>,
+ntpd performs a lot of different tasks in a unique process, instead
+of separating what could, and should, be separated. This is confusing
+for both the programmer <em>and</em> the software user.
+</p>
+
+<ul>
+ <li> The term "NTP server" means two different things:
+ <ul>
+  <li> A program that serves NTP time to the Internet and can be
+accessed by NTP clients. </li>
+  <li> A daemon, i.e. a long-lived process, that runs on a machine
+and handles NTP-related stuff such as keeping the system clock accurate. </li>
+ </ul>
+ The former is the real meaning of "NTP server". The latter is a common
+usage for the term, but comes from a misuse of "server" to mean "daemon".
+ntpd does not help clear the misunderstanding since it does both. It acts
+as an NTP server, <em>and</em> as an NTP client getting its time from
+lower-strata NTP servers, <em>and</em> as a local system clock management
+daemon. Those are already 3 separate tasks. </li>
+ <li> Local system clock management itself involves several duties. There
+is the regular setting of the system clock, which can be done with
+a loop over a simple program such as <a href="s6-clockadd.html">s6-clockadd</a>.
+There is also control of the clock skew, which s6-networking does not
+provide because there is no portable interface for that; there is such a tool
+in the <a href="http://cr.yp.to/clockspeed.html">clockspeed</a> package. </li>
+ <li> ntpd includes a complete cryptographic key management system for the
+crypto part of NTP. NTP is not the only protocol that uses cryptography
+and asymmetric keys; managing keys in a separate tool, not in the NTP
+daemon itself, would be simpler and smarter. </li>
+ <li> ntpd provides monitoring support for client and server timekeeping
+performance. This would be best implemented as a separate specific log
+analyzing tool. </li>
+</ul>
+
+<p>
+ And of course, no matter how many layers of complexity you add onto
+ntpd, it will never be able to give accurate time in the vicinity of a
+leap second, since the very <em>protocol</em> is flawed by design - but
+the ntpd authors cannot be blamed for that. Also, the ntpd
+<em>writers</em>, not the designers, should be praised: the history of
+ntpd security flaws is remarkably small, which is quite a feat for a
+huge monolithic root daemon.
+</p>
+
+<p>
+ Network synchronization is important, NTP has its perks and
+valid use cases, and its existence is a good thing. However, I wish that
+the main NTP implementation weren't written as a big fat clumsy process
+running as root. s6-sntpclock together with
+<a href="s6-clockadd.html">s6-clockadd</a> aims to provide a small, simple
+tool to keep system clocks, especially in embedded devices, synchronized
+to a NTP server.
+</p>
+
+</body>
+</html>

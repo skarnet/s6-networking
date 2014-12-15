@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tcpserver program</title>
+    <meta name="Description" content="s6-networking: the s6-tcpserver program" />
+    <meta name="Keywords" content="s6-networking s6-tcpserver tcpserver ucspi tcp server super-server" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tcpserver</tt> program </h1>
+
+<p>
+<tt>s6-tcpserver</tt> is an
+<a href="http://cr.yp.to/proto/ucspi.txt">UCSPI tool</a> for
+TCP connections, i.e. a super-server. It accepts connections from
+clients, and forks a program to handle each connection.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tcpserver [ -q | -Q | -v ] [ -4 | -6 ] [ -1 ] [ -c <em>maxconn</em> ] [ -C <em>localmaxconn</em> ] [ -b <em>backlog</em> ] [ -G <em>gidlist</em> ] [ -g <em>gid</em> ] [ -u <em>uid</em> ] [ -U ] <em>ip</em> <em>port</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-tcpserver executes into
+<a href="s6-tcpserver4.html">s6-tcpserver4</a> or
+<a href="s6-tcpserver6.html">s6-tcpserver6</a> depending on whether
+<em>ip</em> is an IPv4 or IPv6 address. It modifies some of its
+option syntax to match s6-tcpserver4 and s6-tcpserver6's.</li>
+ <li> s6-tcpserver4 or s6-tcpserver6 handles the connection itself. </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-q</tt>&nbsp;: be quiet. This is converted into <tt>-v&nbsp;0</tt>
+for s6-tcpserver4 or s6-tcpserver6. </li>
+ <li> <tt>-Q</tt>&nbsp;: be normally quiet. This is converted into <tt>-v&nbsp;1</tt>
+for s6-tcpserver4 or s6-tcpserver6. This is the default. </li>
+ <li> <tt>-v</tt>&nbsp;: be verbose. This is converted into <tt>-v&nbsp;2</tt>
+for s6-tcpserver4 or s6-tcpserver6. </li>
+ <li> <tt>-4</tt>&nbsp;: IPv4 only.  Interpret <em>ip</em> as IPv4; if it is
+invalid, exit 100. </li>
+ <li> <tt>-6</tt>&nbsp;: IPv6 only.  Interpret <em>ip</em> as IPv6; if it is
+invalid, exit 100. If neither the <tt>-4</tt> nor the <tt>-6</tt> option is
+given, s6-tcpserver will parse <em>ip</em> to determine its family. </li>
+ <li> Every other option is passed verbatim to s6-tcpserver4 or s6-tcpserver6. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> s6-tcpserver executes either into s6-tcpserver4, which only serves
+IPv4, or into IPv6, which only serves IPv6. It will not bind to every
+available IP address of the machine whether they are v4 or v6; on the
+other hand, it can bind to every available IPv4 address (if <em>ip</em>
+is <tt>0.0.0.0</tt>) or to every available IPv6 address (if <em>ip</em>
+is <tt>::</tt>). Two instances of s6-tcpserver can cover every
+available address. </li>
+</ul>
+
+</body>
+</html>

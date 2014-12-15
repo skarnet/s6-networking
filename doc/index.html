@@ -1,0 +1,182 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking - small networking utilities</title>
+    <meta name="Description" content="s6-networking - small networking utilities" />
+    <meta name="Keywords" content="s6-networking network utilities tcpclient tcpserver s6 ucspi unix linux laurent bercot ska skarnet" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">www.skarnet.org</a>
+</p>
+
+<h1> s6-networking </h1>
+
+<h2> What is it&nbsp;? </h2>
+
+<p>
+ s6-networking is a suite of small networking utilities for Unix systems.
+It includes command-line client and server management, TCP access
+control, privilege escalation across UNIX domain sockets, IDENT
+protocol management and clock synchronization.
+</p>
+
+<p>
+ If the underlying
+<a href="http://skarnet.org/software/skalibs/">skalibs</a> has been
+compiled with IPv6 support, s6-networking is IPv6-ready.
+</p>
+
+<hr />
+
+<h2> Installation </h2>
+
+<h3> Requirements </h3>
+
+<ul>
+ <li> A POSIX-compliant system with a standard C development environment </li>
+ <li> GNU make, version 3.81 or later </li>
+ <li> <a href="http://skarnet.org/software/skalibs/">skalibs</a> version
+2.0.0.0 or later </li>
+ <li> <a href="http://skarnet.org/software/execline/">execline</a> version
+2.0.0.0 or later </li>
+ <li> <a href="http://skarnet.org/software/s6-dns/">s6-dns</a> version
+2.0.0.0 or later </li>
+</ul>
+
+<h3> Licensing </h3>
+
+<p>
+ s6-networking is free software. It is available under the
+<a href="http://opensource.org/licenses/ISC">ISC license</a>.
+</p>
+
+<h3> Download </h3>
+
+<ul>
+ <li> The current released version of s6-networking is <a href="s6-networking-2.0.0.0.tar.gz">2.0.0.0</a>. </li>
+ <li> Alternatively, you can checkout a copy of the s6-networking git repository:
+<pre> git clone git://git.skarnet.org/s6-networking </pre> </li>
+</ul>
+
+<h3> Compilation </h3>
+
+<ul>
+ <li> See the enclosed INSTALL file for installation details. </li>
+</ul>
+
+<h3> Upgrade notes </h3>
+
+<ul>
+ <li> <a href="upgrade.html">This page</a> lists the differences to be aware of between
+the previous versions of s6-networking and the current one. </li>
+</ul>
+
+<h2> Reference </h2>
+
+<h3> Commands </h3>
+
+<p>
+ All these commands exit 111 if they encounter a temporary error or
+hardware error, and
+100 if they encounter a permanent error - such as a misuse. Short-lived
+commands exit 0 on success. Other exit codes are documented in the
+relevant page.
+</p>
+
+<h4> System clock synchronization </h4>
+
+<ul>
+<li><a href="s6-clockadd.html">The <tt>s6-clockadd</tt> program</a></li>
+<li><a href="s6-clockview.html">The <tt>s6-clockview</tt> program</a></li>
+<li><a href="s6-sntpclock.html">The <tt>s6-sntpclock</tt> program</a> </li>
+<li><a href="s6-taiclock.html">The <tt>s6-taiclock</tt> program</a></li>
+<li><a href="s6-taiclockd.html">The <tt>s6-taiclockd</tt> program</a></li>
+</ul>
+
+<h4> UCSPI implementation </h4>
+
+<ul>
+<li><a href="s6-tcpclient.html">The <tt>s6-tcpclient</tt> program</a></li>
+<li><a href="s6-tcpserver.html">The <tt>s6-tcpserver</tt> program</a></li>
+<li><a href="s6-tcpserver4.html">The <tt>s6-tcpserver4</tt> program</a></li>
+<li><a href="s6-tcpserver6.html">The <tt>s6-tcpserver6</tt> program</a></li>
+<li><a href="s6-ipcclient.html">The <tt>s6-ipcclient</tt> program</a></li>
+<li><a href="s6-ipcserver.html">The <tt>s6-ipcserver</tt> program</a></li>
+<li><a href="s6-ioconnect.html">The <tt>s6-ioconnect</tt> program</a></li>
+</ul>
+
+<h4> TCP and Unix access control </h4>
+
+<ul>
+<li><a href="s6-tcpserver-access.html">The <tt>s6-tcpserver-access</tt> program</a></li>
+<li><a href="s6-ipcserver-access.html">The <tt>s6-ipcserver-access</tt> program</a></li>
+<li><a href="s6-connlimit.html">The <tt>s6-connlimit</tt> program</a></li>
+<li><a href="s6-accessrules-cdb-from-fs.html">The <tt>s6-accessrules-cdb-from-fs</tt> program</a></li>
+<li><a href="s6-accessrules-fs-from-cdb.html">The <tt>s6-accessrules-fs-from-cdb</tt> program</a></li>
+</ul>
+
+<h4> suidless privilege gain </h4>
+
+<ul>
+<li><a href="s6-sudo.html">The <tt>s6-sudo</tt> program</a></li>
+<li><a href="s6-sudoc.html">The <tt>s6-sudoc</tt> program</a></li>
+<li><a href="s6-sudod.html">The <tt>s6-sudod</tt> program</a></li>
+</ul>
+
+<h4> IDENT protocol implementation </h4>
+
+<ul>
+<li><a href="s6-ident-client.html">The <tt>s6-ident-client</tt> program</a></li>
+<li><a href="minidentd.html">The <tt>minidentd</tt> program</a></li>
+</ul>
+
+<h4> Miscellaneous utilities </h4>
+
+<ul>
+<li><a href="seekablepipe.html">The <tt>seekablepipe</tt> program</a></li>
+<li><a href="s6-getservbyname.html">The <tt>s6-getservbyname</tt> program</a></li>
+</ul>
+
+<h3> Libraries </h3>
+
+<ul>
+<li> The <a href="libs6net/">s6net</a> library, containing: </li>
+<li> <a href="libs6net/ident.html">The <tt>ident</tt> library interface</a> </li>
+<li> <a href="libs6net/accessrules.html">The <tt>accessrules</tt> library interface</a> </li>
+</ul>
+
+<hr />
+
+<a name="related">
+<h2> Related resources </h2>
+</a>
+
+<h3> s6-networking discussion </h3>
+
+<ul>
+ <li> <tt>s6-networking</tt> is discussed on the
+<a href="http://skarnet.org/lists.html#skaware">skaware</a> mailing-list. </li>
+ <li> <tt>s6-networking</tt> has a
+<a href="http://freecode.com/projects/s6-networking">freecode page</a>.
+ </li>
+</ul>
+
+<h3> Similar work </h3>
+
+<ul>
+ <li> <a href="http://cr.yp.to/ucspi-tcp.html">ucspi-tcp</a> is the
+original inspiration for s6-networking.
+It works, but is unfortunately unmaintained by the author. s6-networking
+follows <a href="http://skarnet.org/software/skalibs/djblegacy.html">the
+same design principles</a>. </li>
+ <li> <a href="http://smarden.org/ipsvd/">ipsvd</a> is a very similar program
+suite. </li>
+</ul>
+
+</body>
+</html>

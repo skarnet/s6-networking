@@ -1,0 +1,4 @@
+-ls6net
+-lskarnet
+${SOCKET_LIB}
+${TAINNOW_LIB}
