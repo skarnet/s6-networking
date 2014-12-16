@@ -42,28 +42,52 @@ src/minidentd/mgetuid-default.o src/minidentd/mgetuid-default.lo: src/minidentd/
 src/minidentd/mgetuid-linux.o src/minidentd/mgetuid-linux.lo: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid.h
 src/minidentd/minidentd.o src/minidentd/minidentd.lo: src/minidentd/minidentd.c src/minidentd/mgetuid.h
 
-s6-clockadd: src/clock/s6-clockadd.o -lskarnet ${SYSCLOCK_LIB}
-s6-clockview: src/clock/s6-clockview.o -lskarnet ${SYSCLOCK_LIB}
-s6-sntpclock: src/clock/s6-sntpclock.o -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-taiclock: src/clock/s6-taiclock.o -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-taiclockd: src/clock/s6-taiclockd.o -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o -ls6net -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-clockadd: private EXTRA_LIBS := ${SYSCLOCK_LIB}
+s6-clockadd: src/clock/s6-clockadd.o -lskarnet
+s6-clockview: private EXTRA_LIBS := ${SYSCLOCK_LIB}
+s6-clockview: src/clock/s6-clockview.o -lskarnet
+s6-sntpclock: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-sntpclock: src/clock/s6-sntpclock.o -lskarnet
+s6-taiclock: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-taiclock: src/clock/s6-taiclock.o -lskarnet
+s6-taiclockd: private EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-taiclockd: src/clock/s6-taiclockd.o -lskarnet
+s6-accessrules-cdb-from-fs: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o -ls6net -lskarnet
+s6-accessrules-fs-from-cdb: private EXTRA_LIBS :=
 s6-accessrules-fs-from-cdb: src/conn-tools/s6-accessrules-fs-from-cdb.o -lskarnet
+s6-connlimit: private EXTRA_LIBS :=
 s6-connlimit: src/conn-tools/s6-connlimit.o -lskarnet
+s6-getservbyname: private EXTRA_LIBS :=
 s6-getservbyname: src/conn-tools/s6-getservbyname.o -lskarnet
-s6-ident-client: src/conn-tools/s6-ident-client.o -ls6net -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-ioconnect: src/conn-tools/s6-ioconnect.o -lskarnet ${TAINNOW_LIB}
-s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet ${SOCKET_LIB}
-s6-ipcserver: src/conn-tools/s6-ipcserver.o -lskarnet ${SOCKET_LIB}
+s6-ident-client: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ident-client: src/conn-tools/s6-ident-client.o -ls6net -lskarnet
+s6-ioconnect: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ioconnect: src/conn-tools/s6-ioconnect.o -lskarnet
+s6-ipcclient: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet
+s6-ipcserver: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcserver: src/conn-tools/s6-ipcserver.o -lskarnet
+s6-ipcserver-access: private EXTRA_LIBS :=
 s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o -ls6net -lskarnet
+s6-sudo: private EXTRA_LIBS :=
 s6-sudo: src/conn-tools/s6-sudo.o -lskarnet
-s6-sudoc: src/conn-tools/s6-sudoc.o -lskarnet ${TAINNOW_LIB}
-s6-sudod: src/conn-tools/s6-sudod.o -lskarnet ${TAINNOW_LIB}
-s6-tcpclient: src/conn-tools/s6-tcpclient.o -ls6net -ls6dns -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-sudoc: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-sudoc: src/conn-tools/s6-sudoc.o -lskarnet
+s6-sudod: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-sudod: src/conn-tools/s6-sudod.o -lskarnet
+s6-tcpclient: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tcpclient: src/conn-tools/s6-tcpclient.o -ls6net -ls6dns -lskarnet
+s6-tcpserver: private EXTRA_LIBS :=
 s6-tcpserver: src/conn-tools/s6-tcpserver.o -lskarnet
-s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o -ls6net -ls6dns -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-tcpserver4: src/conn-tools/s6-tcpserver4.o -lskarnet ${SOCKET_LIB}
-s6-tcpserver6: src/conn-tools/s6-tcpserver6.o -lskarnet ${SOCKET_LIB}
+s6-tcpserver-access: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o -ls6net -ls6dns -lskarnet
+s6-tcpserver4: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserver4: src/conn-tools/s6-tcpserver4.o -lskarnet
+s6-tcpserver6: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserver6: src/conn-tools/s6-tcpserver6.o -lskarnet
+seekablepipe: private EXTRA_LIBS :=
 seekablepipe: src/conn-tools/seekablepipe.o -lskarnet
 libs6net.a:  src/libs6net/s6net_accessrules_backend_cdb.o src/libs6net/s6net_accessrules_backend_fs.o src/libs6net/s6net_accessrules_keycheck_ip4.o src/libs6net/s6net_accessrules_keycheck_ip6.o src/libs6net/s6net_accessrules_keycheck_reversedns.o src/libs6net/s6net_accessrules_keycheck_uidgid.o src/libs6net/s6net_accessrules_uidgid_cdb.o src/libs6net/s6net_accessrules_uidgid_fs.o src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
-minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet ${SOCKET_LIB} ${TAINNOW_LIB}
+minidentd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet
