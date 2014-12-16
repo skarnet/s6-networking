@@ -1,9 +1,6 @@
 /* ISC license. */
 
-#ifndef _BSD_SOURCE
-#define _BSD_SOURCE
-#endif
-
+#include <skalibs/nonposix.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
