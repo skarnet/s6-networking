@@ -1,4 +1,4 @@
-BIN_TARGETS = \
+BIN_TARGETS := \
 s6-connlimit \
 s6-getservbyname \
 s6-ioconnect \
@@ -24,13 +24,15 @@ s6-taiclock \
 s6-taiclockd \
 minidentd
 
-LIBEXEC_TARGETS =
+LIBEXEC_TARGETS :=
 
-SHARED_LIBS = \
-libs6net.so
+ifdef DO_SHARED
+SHARED_LIBS := libs6net.so
+endif
 
-STATIC_LIBS = \
-libs6net.a
+ifdef DO_STATIC
+STATIC_LIBS := libs6net.a
+endif
 
 src/minidentd/mgetuid.c: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid-default.c
 	if grep -iF -- -linux- $(sysdeps)/target ; then \
