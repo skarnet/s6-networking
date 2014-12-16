@@ -68,13 +68,13 @@ s6-ipcclient: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet
 s6-ipcserver: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-ipcserver: src/conn-tools/s6-ipcserver.o -lskarnet
-s6-ipcserver-access: private EXTRA_LIBS :=
+s6-ipcserver-access: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o -ls6net -lskarnet
 s6-sudo: private EXTRA_LIBS :=
 s6-sudo: src/conn-tools/s6-sudo.o -lskarnet
-s6-sudoc: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-sudoc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-sudoc: src/conn-tools/s6-sudoc.o -lskarnet
-s6-sudod: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-sudod: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-sudod: src/conn-tools/s6-sudod.o -lskarnet
 s6-tcpclient: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-tcpclient: src/conn-tools/s6-tcpclient.o -ls6net -ls6dns -lskarnet
