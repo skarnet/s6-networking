@@ -62,7 +62,7 @@ s6-getservbyname: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-getservbyname: src/conn-tools/s6-getservbyname.o -lskarnet
 s6-ident-client: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ident-client: src/conn-tools/s6-ident-client.o -ls6net -lskarnet
-s6-ioconnect: private EXTRA_LIBS := ${TAINNOW_LIB}
+s6-ioconnect: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ioconnect: src/conn-tools/s6-ioconnect.o -lskarnet
 s6-ipcclient: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet
