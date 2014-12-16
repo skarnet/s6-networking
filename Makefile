@@ -35,7 +35,7 @@ ALL_INCLUDES := $(wildcard src/include/$(package)/*.h)
 all: $(ALL_LIBS) $(ALL_BINS) $(ALL_INCLUDES)
 
 clean:
-	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo) src/minidentd/mgetuid.c
+	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo)
 
 distclean: clean
 	@exec rm -f config.mak src/include/${package}/config.h
@@ -107,7 +107,7 @@ $(DESTDIR)$(includedir)/$(package)/%.h: src/include/$(package)/%.h
 	exec $(REALCC) $(CPPFLAGS_ALL) $(CFLAGS_ALL) $(CFLAGS_SHARED) -c -o $@ $<
 
 $(ALL_BINS):
-	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(LDFLAGS_ALL) $(LDFLAGS_NOSHARED) $^ $(LDLIBS_ALL)
+	exec $(REALCC) -o $@ $(CFLAGS_ALL) $(LDFLAGS_ALL) $(LDFLAGS_NOSHARED) $^ $(EXTRA_LIBS) $(LDLIBS_ALL)
 
 lib%.a:
 	exec $(AR) rc $@ $^
