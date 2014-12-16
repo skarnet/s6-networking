@@ -58,7 +58,7 @@ s6-accessrules-fs-from-cdb: private EXTRA_LIBS :=
 s6-accessrules-fs-from-cdb: src/conn-tools/s6-accessrules-fs-from-cdb.o -lskarnet
 s6-connlimit: private EXTRA_LIBS :=
 s6-connlimit: src/conn-tools/s6-connlimit.o -lskarnet
-s6-getservbyname: private EXTRA_LIBS :=
+s6-getservbyname: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-getservbyname: src/conn-tools/s6-getservbyname.o -lskarnet
 s6-ident-client: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ident-client: src/conn-tools/s6-ident-client.o -ls6net -lskarnet

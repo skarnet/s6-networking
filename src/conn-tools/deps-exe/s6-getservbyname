@@ -1,1 +1,2 @@
 -lskarnet
+${SOCKET_LIB}
