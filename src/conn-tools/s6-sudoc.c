@@ -63,27 +63,27 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     int fds[3] = { 0, 1, 2 } ;
     char pack[16] ;
-    siovec_t v[3] = {
+    siovec_t v[4] = {
       { .s = S6_SUDO_BANNERA, .len = S6_SUDO_BANNERA_LEN },
       { .s = pack, .len = 16 },
+      { .s = 0, .len = 0 },
       { .s = 0, .len = 0 } } ;
-    unixmessage_v_t mv = { .v = v, .vlen = 3, .fds = fds, .nfds = 3 } ;
+    unixmessage_v_t mv = { .v = v, .vlen = 4, .fds = fds, .nfds = 3 } ;
     stralloc sa = STRALLOC_ZERO ;
     unsigned int envlen = doenv ? env_len(envp) : 0 ;
     uint32_pack_big(pack, (uint32)argc) ;
     uint32_pack_big(pack + 4, (uint32)envlen) ;
     if (!env_string(&sa, argv, argc)) dienomem() ;
-    uint32_pack_big(pack + 8, (uint32)sa.len) ;
+    v[2].len = sa.len ;
+    uint32_pack_big(pack + 8, (uint32)v[2].len) ;
     if (doenv)
     {
-      unsigned int start = sa.len ;
       if (!env_string(&sa, envp, envlen)) dienomem() ;
-      envlen = sa.len - start ;
+      v[3].len = sa.len - v[2].len ;
     }
-    else envlen = 0 ;
-    uint32_pack_big(pack + 12, (uint32)envlen) ;
+    uint32_pack_big(pack + 12, (uint32)v[3].len) ;
     v[2].s = sa.s ;
-    v[2].len = sa.len ;
+    v[3].s = sa.s + v[2].len ;
     if (!unixmessage_putv_and_close(&b7, &mv, (unsigned char const *)"\003"))
       strerr_diefu1sys(111, "unixmessage_putv") ;
     stralloc_free(&sa) ;

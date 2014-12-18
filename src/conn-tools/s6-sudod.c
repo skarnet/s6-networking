@@ -119,7 +119,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     targv[argc + cargc] = 0 ;
 
-    for (i = 0 ; i < cenvlen ; i++)
+    for (i = 0 ; i < cenvc ; i++)
     {
       char const *var = tenvp[envc + 1 + i] ;
       register unsigned int j = 0 ;
