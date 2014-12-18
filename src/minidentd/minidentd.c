@@ -74,8 +74,9 @@ static void reply (char const *s, char const *r, char const *info)
 static void logquery (char const *s)
 {
   if (!flagverbose) return ;
+  buffer_puts(buffer_2, PROG) ;
+  buffer_puts(buffer_2, ": info : query ") ;
   logfmt[uint_fmt(logfmt, ++nquery)] = 0 ;
-  buffer_put(buffer_2, "query ", 6) ;
   buffer_puts(buffer_2, logfmt) ;
   buffer_put(buffer_2, ": ", 2) ;
   buffer_puts(buffer_2, s) ;
@@ -85,7 +86,8 @@ static void logquery (char const *s)
 static void logreply (char const *type, char const *reply1, char const *reply2)
 {
   if (!flagverbose) return ;
-  buffer_puts(buffer_2, "reply type ") ;
+  buffer_puts(buffer_2, PROG) ;
+  buffer_puts(buffer_2, ": info: reply type ") ;
   buffer_puts(buffer_2, type) ;
   buffer_put(buffer_2, ": ", 2) ;
   buffer_puts(buffer_2, logfmt) ;
