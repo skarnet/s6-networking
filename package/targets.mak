@@ -34,6 +34,8 @@ ifdef DO_STATIC
 STATIC_LIBS := libs6net.a
 endif
 
+EXTRA_TARGETS := src/minidentd/mgetuid.c
+
 src/minidentd/mgetuid.c: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid-default.c
 	if grep -iF -- -linux- $(sysdeps)/target ; then \
 	  ln -sf mgetuid-linux.c src/minidentd/mgetuid.c ; \

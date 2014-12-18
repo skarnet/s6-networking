@@ -19,7 +19,7 @@ int s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16 remoteport, i
   fd = socket_tcp46(ip46_is6(remoteip)) ;
   if (fd < 0) return -1 ;
   if (socket_bind46(fd, localip, 0) < 0) goto err ;
-  if (socket_deadlineconnstamp46(fd, remoteip, 113, deadline, stamp) <= 0) goto err ;
+  if (!socket_deadlineconnstamp46(fd, remoteip, 113, deadline, stamp)) goto err ;
   {
     char buf[S6NET_IDENT_REPLY_SIZE + 1] ;
     char fmt[UINT16_FMT] ;
@@ -35,8 +35,7 @@ int s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16 remoteport, i
     if (sanitize_read(timed_getlnmax(&b, s, S6NET_IDENT_REPLY_SIZE, &len, '\n', deadline, stamp)) <= 0) goto err ;
   }
   fd_close(fd) ;
-  if (len < 2) return (errno = EPROTO, -1) ;
-  len -= 2 ;
+  if (!len--) return (errno = EPROTO, -1) ;
   s[len] = 0 ;
   return (int)len ;
 

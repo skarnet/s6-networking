@@ -28,6 +28,17 @@ static int skipspace (char **s)
   return (int)**s ;
 }
 
+static void reverse_address (char *s, unsigned int n)
+{
+  register unsigned int i = n >> 1 ;
+  while (i--)
+  {
+    register char tmp = s[i] ;
+    s[i] = s[n-1-i] ;
+    s[n-1-i] = tmp ;
+  }
+}
+
 static int parseline (char *s, unsigned int len, unsigned int *u, char *la, uint16 *lp, char *ra, uint16 *rp, int is6)
 {
   char *cur = s ;
@@ -44,6 +55,7 @@ static int parseline (char *s, unsigned int len, unsigned int *u, char *la, uint
 
   if ((cur - s + 1 + iplen) > len) bug("local_address") ;
   pos = ucharn_scan(cur, la, iplen) ;  /* local_address */
+  reverse_address(la, iplen) ;
   if (!pos) bug("local_address") ;
   cur += pos ;
   if ((*cur++) != ':') bug("local_address:") ;
@@ -55,6 +67,7 @@ static int parseline (char *s, unsigned int len, unsigned int *u, char *la, uint
 
   if ((cur - s + 1 + iplen) > len) bug("remote_address") ;
   pos = ucharn_scan(cur, ra, iplen) ;  /* remote_address */
+  reverse_address(ra, iplen) ;
   if (!pos) bug("remote_address") ;
   cur += pos ;
   if ((*cur++) != ':') bug("remote_address:") ;
