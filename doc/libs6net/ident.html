@@ -47,7 +47,7 @@ any kind of authentication or secure operation.
 
 <p>
 <code> int s6net_ident_client (char *s, unsigned int max, ip46_t const *remoteip, uint16 remoteport, ip46_t const *localip, uint16 localport,
-struct taia const *deadline, struct taia *stamp) </code>
+tain_t const *deadline, tain_t *stamp) </code>
 </p>
 
 <p>
@@ -97,7 +97,7 @@ from the server by *<em>deadline</em>, then the call is aborted and returns
 
 <p>
 <code> int s6net_ident_reply_get (char *s, ip46_t const *ra, uint16 rp, ip46_t const *la, uint16 lp,
-struct taia const *deadline, struct taia *stamp) </code>
+tain_t const *deadline, tain_t *stamp) </code>
 </p>
 
 <p>
