@@ -389,7 +389,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       char s[n+1] ;
       byte_copy(s, n, argv[0]) ;
       s[n++] = '\n' ;
-      if (allwrite(1, s, n) < n) strerr_diefu1sys(111, "write to stdout") ;
+      allwrite(1, s, n) ;
       fd_close(1) ;
     }
     fmtlocalmaxconn[1+uint_fmt(fmtlocalmaxconn+1, localmaxconn)] = 0 ;
