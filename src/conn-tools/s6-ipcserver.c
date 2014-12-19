@@ -407,7 +407,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
     while (cont)
     {
-      if (iopause(x, 1 + (numconn < maxconn), 0, 0) == -1)
+      if (iopause_g(x, 1 + (numconn < maxconn), 0, 0) < 0)
         strerr_diefu1sys(111, "iopause") ;
 
       if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with selfpipe") ;
