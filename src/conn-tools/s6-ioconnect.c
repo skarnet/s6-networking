@@ -145,7 +145,7 @@ int main (int argc, char const *const *argv)
 
     if (x[0].revents & IOPAUSE_READ) handle_signals() ;
 
-    for (i = 0 ; i < 2 ; i++) if (a[i][1].xindex < 4)
+    for (i = 0 ; i < 2 ; i++) if (a[i][1].xindex < 5)
     {
       if (x[a[i][1].xindex].revents & IOPAUSE_WRITE)
       {
@@ -166,7 +166,7 @@ int main (int argc, char const *const *argv)
       }
     }
 
-    for (i = 0 ; i < 2 ; i++) if (a[i][0].xindex < 4)
+    for (i = 0 ; i < 2 ; i++) if (a[i][0].xindex < 5)
     {
       if (x[a[i][0].xindex].revents & IOPAUSE_READ)
       {
