@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <skalibs/nonposix.h>
+#include <sys/socket.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -91,6 +93,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!unixmessage_sender_timed_flush_g(&b7, &deadline))
     strerr_diefu1sys(111, "send args to server") ;
   unixmessage_sender_free(&b7) ;
+  shutdown(7, SHUT_WR) ;
   {
     char c ;
     if (buffer_timed_get_g(&b6, &c, 1, &deadline) < 1)
