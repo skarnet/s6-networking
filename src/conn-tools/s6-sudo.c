@@ -43,7 +43,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char fmt1[UINT_FMT] ;
     char fmt2[UINT_FMT] ;
     unsigned int n = 0 ;
-    eargv[n++] = "s6-ipcclient" ;
+    eargv[n++] = S6_NETWORKING_BINPREFIX "s6-ipcclient" ;
     if (!verbosity) eargv[n++] = "-Q" ;
     else while (--verbosity) eargv[n++] = "-v" ;
     if (bindpath) { eargv[n++] = "-p" ; eargv[n++] = bindpath ; }
