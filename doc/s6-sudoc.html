@@ -65,7 +65,7 @@ default, <em>timeoutrun</em> is 0, meaning infinite. </li>
 while the server program is still running, s6-sudod will send a SIGTERM and a
 SIGCONT to the server program - but this does not guarantee that it will die.
 If the server program keeps running, it might still read from the file that
-was s6-sudoc's stdin, or write to the files that were s6-sudod's stdout or
+was s6-sudoc's stdin, or write to the files that were s6-sudoc's stdout or
 stderr. <strong>This is a potential security risk</strong>.
 Administrators should audit their server programs to make sure this does not
 happen. </li>

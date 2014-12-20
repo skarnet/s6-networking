@@ -170,7 +170,7 @@ client and converts it to canonical form. Then it checks it with the
 function. In other words, it tries to match broader and broader network
 prefixes of <em>ip</em>, from <tt>ip4/</tt><em>ip</em><tt>_32</tt> to
 <tt>ip4/0.0.0.0_0</tt> if <em>ip</em> is v4, or from
-<tt>ip6/</tt><em>ip</em><tt>/128</tt> to <tt>ip6/::_0</tt> if <em>ip</em>
+<tt>ip6/</tt><em>ip</em><tt>_128</tt> to <tt>ip6/::_0</tt> if <em>ip</em>
 is v6. If the result is:
 </p>
 
@@ -195,8 +195,8 @@ S6NET_ACCESSRULES_ALLOW.
 
 <p>
  Note that even if the access check succeeds, the connection can still be
-denied if paranoid mode has been required (<tt>-p</tt>) and a forward DNS query
-on <em>remotehost</em> does not match <em>ip</em>. 
+denied if paranoid mode has been requested (<tt>-p</tt>) and a forward DNS
+query on <em>remotehost</em> does not match <em>ip</em>. 
 </p>
 
 <h2> Environment and executable modifications </h2>
