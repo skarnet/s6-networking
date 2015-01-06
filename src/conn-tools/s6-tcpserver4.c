@@ -6,6 +6,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <grp.h>
 #include <signal.h>
@@ -327,8 +328,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
     argc -= l.ind ; argv += l.ind ;
     if (argc < 3) dieusage() ;
     if (!ip4_scan(argv[0], ip) || !uint160_scan(argv[1], &port)) dieusage() ;
-    fd_close(0) ;
-    if (!flag1) fd_close(1) ;
+    close(0) ;
+    if (flag1)
+    {
+      if (fcntl(1, F_GETFD) < 0)
+        strerr_dief1sys(100, "called with option -1 but stdout said") ;
+    }
+    else close(1) ;
     if (!maxconn) maxconn = 1 ;
     if (maxconn > ABSOLUTE_MAXCONN) maxconn = ABSOLUTE_MAXCONN ;
     if (localmaxconn > maxconn) localmaxconn = maxconn ;
