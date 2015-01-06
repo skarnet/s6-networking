@@ -89,5 +89,6 @@ s6-tcpserver6: src/conn-tools/s6-tcpserver6.o -lskarnet
 seekablepipe: private EXTRA_LIBS :=
 seekablepipe: src/conn-tools/seekablepipe.o -lskarnet
 libs6net.a:  src/libs6net/s6net_accessrules_backend_cdb.o src/libs6net/s6net_accessrules_backend_fs.o src/libs6net/s6net_accessrules_keycheck_ip4.o src/libs6net/s6net_accessrules_keycheck_ip6.o src/libs6net/s6net_accessrules_keycheck_reversedns.o src/libs6net/s6net_accessrules_keycheck_uidgid.o src/libs6net/s6net_accessrules_uidgid_cdb.o src/libs6net/s6net_accessrules_uidgid_fs.o src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
+libs6net.so:  src/libs6net/s6net_accessrules_backend_cdb.lo src/libs6net/s6net_accessrules_backend_fs.lo src/libs6net/s6net_accessrules_keycheck_ip4.lo src/libs6net/s6net_accessrules_keycheck_ip6.lo src/libs6net/s6net_accessrules_keycheck_reversedns.lo src/libs6net/s6net_accessrules_keycheck_uidgid.lo src/libs6net/s6net_accessrules_uidgid_cdb.lo src/libs6net/s6net_accessrules_uidgid_fs.lo src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
 minidentd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet
