@@ -16,15 +16,21 @@ src/conn-tools/s6-ident-client.o src/conn-tools/s6-ident-client.lo: src/conn-too
 src/conn-tools/s6-ioconnect.o src/conn-tools/s6-ioconnect.lo: src/conn-tools/s6-ioconnect.c
 src/conn-tools/s6-ipcclient.o src/conn-tools/s6-ipcclient.lo: src/conn-tools/s6-ipcclient.c
 src/conn-tools/s6-ipcserver-access.o src/conn-tools/s6-ipcserver-access.lo: src/conn-tools/s6-ipcserver-access.c src/include/s6-networking/accessrules.h
-src/conn-tools/s6-ipcserver.o src/conn-tools/s6-ipcserver.lo: src/conn-tools/s6-ipcserver.c
+src/conn-tools/s6-ipcserver-socketbinder.o src/conn-tools/s6-ipcserver-socketbinder.lo: src/conn-tools/s6-ipcserver-socketbinder.c
+src/conn-tools/s6-ipcserver.o src/conn-tools/s6-ipcserver.lo: src/conn-tools/s6-ipcserver.c src/include/s6-networking/config.h
+src/conn-tools/s6-ipcserverd.o src/conn-tools/s6-ipcserverd.lo: src/conn-tools/s6-ipcserverd.c
 src/conn-tools/s6-sudo.o src/conn-tools/s6-sudo.lo: src/conn-tools/s6-sudo.c src/include/s6-networking/config.h
 src/conn-tools/s6-sudoc.o src/conn-tools/s6-sudoc.lo: src/conn-tools/s6-sudoc.c src/conn-tools/s6-sudo.h
 src/conn-tools/s6-sudod.o src/conn-tools/s6-sudod.lo: src/conn-tools/s6-sudod.c src/conn-tools/s6-sudo.h
 src/conn-tools/s6-tcpclient.o src/conn-tools/s6-tcpclient.lo: src/conn-tools/s6-tcpclient.c src/include/s6-networking/ident.h
 src/conn-tools/s6-tcpserver-access.o src/conn-tools/s6-tcpserver-access.lo: src/conn-tools/s6-tcpserver-access.c src/include/s6-networking/s6net.h
 src/conn-tools/s6-tcpserver.o src/conn-tools/s6-tcpserver.lo: src/conn-tools/s6-tcpserver.c src/include/s6-networking/config.h
+src/conn-tools/s6-tcpserver4-socketbinder.o src/conn-tools/s6-tcpserver4-socketbinder.lo: src/conn-tools/s6-tcpserver4-socketbinder.c
 src/conn-tools/s6-tcpserver4.o src/conn-tools/s6-tcpserver4.lo: src/conn-tools/s6-tcpserver4.c
+src/conn-tools/s6-tcpserver4d.o src/conn-tools/s6-tcpserver4d.lo: src/conn-tools/s6-tcpserver4d.c
+src/conn-tools/s6-tcpserver6-socketbinder.o src/conn-tools/s6-tcpserver6-socketbinder.lo: src/conn-tools/s6-tcpserver6-socketbinder.c
 src/conn-tools/s6-tcpserver6.o src/conn-tools/s6-tcpserver6.lo: src/conn-tools/s6-tcpserver6.c
+src/conn-tools/s6-tcpserver6d.o src/conn-tools/s6-tcpserver6d.lo: src/conn-tools/s6-tcpserver6d.c
 src/conn-tools/seekablepipe.o src/conn-tools/seekablepipe.lo: src/conn-tools/seekablepipe.c
 src/libs6net/s6net_accessrules_backend_cdb.o src/libs6net/s6net_accessrules_backend_cdb.lo: src/libs6net/s6net_accessrules_backend_cdb.c src/include/s6-networking/accessrules.h
 src/libs6net/s6net_accessrules_backend_fs.o src/libs6net/s6net_accessrules_backend_fs.lo: src/libs6net/s6net_accessrules_backend_fs.c src/include/s6-networking/accessrules.h
@@ -66,10 +72,14 @@ s6-ioconnect: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ioconnect: src/conn-tools/s6-ioconnect.o -lskarnet
 s6-ipcclient: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet
-s6-ipcserver: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcserver: private EXTRA_LIBS :=
 s6-ipcserver: src/conn-tools/s6-ipcserver.o -lskarnet
 s6-ipcserver-access: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o -ls6net -lskarnet
+s6-ipcserver-socketbinder: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcserver-socketbinder: src/conn-tools/s6-ipcserver-socketbinder.o -lskarnet
+s6-ipcserverd: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-ipcserverd: src/conn-tools/s6-ipcserverd.o -lskarnet
 s6-sudo: private EXTRA_LIBS :=
 s6-sudo: src/conn-tools/s6-sudo.o -lskarnet
 s6-sudoc: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
@@ -84,8 +94,16 @@ s6-tcpserver-access: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o -ls6net -ls6dns -lskarnet
 s6-tcpserver4: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver4: src/conn-tools/s6-tcpserver4.o -lskarnet
+s6-tcpserver4-socketbinder: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserver4-socketbinder: src/conn-tools/s6-tcpserver4-socketbinder.o -lskarnet
+s6-tcpserver4d: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserver4d: src/conn-tools/s6-tcpserver4d.o -lskarnet
 s6-tcpserver6: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6: src/conn-tools/s6-tcpserver6.o -lskarnet
+s6-tcpserver6-socketbinder: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o -lskarnet
+s6-tcpserver6d: private EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o -lskarnet
 seekablepipe: private EXTRA_LIBS :=
 seekablepipe: src/conn-tools/seekablepipe.o -lskarnet
 libs6net.a:  src/libs6net/s6net_accessrules_backend_cdb.o src/libs6net/s6net_accessrules_backend_fs.o src/libs6net/s6net_accessrules_keycheck_ip4.o src/libs6net/s6net_accessrules_keycheck_ip6.o src/libs6net/s6net_accessrules_keycheck_reversedns.o src/libs6net/s6net_accessrules_keycheck_uidgid.o src/libs6net/s6net_accessrules_uidgid_cdb.o src/libs6net/s6net_accessrules_uidgid_fs.o src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o

@@ -1,3 +1,4 @@
 /package/prog/skalibs
 /package/admin/execline
+/package/admin/s6
 /package/web/s6-dns

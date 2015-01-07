@@ -4,9 +4,15 @@ s6-ioconnect			0755
 s6-ident-client			0755
 s6-ipcclient			0755
 s6-ipcserver			0755
+s6-ipcserverd			0755
+s6-ipcserver-socketbinder	0755
 s6-tcpclient			0755
 s6-tcpserver4			0755
+s6-tcpserver4d			0755
+s6-tcpserver4-socketbinder	0755
 s6-tcpserver6			0755
+s6-tcpserver6d			0755
+s6-tcpserver6-socketbinder	0755
 s6-tcpserver			0755
 s6-accessrules-cdb-from-fs	0755
 s6-accessrules-fs-from-cdb	0755
