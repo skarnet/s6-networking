@@ -36,7 +36,10 @@ just like tcpwrappers' <tt>tcpd</tt> program.
  <li> s6-tcpserver-access checks it is run under a UCSPI server tool
 such as <a href="s6-tcpserver.html">s6-tcpserver</a>,
  <a href="s6-tcpserver4.html">s6-tcpserver4</a> or
- <a href="s6-tcpserver6.html">s6-tcpserver6</a>. </li>
+ <a href="s6-tcpserver6.html">s6-tcpserver6</a>, or their
+ stripped-down versions
+ <a href="s6-tcpserver4d.html">s6-tcpserver4d</a> or
+ <a href="s6-tcpserver6d.html">s6-tcpserver6d</a>. </li>
  <li> It checks that the remote end of the connection fits the
 accepted criteria defined by the database contained in <em>rulesdir</em>
 or <em>rulesfile</em>. If the database tells it to reject the connection,
@@ -224,9 +227,9 @@ environment modifications, if any, s6-tcpserver-access execs into
 
 <ul>
  <li> s6-tcpserver-access works with
-<a href="s6-tcpserver4.html">s6-tcpserver4</a>, handling IPv4 addresses,
+<a href="s6-tcpserver4d.html">s6-tcpserver4d</a>, handling IPv4 addresses,
 as well as
-<a href="s6-tcpserver6.html">s6-tcpserver6</a>, handling IPv6 addresses.
+<a href="s6-tcpserver6d.html">s6-tcpserver6d</a>, handling IPv6 addresses.
 It will automatically detect the remote address type and match it against the
 correct subdatabase. </li>
  <li> s6-tcpserver-access may perform several DNS queries. For efficiency

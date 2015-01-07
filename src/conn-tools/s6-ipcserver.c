@@ -101,8 +101,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
       newargv[m++] = "--" ;
     }
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-ipcserverd" ;
-    if (!verbosity) newargv[m++] = "-q" ;
-    else if (verbosity == 2) newargv[m++] = "-v" ;
+    if (!verbosity) newargv[m++] = "-v0" ;
+    else if (verbosity == 2) newargv[m++] = "-v2" ;
     if (flag1) newargv[m++] = "-1" ;
     if (!flaglookup) newargv[m++] = "-P" ;
     if (maxconn)

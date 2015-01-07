@@ -1,0 +1,112 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tcpserver4d program</title>
+    <meta name="Description" content="s6-networking: the s6-tcpserver4d program" />
+    <meta name="Keywords" content="s6-networking s6-tcpserver4d tcpserver ucspi tcp server super-server ipv4" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tcpserver4d</tt> program </h1>
+
+<p>
+<tt>s6-tcpserver4d</tt> is the serving part of the
+<a href="s6-tcpserver4.html">s6-tcpserver4</a> super-server.
+It assumes that its stdin is a bound and listening TCP/IPv4 socket,
+and it accepts connections from clients connecting to it,
+forking a program to handle each connection.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tcpserver4d [ -1 ] [ -v <em>verbosity</em> ] [ -c <em>maxconn</em> ] [ -C <em>localmaxconn</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-tcpserver4d accepts connections from clients to an already
+bound and listening TCP socket which is its standard input. </li>
+ <li> For every TCP connection to this socket, it
+forks. The child sets some environment variables, then
+executes <em>prog...</em> with stdin reading from the network
+socket and stdout writing to it. </li>
+ <li> Depending on the verbosity level, it logs what it does to stderr. </li>
+ <li> It runs until killed by a signal. Depending on the received
+signal, it may kill its children before exiting. </li>
+</ul>
+
+<h2> Environment variables </h2>
+
+<p>
+ For each connection, an instance of <em>prog...</em> is spawned with
+the following variables set:
+</p>
+
+<ul>
+ <li> PROTO: always set to TCP </li>
+ <li> TCPREMOTEIP: set to the originating address </li>
+ <li> TCPREMOTEPORT: set to the originating port </li>
+ <li> TCPCONNNUM: set to the number of connections originating from
+the same IP address </li>
+</ul>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-1</tt>&nbsp;: write a newline to stdout, and close stdout,
+right before entering the client-accepting loop.
+If stdout is suitably redirected, this can be used by monitoring
+programs to check when the server is accepting connections.
+The <a href="http://skarnet.org/software/s6/s6-notifywhenup.html">s6-notifywhenup</a>
+program can be used before the s6-tcpserver
+invocation to notify listeners when the server is ready. </li>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: be more or less verbose.
+By default, <em>verbosity</em> is 1: print warning messages to stderr.
+0 means only print fatal error messages ; 2 means print status and
+connection information for every client. </li>
+ <li> <tt>-c&nbsp;<em>maxconn</em></tt>&nbsp;: accept at most
+<em>maxconn</em> concurrent connections. Default is 40. It is
+impossible to set it higher than 1000. </li>
+ <li> <tt>-C&nbsp;<em>localmaxconn</em></tt>&nbsp;: accept at most
+<em>localmaxconn</em> connections from the same IP address.
+Default is 40. It is impossible to set it higher than <em>maxconn</em>. </li>
+</ul>
+
+<h2> Signals </h2>
+
+<ul>
+ <li> SIGTERM: exit. </li>
+ <li> SIGHUP: send a SIGTERM and a SIGCONT to all children. </li>
+ <li> SIGQUIT: send a SIGTERM and a SIGCONT to all children, then exit. </li>
+ <li> SIGABRT: send a SIGKILL to all children, then exit. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> Unlike its ancestor
+<a href="http://cr.yp.to/ucspi-tcp/tcpserver.html">tcpserver</a>,
+s6-tcpserver4d performs just the bare minimum: the point is to have a
+very small and very fast process to serve connections with the least
+possible overhead. Features such as additional environment variables,
+access control and DNS resolution are provided
+via the <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>
+program. </li>
+ <li> s6-tcpserver4d is meant to be execve'd into by a program that gets
+the listening socket. That program is normally
+<a href="s6-tcpserver4-socketbinder.html">s6-tcpserver4-socketbinder</a>,
+which creates the socket itself; but it can be a different one if the
+socket is to be retrieved by another means, for instance by fd-passing
+from a fd-holding daemon (some people call this "socket activation"). </li>
+</ul>
+
+</body>
+</html>

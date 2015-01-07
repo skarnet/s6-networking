@@ -20,7 +20,7 @@
 #include <skalibs/iopause.h>
 #include <skalibs/webipc.h>
 
-#define USAGE "s6-ipcserverd [ -q | -Q | -v ] [ -1 ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog..."
+#define USAGE "s6-ipcserverd [ -v verbosity ] [ -1 ] [ -P | -p ] [ -c maxconn ] [ -C localmaxconn ] prog..."
 
 #define ABSOLUTE_MAXCONN 1000
 
@@ -303,18 +303,16 @@ int main (int argc, char const *const *argv, char const *const *envp)
     int flag1 = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qQv1Ppc:C:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "Pp1c:C:v:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
-        case 'q' : verbosity = 0 ; break ;
-        case 'Q' : verbosity = 1 ; break ;
-        case 'v' : verbosity = 2 ; break ;
-        case '1' : flag1 = 1 ; break ;
         case 'P' : flaglookup = 0 ; break ;
         case 'p' : flaglookup = 1 ; break ;
+        case '1' : flag1 = 1 ; break ;
         case 'c' : if (!uint0_scan(l.arg, &maxconn)) dieusage() ; break ;
         case 'C' : if (!uint0_scan(l.arg, &localmaxconn)) dieusage() ; break ;
+        case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
         default : dieusage() ;
       }
     }

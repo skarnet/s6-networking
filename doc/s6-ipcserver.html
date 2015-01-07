@@ -32,7 +32,8 @@ program to handle each connection.
 </pre>
 
 <ul>
- <li> s6-ipcserver binds to a Unix domain socket on <em>path</em>. </li>
+ <li> s6-ipcserver binds a Unix domain socket to <em>path</em>. </li>
+ <li> It can drop its root privileges. </li>
  <li> It closes its stdin and stdout. </li>
  <li> For every client connection to this socket, it
 forks. The child sets some environment variables, then
@@ -41,31 +42,35 @@ stdout writing to it. </li>
  <li> Depending on the verbosity level, it logs what it does to stderr. </li>
  <li> It runs until killed by a signal. Depending on the received
 signal, it may kill its children before exiting. </li>
+ <li> s6-ipcserver actually doesn't do any of this itself. It is
+a wrapper, rewriting the command line and executing into a chain
+of programs that perform those duties. </li>
 </ul>
 
-<h2> Environment variables </h2>
-
-<p>
- For each connection, an instance of <em>prog...</em> is spawned with
-the following variables set:
-</p>
+<h2> Implementation </h2>
 
 <ul>
- <li> PROTO: always set to IPC </li>
- <li> IPCREMOTEEUID: set to the effective UID of the client,
-unless credentials lookups have been disabled </li>
- <li> IPCREMOTEEGID: set to the effective GID of the client,
-unless credentials lookups have been disabled </li>
- <li> IPCREMOTEPATH: set to the path associated with the remote socket,
-if any. Be aware that it may contain arbitrary characters. </li>
- <li> IPCCONNNUM: set to the number of connections originating from
-the same user (i.e. same uid) </li>
+ <li> s6-ipcserver parses the options and arguments it is given, and
+builds a new command line with them. It then executes into that new
+command line. </li>
+ <li> The first program s6-ipcserver executes into is
+<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>.
+It will create and bind a Unix domain socket to <em>path</em>, then
+execute into the rest of the command line. </li>
+ <li> If a privilege-dropping operation has been requested, the
+program that s6-ipcserver-socketbinder executes into is
+<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>.
+It will drop the root privileges, then execute into the rest of the
+command line. </li>
+ <li> The next program in the chain is
+<a href="s6-ipcserverd.html">s6-ipcserverd</a>. It is executed into
+by s6-applyuidgid, or directly by s6-ipcserver-socketbinder if no
+privilege-dropping operation has been requested. s6-ipcserverd is
+the long-lived process, the "daemon" itself, accepting connections
+from clients. </li>
+ <li> For every client, s6-ipcserverd will spawn an instance of
+<em>prog...</em>, the remainder of the command line. </li>
 </ul>
-
-<p>
- If client credentials lookup has been disabled, IPCREMOTEEUID and
-IPCREMOTEEUID will be set, but empty.
-</p>
 
 
 <h2> Options </h2>
@@ -123,25 +128,45 @@ program to easily script a service that binds to a privileged socket
 then drops its privileges to those of a named non-root account. </li>
 </ul>
 
-<h2> Signals </h2>
+<h2> Implementation </h2>
 
 <ul>
- <li> SIGTERM: exit. </li>
- <li> SIGHUP: send a SIGTERM and a SIGCONT to all children. </li>
- <li> SIGQUIT: send a SIGTERM and a SIGCONT to all children, then exit. </li>
- <li> SIGABRT: send a SIGKILL to all children, then exit. </li>
+ <li> s6-ipcserver parses the options and arguments it is given, and
+builds a new command line with them. It then executes into that new
+command line. </li>
+ <li> The first program s6-ipcserver executes into is
+<a href="s6-ipcserver-socketbinder.html">s6-ipcserver-socketbinder</a>.
+It will create and bind a Unix domain socket to <em>path</em>, then
+execute into the rest of the command line. </li>
+ <li> If a privilege-dropping operation has been requested, the
+program that s6-ipcserver-socketbinder executes into is
+<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>.
+It will drop the root privileges, then execute into the rest of the
+command line. </li>
+ <li> The next program in the chain is
+<a href="s6-ipcserverd.html">s6-ipcserverd</a>. It is executed into
+by s6-applyuidgid, or directly by s6-ipcserver-socketbinder if no
+privilege-dropping operation has been requested. s6-ipcserverd is
+the long-lived process, the "daemon" itself, accepting connections
+from clients. </li>
+ <li> For every client, s6-ipcserverd will spawn an instance of
+<em>prog...</em>, the remainder of the command line. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
- <li> Unlike his close cousin
-<a href="http://www.superscript.com/ucspi-ipc/ipcserver.html">ipcserver</a>,
-s6-ipcserver does not perform operations such as access control. Those are
-delegated to the
-<a href="s6-ipcserver-access.html">s6-ipcserver-access</a> program. </li>
- <li> s6-ipcserver can be used to set up
-<a href="localservice.html">local services</a>. </li>
+ <li> s6-ipcserver does not interpret its options itself. It just
+dispatches them to the appropriate program on the command line that
+it builds. </li>
+ <li> In previous releases of s6-networking, s6-ipcserver was
+monolithic: it did the work of s6-ipcserver-socketbinder,
+s6-applyuidgid and s6-ipcserverd itself. The functionality has now
+been split into several different programs because some service startup
+schemes require the daemon to get its socket from an external
+program instead of creating and binding it itself. The most obvious
+application of this is upgrading a long-lived process without
+losing existing connections. </li>
 </ul>
 
 </body>
