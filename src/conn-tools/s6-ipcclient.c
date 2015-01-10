@@ -40,7 +40,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (s == -1) strerr_diefu1sys(111, "create socket") ;
     if (bindpath && (ipc_bind(s, bindpath) == -1))
       strerr_diefu2sys(111, "bind socket to ", bindpath) ;
-    if (ipc_connect(s, argv[0]) < 0)
+    if (!ipc_connect(s, argv[0]))
       strerr_diefu2sys(111, "connect to ", argv[0]) ;
     if (verbosity >= 2) strerr_warn3x(PROG, ": connected to ", argv[0]) ;
     if (localname)
