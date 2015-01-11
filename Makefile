@@ -8,7 +8,9 @@
 it: all
 
 CC = $(error Please use ./configure first)
-EXTRA_TARGETS :=
+
+STATIC_LIBS :=
+SHARED_LIBS :=
 
 -include config.mak
 include package/targets.mak
@@ -36,7 +38,7 @@ ALL_INCLUDES := $(wildcard src/include/$(package)/*.h)
 all: $(ALL_LIBS) $(ALL_BINS) $(ALL_INCLUDES)
 
 clean:
-	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo) $(EXTRA_TARGETS)
+	@exec rm -f $(ALL_LIBS) $(ALL_BINS) $(wildcard src/*/*.o src/*/*.lo)
 
 distclean: clean
 	@exec rm -f config.mak src/include/${package}/config.h
