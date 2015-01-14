@@ -40,6 +40,9 @@ and stdout writing to it. </li>
  <li> Depending on the verbosity level, it logs what it does to stderr. </li>
  <li> It runs until killed by a signal. Depending on the received
 signal, it may kill its children before exiting. </li>
+ <li> s6-tcpserver6 actually doesn't do any of this itself. It is
+a wrapper, rewriting the command line and executing into a chain
+of programs that perform those duties. </li>
 </ul>
 
 <h2> Environment variables </h2>
@@ -116,6 +119,16 @@ used to serve IPv4 addresses. </li>
  <li> s6-tcpserver6 will only work if the underlying
 <a href="http://skarnet.org/software/skalibs/">skalibs</a> has
 been compiled with IPv6 support. </li>
+ <li> In previous releases of s6-networking, s6-tcpserver6 was
+monolithic: it did the work of
+<a href="s6-tcpserver6-socketbinder.html">s6-tcpserver6-socketbinder</a>,
+<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a> and
+<a href="s6-tcpserver6d.html">s6-tcpserver6d</a> itself. The functionality has now
+been split into several different programs because some service startup
+schemes require the daemon to get its socket from an external
+program instead of creating and binding it itself. The most obvious
+application of this is upgrading a long-lived process without
+losing existing connections. </li>
 </ul>
 
 </body>
