@@ -32,6 +32,12 @@ minidentd
 
 LIBEXEC_TARGETS :=
 
+ifdef DO_ALLSTATIC
+LIBS6NET := libs6net.a
+else
+LIBS6NET := libs6net.so
+endif
+
 ifdef DO_SHARED
 SHARED_LIBS := libs6net.so
 endif

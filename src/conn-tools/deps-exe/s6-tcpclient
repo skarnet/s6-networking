@@ -1,4 +1,4 @@
--ls6net
+${LIBS6NET}
 -ls6dns
 -lskarnet
 ${SOCKET_LIB}

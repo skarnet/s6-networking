@@ -26,10 +26,10 @@ src/conn-tools/s6-tcpclient.o src/conn-tools/s6-tcpclient.lo: src/conn-tools/s6-
 src/conn-tools/s6-tcpserver-access.o src/conn-tools/s6-tcpserver-access.lo: src/conn-tools/s6-tcpserver-access.c src/include/s6-networking/s6net.h
 src/conn-tools/s6-tcpserver.o src/conn-tools/s6-tcpserver.lo: src/conn-tools/s6-tcpserver.c src/include/s6-networking/config.h
 src/conn-tools/s6-tcpserver4-socketbinder.o src/conn-tools/s6-tcpserver4-socketbinder.lo: src/conn-tools/s6-tcpserver4-socketbinder.c
-src/conn-tools/s6-tcpserver4.o src/conn-tools/s6-tcpserver4.lo: src/conn-tools/s6-tcpserver4.c
+src/conn-tools/s6-tcpserver4.o src/conn-tools/s6-tcpserver4.lo: src/conn-tools/s6-tcpserver4.c src/include/s6-networking/config.h
 src/conn-tools/s6-tcpserver4d.o src/conn-tools/s6-tcpserver4d.lo: src/conn-tools/s6-tcpserver4d.c
 src/conn-tools/s6-tcpserver6-socketbinder.o src/conn-tools/s6-tcpserver6-socketbinder.lo: src/conn-tools/s6-tcpserver6-socketbinder.c
-src/conn-tools/s6-tcpserver6.o src/conn-tools/s6-tcpserver6.lo: src/conn-tools/s6-tcpserver6.c
+src/conn-tools/s6-tcpserver6.o src/conn-tools/s6-tcpserver6.lo: src/conn-tools/s6-tcpserver6.c src/include/s6-networking/config.h
 src/conn-tools/s6-tcpserver6d.o src/conn-tools/s6-tcpserver6d.lo: src/conn-tools/s6-tcpserver6d.c
 src/conn-tools/seekablepipe.o src/conn-tools/seekablepipe.lo: src/conn-tools/seekablepipe.c
 src/libs6net/s6net_accessrules_backend_cdb.o src/libs6net/s6net_accessrules_backend_cdb.lo: src/libs6net/s6net_accessrules_backend_cdb.c src/include/s6-networking/accessrules.h
@@ -46,6 +46,7 @@ src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_get.lo: src/
 src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_reply_parse.lo: src/libs6net/s6net_ident_reply_parse.c src/include/s6-networking/ident.h
 src/minidentd/mgetuid-default.o src/minidentd/mgetuid-default.lo: src/minidentd/mgetuid-default.c src/minidentd/mgetuid.h
 src/minidentd/mgetuid-linux.o src/minidentd/mgetuid-linux.lo: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid.h
+src/minidentd/mgetuid.o src/minidentd/mgetuid.lo: src/minidentd/mgetuid.c src/minidentd/mgetuid.h
 src/minidentd/minidentd.o src/minidentd/minidentd.lo: src/minidentd/minidentd.c src/minidentd/mgetuid.h
 
 s6-clockadd: private EXTRA_LIBS := ${SYSCLOCK_LIB}
@@ -59,7 +60,7 @@ s6-taiclock: src/clock/s6-taiclock.o -lskarnet
 s6-taiclockd: private EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-taiclockd: src/clock/s6-taiclockd.o -lskarnet
 s6-accessrules-cdb-from-fs: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o -ls6net -lskarnet
+s6-accessrules-cdb-from-fs: src/conn-tools/s6-accessrules-cdb-from-fs.o ${LIBS6NET} -lskarnet
 s6-accessrules-fs-from-cdb: private EXTRA_LIBS :=
 s6-accessrules-fs-from-cdb: src/conn-tools/s6-accessrules-fs-from-cdb.o -lskarnet
 s6-connlimit: private EXTRA_LIBS :=
@@ -67,7 +68,7 @@ s6-connlimit: src/conn-tools/s6-connlimit.o -lskarnet
 s6-getservbyname: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-getservbyname: src/conn-tools/s6-getservbyname.o -lskarnet
 s6-ident-client: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-ident-client: src/conn-tools/s6-ident-client.o -ls6net -lskarnet
+s6-ident-client: src/conn-tools/s6-ident-client.o ${LIBS6NET} -lskarnet
 s6-ioconnect: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-ioconnect: src/conn-tools/s6-ioconnect.o -lskarnet
 s6-ipcclient: private EXTRA_LIBS := ${SOCKET_LIB}
@@ -75,7 +76,7 @@ s6-ipcclient: src/conn-tools/s6-ipcclient.o -lskarnet
 s6-ipcserver: private EXTRA_LIBS :=
 s6-ipcserver: src/conn-tools/s6-ipcserver.o -lskarnet
 s6-ipcserver-access: private EXTRA_LIBS := ${SOCKET_LIB}
-s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o -ls6net -lskarnet
+s6-ipcserver-access: src/conn-tools/s6-ipcserver-access.o ${LIBS6NET} -lskarnet
 s6-ipcserver-socketbinder: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-ipcserver-socketbinder: src/conn-tools/s6-ipcserver-socketbinder.o -lskarnet
 s6-ipcserverd: private EXTRA_LIBS := ${SOCKET_LIB}
@@ -87,11 +88,11 @@ s6-sudoc: src/conn-tools/s6-sudoc.o -lskarnet
 s6-sudod: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 s6-sudod: src/conn-tools/s6-sudod.o -lskarnet
 s6-tcpclient: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-tcpclient: src/conn-tools/s6-tcpclient.o -ls6net -ls6dns -lskarnet
+s6-tcpclient: src/conn-tools/s6-tcpclient.o ${LIBS6NET} -ls6dns -lskarnet
 s6-tcpserver: private EXTRA_LIBS :=
 s6-tcpserver: src/conn-tools/s6-tcpserver.o -lskarnet
 s6-tcpserver-access: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o -ls6net -ls6dns -lskarnet
+s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o ${LIBS6NET} -ls6dns -lskarnet
 s6-tcpserver4: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver4: src/conn-tools/s6-tcpserver4.o -lskarnet
 s6-tcpserver4-socketbinder: private EXTRA_LIBS := ${SOCKET_LIB}

@@ -1,3 +1,3 @@
--ls6net
+${LIBS6NET}
 -lskarnet
 ${SOCKET_LIB}
