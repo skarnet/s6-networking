@@ -18,8 +18,9 @@
 #include <skalibs/ip46.h>
 #include <skalibs/unix-timed.h>
 #include <execline/config.h>
+#include <s6/accessrules.h>
 #include <s6-dns/s6dns.h>
-#include <s6-networking/s6net.h>
+#include <s6-networking/ident.h>
 
 #define USAGE "s6-tcpserver-access [ -v verbosity ] [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -50,7 +51,7 @@ static inline void log_deny (unsigned int pid, ip46_t const *ip)
 
 int main (int argc, char const *const *argv, char const *const *envp)
 {
-  s6net_accessrules_params_t params = S6NET_ACCESSRULES_PARAMS_ZERO ;
+  s6_accessrules_params_t params = S6_ACCESSRULES_PARAMS_ZERO ;
   stralloc modifs = STRALLOC_ZERO ;
   tain_t deadline, tto ;
   char const *rulestypestr[3] = { "no", "fs", "cdb" } ;
@@ -62,7 +63,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   unsigned int rulestype = 0 ;
   unsigned int verbosity = 1 ;
   unsigned int protolen ;
-  s6net_accessrules_result_t accepted ;
+  s6_accessrules_result_t accepted ;
   ip46_t remoteip, localip ;
   int flagfatal = 1, flagnodelay = 0, flagdnslookup = 1,
     flagident = 0, flagparanoid = 0, e = 0 ;
@@ -140,17 +141,17 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     case 0 :
       if (verbosity >= 2) strerr_warnw1x("invoked without a ruleset!") ;
-      accepted = S6NET_ACCESSRULES_ALLOW ;
+      accepted = S6_ACCESSRULES_ALLOW ;
       break ;
     case 1 :
-      accepted = s6net_accessrules_ip46_fs(&remoteip, (void *)rules, &params) ;
+      accepted = s6_accessrules_ip46_fs(&remoteip, (void *)rules, &params) ;
       break ;
     case 2 :
       cdbfd = open_readb(rules) ;
       if (cdbfd < 0) strerr_diefu2sys(111, "open_readb ", rules) ;
       if (cdb_init(&c, cdbfd) < 0) strerr_diefu2sys(111, "cdb_init ", rules) ;
-      accepted = s6net_accessrules_ip46_cdb(&remoteip, &c, &params) ;
-      if (accepted == S6NET_ACCESSRULES_ALLOW)
+      accepted = s6_accessrules_ip46_cdb(&remoteip, &c, &params) ;
+      if (accepted == S6_ACCESSRULES_ALLOW)
       {
         cdb_free(&c) ;
         fd_close(cdbfd) ;
@@ -160,13 +161,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   switch (accepted)
   {
-    case S6NET_ACCESSRULES_ERROR :
+    case S6_ACCESSRULES_ERROR :
       strerr_diefu6sys(111, "check ", rulestypestr[rulestype], " ruleset for ", "IP", " in ", rules) ;
-    case S6NET_ACCESSRULES_ALLOW : break ;
-    case S6NET_ACCESSRULES_DENY :
+    case S6_ACCESSRULES_ALLOW : break ;
+    case S6_ACCESSRULES_DENY :
       if (verbosity >= 2) { errno = EACCES ; log_deny(getpid(), &remoteip) ; }
       return 1 ;
-    case S6NET_ACCESSRULES_NOTFOUND :
+    case S6_ACCESSRULES_NOTFOUND :
       if (flagdnslookup) break ;
       if (verbosity >= 2) { errno = ENOENT ; log_deny(getpid(), &remoteip) ; }
       return 1 ;
@@ -326,21 +327,21 @@ int main (int argc, char const *const *argv, char const *const *envp)
       }
     }
     if (!env_addmodif(&modifs, tcpremotehost, remotelen ? remotebuf : 0)) dienomem() ;
-    if (remotelen && (accepted == S6NET_ACCESSRULES_NOTFOUND))
+    if (remotelen && (accepted == S6_ACCESSRULES_NOTFOUND))
     {
       switch (rulestype)
       {
         case 1 :
-          accepted = s6net_accessrules_reversedns_fs(remotebuf, (void *)rules, &params) ;
+          accepted = s6_accessrules_reversedns_fs(remotebuf, (void *)rules, &params) ;
           break ;
         case 2 : 
-          accepted = s6net_accessrules_reversedns_cdb(remotebuf, &c, &params) ;
+          accepted = s6_accessrules_reversedns_cdb(remotebuf, &c, &params) ;
           break ;
         default : X() ;
       }
     }
 
-    if ((rulestype == 2) && (accepted != S6NET_ACCESSRULES_ALLOW))
+    if ((rulestype == 2) && (accepted != S6_ACCESSRULES_ALLOW))
     {
       cdb_free(&c) ;
       fd_close(cdbfd) ;
@@ -348,13 +349,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
     switch (accepted)
     {
-      case S6NET_ACCESSRULES_ERROR :
+      case S6_ACCESSRULES_ERROR :
         strerr_diefu6sys(111, "check ", rulestypestr[rulestype], " ruleset for ", "reverse DNS", " in ", rules) ;
-      case S6NET_ACCESSRULES_ALLOW : break ;
-      case S6NET_ACCESSRULES_DENY :
+      case S6_ACCESSRULES_ALLOW : break ;
+      case S6_ACCESSRULES_DENY :
         if (verbosity >= 2) { errno = EACCES ; log_deny(getpid(), &remoteip) ; }
         return 1 ;
-      case S6NET_ACCESSRULES_NOTFOUND :
+      case S6_ACCESSRULES_NOTFOUND :
         if (verbosity >= 2) { errno = ENOENT ; log_deny(getpid(), &remoteip) ; }
         return 1 ;
       default : X() ;

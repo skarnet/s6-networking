@@ -45,7 +45,7 @@ compiled with IPv6 support, s6-networking is IPv6-ready.
  <li> <a href="http://skarnet.org/software/execline/">execline</a> version
 2.0.1.1 or later </li>
  <li> <a href="http://skarnet.org/software/s6/">s6</a> version
-2.0.1.0 or later </li>
+2.0.2.0 or later </li>
  <li> <a href="http://skarnet.org/software/s6-dns/">s6-dns</a> version
 2.0.0.2 or later </li>
 </ul>
@@ -60,7 +60,7 @@ compiled with IPv6 support, s6-networking is IPv6-ready.
 <h3> Download </h3>
 
 <ul>
- <li> The current released version of s6-networking is <a href="s6-networking-2.0.1.0.tar.gz">2.0.1.0</a>. </li>
+ <li> The current released version of s6-networking is <a href="s6-networking-2.1.0.0.tar.gz">2.1.0.0</a>. </li>
  <li> Alternatively, you can checkout a copy of the s6-networking git repository:
 <pre> git clone git://git.skarnet.org/s6-networking </pre> </li>
 </ul>
@@ -102,7 +102,7 @@ relevant page.
 <li><a href="s6-taiclockd.html">The <tt>s6-taiclockd</tt> program</a></li>
 </ul>
 
-<h4> UCSPI implementation </h4>
+<h4> UCSPI TCP implementation </h4>
 
 <ul>
 <li><a href="s6-tcpclient.html">The <tt>s6-tcpclient</tt> program</a></li>
@@ -113,29 +113,13 @@ relevant page.
 <li><a href="s6-tcpserver6.html">The <tt>s6-tcpserver6</tt> program</a></li>
 <li><a href="s6-tcpserver6-socketbinder.html">The <tt>s6-tcpserver6-socketbinder</tt> program</a></li>
 <li><a href="s6-tcpserver6d.html">The <tt>s6-tcpserver6d</tt> program</a></li>
-<li><a href="s6-ipcclient.html">The <tt>s6-ipcclient</tt> program</a></li>
-<li><a href="s6-ipcserver.html">The <tt>s6-ipcserver</tt> program</a></li>
-<li><a href="s6-ipcserver-socketbinder.html">The <tt>s6-ipcserver-socketbinder</tt> program</a></li>
-<li><a href="s6-ipcserverd.html">The <tt>s6-ipcserverd</tt> program</a></li>
-<li><a href="s6-ioconnect.html">The <tt>s6-ioconnect</tt> program</a></li>
 </ul>
 
-<h4> TCP and Unix access control </h4>
+<h4> TCP access control </h4>
 
 <ul>
 <li><a href="s6-tcpserver-access.html">The <tt>s6-tcpserver-access</tt> program</a></li>
 <li><a href="s6-ipcserver-access.html">The <tt>s6-ipcserver-access</tt> program</a></li>
-<li><a href="s6-connlimit.html">The <tt>s6-connlimit</tt> program</a></li>
-<li><a href="s6-accessrules-cdb-from-fs.html">The <tt>s6-accessrules-cdb-from-fs</tt> program</a></li>
-<li><a href="s6-accessrules-fs-from-cdb.html">The <tt>s6-accessrules-fs-from-cdb</tt> program</a></li>
-</ul>
-
-<h4> suidless privilege gain </h4>
-
-<ul>
-<li><a href="s6-sudo.html">The <tt>s6-sudo</tt> program</a></li>
-<li><a href="s6-sudoc.html">The <tt>s6-sudoc</tt> program</a></li>
-<li><a href="s6-sudod.html">The <tt>s6-sudod</tt> program</a></li>
 </ul>
 
 <h4> IDENT protocol implementation </h4>
@@ -148,7 +132,6 @@ relevant page.
 <h4> Miscellaneous utilities </h4>
 
 <ul>
-<li><a href="seekablepipe.html">The <tt>seekablepipe</tt> program</a></li>
 <li><a href="s6-getservbyname.html">The <tt>s6-getservbyname</tt> program</a></li>
 </ul>
 
@@ -157,7 +140,6 @@ relevant page.
 <ul>
 <li> The <a href="libs6net/">s6net</a> library, containing: </li>
 <li> <a href="libs6net/ident.html">The <tt>ident</tt> library interface</a> </li>
-<li> <a href="libs6net/accessrules.html">The <tt>accessrules</tt> library interface</a> </li>
 </ul>
 
 <hr />

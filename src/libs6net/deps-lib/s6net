@@ -1,11 +1,3 @@
-s6net_accessrules_backend_cdb.o
-s6net_accessrules_backend_fs.o
-s6net_accessrules_keycheck_ip4.o
-s6net_accessrules_keycheck_ip6.o
-s6net_accessrules_keycheck_reversedns.o
-s6net_accessrules_keycheck_uidgid.o
-s6net_accessrules_uidgid_cdb.o
-s6net_accessrules_uidgid_fs.o
 s6net_ident_client.o
 s6net_ident_reply_get.o
 s6net_ident_reply_parse.o

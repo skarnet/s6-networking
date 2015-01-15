@@ -163,13 +163,13 @@ needed to perform searches in a CDB than in the filesystem. </li>
 
 <p>
  The exact format of the ruleset is described on the
-<a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a> page.
+<a href="http://skarnet.org/software/s6/s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a> page.
 </p>
 
 <p>
 s6-tcpserver-access first gets the remote address <em>ip</em> of the
 client and converts it to canonical form. Then it checks it with the
-<a href="libs6net/accessrules.html#ip4">s6net_accessrules_keycheck_ip46()</a>
+<a href="http://skarnet.org/software/s6/libs6/accessrules.html#ip4">s6_accessrules_keycheck_ip46()</a>
 function. In other words, it tries to match broader and broader network
 prefixes of <em>ip</em>, from <tt>ip4/</tt><em>ip</em><tt>_32</tt> to
 <tt>ip4/0.0.0.0_0</tt> if <em>ip</em> is v4, or from
@@ -177,10 +177,10 @@ prefixes of <em>ip</em>, from <tt>ip4/</tt><em>ip</em><tt>_32</tt> to
 is v6. If the result is:
 </p>
 
- <li> S6NET_ACCESSRULES_ERROR: it immediately exits 111. </li>
- <li> S6NET_ACCESSRULES_DENY: it immediately exits 1. </li>
- <li> S6NET_ACCESSRULES_ALLOW: it grants access. </li>
- <li> S6NET_ACCESSRULES_NOTFOUND: more information is needed. </li>
+ <li> S6_ACCESSRULES_ERROR: it immediately exits 111. </li>
+ <li> S6_ACCESSRULES_DENY: it immediately exits 1. </li>
+ <li> S6_ACCESSRULES_ALLOW: it grants access. </li>
+ <li> S6_ACCESSRULES_NOTFOUND: more information is needed. </li>
 </ul>
 
 <p>
@@ -188,12 +188,12 @@ is v6. If the result is:
 is denied. But if s6-tcpserver-access is authorized to perform DNS lookups,
 then it gets the remote name of the client, <em>remotehost</em>, and
 checks it with the
-<a href="libs6net/accessrules.html#reversedns">s6net_accessrules_keycheck_reversedns()</a>
+<a href="http://skarnet.org/software/s6/libs6/accessrules.html#reversedns">s6_accessrules_keycheck_reversedns()</a>
 function. In other words, it tries to match shorter and shorter suffixes
 of <em>remotehost</em>, from <tt>reversedns/</tt><em>remotehost</em> to
 <tt>reversedns/@</tt>.
 This time, the connection is denied is the result is anything else than
-S6NET_ACCESSRULES_ALLOW.
+S6_ACCESSRULES_ALLOW.
 </p>
 
 <p>
@@ -208,7 +208,7 @@ query on <em>remotehost</em> does not match <em>ip</em>.
  s6-tcpserver-access interprets non-empty <tt>env</tt> subdirectories
 and <tt>exec</tt> files
 it finds in the matching rule of the ruleset, as explained
-in the <a href="s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
+in the <a href="http://skarnet.org/software/s6/s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
 page.
 </p>
 

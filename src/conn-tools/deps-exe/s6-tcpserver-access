@@ -1,5 +1,6 @@
 ${LIBS6NET}
 -ls6dns
+-ls6
 -lskarnet
 ${SOCKET_LIB}
 ${TAINNOW_LIB}
