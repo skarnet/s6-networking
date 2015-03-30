@@ -113,7 +113,7 @@ int main (int argc, char const *const *argv)
   tain_now_g() ;
   if (flags.timeout) tain_addsec_g(&deadline, flags.timeout) ;
   else tain_add_g(&deadline, &tain_infinite_relative) ;
-  
+  if (!s6dns_init()) strerr_diefu1sys(111, "init DNS") ; 
   {
     ip46_t ip[2][MAXIP] ;
     unsigned int j = 0 ;

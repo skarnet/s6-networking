@@ -239,10 +239,20 @@ int main (int argc, char const *const *argv, char const *const *envp)
     byte_copy(tcpremotehost, protolen, proto) ;
     byte_copy(tcpremotehost + protolen, 11, "REMOTEHOST") ;
 
+    if (!s6dns_init())
+    {
+      if (verbosity >= 2) strerr_warnwu1sys("init DNS") ;
+      if (flagfatal)
+      {
+        e = 111 ;
+        goto reject ;
+      }
+    }
     if (localname)
     {
       if (!env_addmodif(&modifs, tcplocalhost, localname)) dienomem() ;
     }
+    else
     {
       s6dns_domain_arpafromip46(&blob[0].q, &localip) ;
       s6dns_domain_encode(&blob[0].q) ;
