@@ -25,6 +25,7 @@ src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_get.lo: src/
 src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_reply_parse.lo: src/libs6net/s6net_ident_reply_parse.c src/include/s6-networking/ident.h
 src/minidentd/mgetuid-default.o src/minidentd/mgetuid-default.lo: src/minidentd/mgetuid-default.c src/minidentd/mgetuid.h
 src/minidentd/mgetuid-linux.o src/minidentd/mgetuid-linux.lo: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid.h
+src/minidentd/mgetuid.o src/minidentd/mgetuid.lo: src/minidentd/mgetuid.c src/minidentd/mgetuid.h
 src/minidentd/minidentd.o src/minidentd/minidentd.lo: src/minidentd/minidentd.c src/minidentd/mgetuid.h
 
 s6-clockadd: private EXTRA_LIBS := ${SYSCLOCK_LIB}
@@ -59,7 +60,8 @@ s6-tcpserver6-socketbinder: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o -lskarnet
 s6-tcpserver6d: private EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o -lskarnet
-libs6net.a.xyzzy:  src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
-libs6net.so.xyzzy:  src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
+libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
+libs6net.so.xyzzy: private EXTRA_LIBS := -lskarnet
+libs6net.so.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
 minidentd: private EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet

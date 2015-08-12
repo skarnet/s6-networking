@@ -2,3 +2,4 @@ s6net_ident_client.o
 s6net_ident_reply_get.o
 s6net_ident_reply_parse.o
 s6net_ident_error.o
+-lskarnet
