@@ -19,19 +19,7 @@ minidentd
 
 LIBEXEC_TARGETS :=
 
-ifdef DO_ALLSTATIC
-LIBS6NET := libs6net.a
-else
-LIBS6NET := libs6net.so
-endif
-
-ifdef DO_SHARED
-SHARED_LIBS := libs6net.so
-endif
-
-ifdef DO_STATIC
-STATIC_LIBS := libs6net.a
-endif
+LIB_DEFS := S6NET=s6net
 
 EXTRA_TARGETS := src/minidentd/mgetuid.c
 
