@@ -24,7 +24,7 @@ LIB_DEFS := S6NET=s6net
 EXTRA_TARGETS := src/minidentd/mgetuid.c
 
 src/minidentd/mgetuid.c: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid-default.c
-	@if grep -q -iF -- -linux- $(sysdeps)/target 2>/dev/null ; then \
+	@if grep -q -iF -- -linux $(sysdeps)/target 2>/dev/null ; then \
 	  ln -sf mgetuid-linux.c src/minidentd/mgetuid.c ; \
 	else \
 	  ln -sf mgetuid-default.c src/minidentd/mgetuid.c ; \
