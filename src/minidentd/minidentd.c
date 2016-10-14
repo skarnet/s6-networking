@@ -155,21 +155,16 @@ static void doit (char const *s, ip46_t const *localaddr, ip46_t const *remotead
     return ;
   }
 
-  if (how == 3)                                                              
-  {                                                                            
-    char name[9] ;                                                             
-    char fmt[4 + UINT_FMT] = "uid " ;                                                    
-    fmt[4 + uint_fmt(fmt+4, uid)] = 0 ;                                      
-    if (random_name(name, 8) < 8)                                                       
-    {                                                                          
-      strerr_warnwu1sys("perform random") ;                                    
-      reply(lr, "ERROR", "UNKNOWN-ERROR") ;                                    
-      return ;                                                                 
-    }                                                                          
-    reply(lr, "UNIX", name) ;                                                  
-    logreply("random", fmt, name) ;                                            
-    return ;                                                                   
-  }                                            
+  if (how == 3)
+  {
+    char name[9] ;
+    char fmt[4 + UINT_FMT] = "uid " ;
+    fmt[4 + uint_fmt(fmt+4, uid)] = 0 ;
+    random_name(name, 8) ;
+    reply(lr, "UNIX", name) ;
+    logreply("random", fmt, name) ;
+    return ;
+  }
 
   pw = getpwuid(uid) ;
   if (!pw)
@@ -254,6 +249,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   if (ip46_is6(&localaddr) != ip46_is6(&remoteaddr))
     strerr_dief1x(100, "local and remote address not of the same family") ;
+  if (!random_init())
+    strerr_diefu1sys(111, "init random generator") ;
+
   tain_now_g() ;
                                                                                     
   for (;;)
