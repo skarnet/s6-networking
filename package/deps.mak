@@ -63,7 +63,7 @@ s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o -lskarne
 s6-tcpserver6d: EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o -lskarnet
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
-libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet ${SPAWN_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB} ${TAINNOW_LIB} ${TIMER_LIB} ${UTIL_LIB}
+libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet
 libs6net.so.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
 minidentd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet
