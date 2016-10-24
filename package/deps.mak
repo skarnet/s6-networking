@@ -26,6 +26,9 @@ src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_reply_parse.lo: 
 src/minidentd/mgetuid-default.o src/minidentd/mgetuid-default.lo: src/minidentd/mgetuid-default.c src/minidentd/mgetuid.h
 src/minidentd/mgetuid-linux.o src/minidentd/mgetuid-linux.lo: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid.h
 src/minidentd/minidentd.o src/minidentd/minidentd.lo: src/minidentd/minidentd.c src/minidentd/mgetuid.h
+src/tls/s6-tlsc.o src/tls/s6-tlsc.lo: src/tls/s6-tlsc.c src/tls/s6net-tls-internal.h
+src/tls/s6-tlsd.o src/tls/s6-tlsd.lo: src/tls/s6-tlsd.c src/tls/s6net-tls-internal.h
+src/tls/s6net_tls_mainloop.o src/tls/s6net_tls_mainloop.lo: src/tls/s6net_tls_mainloop.c src/tls/s6net-tls-internal.h
 
 s6-clockadd: EXTRA_LIBS := ${SYSCLOCK_LIB}
 s6-clockadd: src/clock/s6-clockadd.o -lskarnet
@@ -60,7 +63,15 @@ s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o -lskarne
 s6-tcpserver6d: EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o -lskarnet
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
-libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet
+libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet ${SPAWN_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB} ${TAINNOW_LIB} ${TIMER_LIB} ${UTIL_LIB}
 libs6net.so.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
 minidentd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet
+s6-tlsc: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tlsc: src/tls/s6-tlsc.o src/tls/s6net_tls_mainloop.o -lskarnet ${TLS_LIBS}
+s6-tlsclient: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tlsclient: src/tls/s6-tlsclient.o -lskarnet
+s6-tlsd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tlsd: src/tls/s6-tlsd.o src/tls/s6net_tls_mainloop.o -lskarnet ${TLS_LIBS}
+s6-tlsserver: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tlsserver: src/tls/s6-tlsserver.o -lskarnet
