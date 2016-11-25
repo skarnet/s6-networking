@@ -29,3 +29,22 @@ src/minidentd/mgetuid.c: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid-def
 	else \
 	  ln -sf mgetuid-default.c src/minidentd/mgetuid.c ; \
 	fi
+
+ifneq ($(SSL_IMPL),)
+
+BIN_TARGETS += s6-tlsclient s6-tlsc s6-tlsserver s6-tlsd
+
+ifeq ($(SSL_IMPL),tls)
+
+LIB_DEFS += STLS=stls
+CRYPTO_LIB := -ltls -lssl -lcrypto
+LIBCRYPTOSUPPORT := -lstls
+
+else ifeq ($(SSL_IMPL),bearssl)
+
+LIB_DEFS += SBEARSSL=sbearssl
+CRYPTO_LIB := -lbearssl
+LIBCRYPTOSUPPORT := -lsbearssl
+
+endif
+endif

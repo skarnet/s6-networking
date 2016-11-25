@@ -44,6 +44,10 @@ Optional features:
   --enable-absolute-paths       do not rely on PATH to access this package's binaries,
                                   hardcode absolute BINDIR/foobar paths instead [disabled]
 
+SSL support:
+  --enable-ssl=libressl|bearssl build SSL tools, w/ libtls or bearssl implementation [disabled]
+  --with-ssl-path=DIR           search for SSL headers/libs in DIR/include and DIR/lib [/usr]
+
 EOF
 exit 0
 }
@@ -149,6 +153,7 @@ addlibdpath=''
 vpaths=''
 vpathd=''
 build=
+ssl=
 
 for arg ; do
   case "$arg" in
@@ -177,6 +182,10 @@ for arg ; do
     --disable-slashpackage) sproot= ; slashpackage=false ;;
     --enable-absolute-paths|--enable-absolute-paths=yes) abspath=true ;;
     --disable-absolute-paths|--enable-absolute-paths=no) abspath=false ;;
+    --enable-ssl=libressl) ssl=tls ;;
+    --enable-ssl=bearssl) ssl=bearssl ;;
+    --disable-ssl|--enable-ssl=none) ssl= ;;
+    --with-ssl-path=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var/include" ; addlibspath="$addlibspath -L$var/lib" ; vpaths="$vpaths $var/lib" ; addlibdpath="$addlibdpath -L$var/lib" ; vpathd="$vpathd $var/lib" ;;
     --enable-*|--disable-*|--with-*|--without-*|--*dir=*) ;;
     --host=*|--target=*) target=${arg#*=} ;;
     --build=*) build=${arg#*=} ;;
@@ -395,6 +404,11 @@ if $shared ; then
 else
   echo "DO_SHARED :="
 fi
+if test -n $ssl ; then
+  echo "SSL_IMPL := $ssl"
+else
+  echo "SSL_IMPL :="
+fi
 
 exec 1>&3 3>&-
 echo "  ... done."
@@ -423,6 +437,17 @@ else
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
 fi
 echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
+if test "tls" = "$ssl" ; then
+  echo "#define ${package_macro_name}_USE_TLS"
+else
+  echo "#undef ${package_macro_name}_USE_TLS"
+fi
+if test "bearssl" = "$ssl" ; then
+  echo "#define ${package_macro_name}_USE_BEARSSL"
+else
+  echo "#undef ${package_macro_name}_USE_BEARSSL"
+fi
+
 echo
 echo "#endif"
 exec 1>&3 3>&-

@@ -19,6 +19,10 @@ src/conn-tools/s6-tcpserver4d.o src/conn-tools/s6-tcpserver4d.lo: src/conn-tools
 src/conn-tools/s6-tcpserver6-socketbinder.o src/conn-tools/s6-tcpserver6-socketbinder.lo: src/conn-tools/s6-tcpserver6-socketbinder.c
 src/conn-tools/s6-tcpserver6.o src/conn-tools/s6-tcpserver6.lo: src/conn-tools/s6-tcpserver6.c src/include/s6-networking/config.h
 src/conn-tools/s6-tcpserver6d.o src/conn-tools/s6-tcpserver6d.lo: src/conn-tools/s6-tcpserver6d.c
+src/conn-tools/s6-tlsc.o src/conn-tools/s6-tlsc.lo: src/conn-tools/s6-tlsc.c src/include/s6-networking/config.h src/include/s6-networking/sbearssl.h src/include/s6-networking/stls.h
+src/conn-tools/s6-tlsclient.o src/conn-tools/s6-tlsclient.lo: src/conn-tools/s6-tlsclient.c src/include/s6-networking/config.h
+src/conn-tools/s6-tlsd.o src/conn-tools/s6-tlsd.lo: src/conn-tools/s6-tlsd.c src/include/s6-networking/config.h src/include/s6-networking/sbearssl.h src/include/s6-networking/stls.h
+src/conn-tools/s6-tlsserver.o src/conn-tools/s6-tlsserver.lo: src/conn-tools/s6-tlsserver.c src/include/s6-networking/config.h
 src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_client.lo: src/libs6net/s6net_ident_client.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_error.o src/libs6net/s6net_ident_error.lo: src/libs6net/s6net_ident_error.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_get.lo: src/libs6net/s6net_ident_reply_get.c src/include/s6-networking/ident.h
@@ -26,9 +30,40 @@ src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_reply_parse.lo: 
 src/minidentd/mgetuid-default.o src/minidentd/mgetuid-default.lo: src/minidentd/mgetuid-default.c src/minidentd/mgetuid.h
 src/minidentd/mgetuid-linux.o src/minidentd/mgetuid-linux.lo: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid.h
 src/minidentd/minidentd.o src/minidentd/minidentd.lo: src/minidentd/minidentd.c src/minidentd/mgetuid.h
-src/tls/s6-tlsc.o src/tls/s6-tlsc.lo: src/tls/s6-tlsc.c src/tls/s6net-tls-internal.h
-src/tls/s6-tlsd.o src/tls/s6-tlsd.lo: src/tls/s6-tlsd.c src/tls/s6net-tls-internal.h
-src/tls/s6net_tls_mainloop.o src/tls/s6net_tls_mainloop.lo: src/tls/s6net_tls_mainloop.c src/tls/s6net-tls-internal.h
+src/sbearssl/sbearssl_append.o src/sbearssl/sbearssl_append.lo: src/sbearssl/sbearssl_append.c
+src/sbearssl/sbearssl_cert_from.o src/sbearssl/sbearssl_cert_from.lo: src/sbearssl/sbearssl_cert_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_cert_readfile.o src/sbearssl/sbearssl_cert_readfile.lo: src/sbearssl/sbearssl_cert_readfile.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_cert_to.o src/sbearssl/sbearssl_cert_to.lo: src/sbearssl/sbearssl_cert_to.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ec_pkey_from.o src/sbearssl/sbearssl_ec_pkey_from.lo: src/sbearssl/sbearssl_ec_pkey_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ec_pkey_to.o src/sbearssl/sbearssl_ec_pkey_to.lo: src/sbearssl/sbearssl_ec_pkey_to.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ec_skey_from.o src/sbearssl/sbearssl_ec_skey_from.lo: src/sbearssl/sbearssl_ec_skey_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ec_skey_to.o src/sbearssl/sbearssl_ec_skey_to.lo: src/sbearssl/sbearssl_ec_skey_to.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_error_str.o src/sbearssl/sbearssl_error_str.lo: src/sbearssl/sbearssl_error_str.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_isder.o src/sbearssl/sbearssl_isder.lo: src/sbearssl/sbearssl_isder.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_pem_decode_from_buffer.o src/sbearssl/sbearssl_pem_decode_from_buffer.lo: src/sbearssl/sbearssl_pem_decode_from_buffer.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
+src/sbearssl/sbearssl_pem_decode_from_string.o src/sbearssl/sbearssl_pem_decode_from_string.lo: src/sbearssl/sbearssl_pem_decode_from_string.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
+src/sbearssl/sbearssl_pem_push.o src/sbearssl/sbearssl_pem_push.lo: src/sbearssl/sbearssl_pem_push.c src/sbearssl/sbearssl-internal.h
+src/sbearssl/sbearssl_pkey_from.o src/sbearssl/sbearssl_pkey_from.lo: src/sbearssl/sbearssl_pkey_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_pkey_to.o src/sbearssl/sbearssl_pkey_to.lo: src/sbearssl/sbearssl_pkey_to.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_rsa_pkey_from.o src/sbearssl/sbearssl_rsa_pkey_from.lo: src/sbearssl/sbearssl_rsa_pkey_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_rsa_pkey_to.o src/sbearssl/sbearssl_rsa_pkey_to.lo: src/sbearssl/sbearssl_rsa_pkey_to.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_rsa_skey_from.o src/sbearssl/sbearssl_rsa_skey_from.lo: src/sbearssl/sbearssl_rsa_skey_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_rsa_skey_to.o src/sbearssl/sbearssl_rsa_skey_to.lo: src/sbearssl/sbearssl_rsa_skey_to.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_run.o src/sbearssl/sbearssl_run.lo: src/sbearssl/sbearssl_run.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_s6tlsc.o src/sbearssl/sbearssl_s6tlsc.lo: src/sbearssl/sbearssl_s6tlsc.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_s6tlsd.o src/sbearssl/sbearssl_s6tlsd.lo: src/sbearssl/sbearssl_s6tlsd.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_skey_from.o src/sbearssl/sbearssl_skey_from.lo: src/sbearssl/sbearssl_skey_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_skey_readfile.o src/sbearssl/sbearssl_skey_readfile.lo: src/sbearssl/sbearssl_skey_readfile.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_skey_to.o src/sbearssl/sbearssl_skey_to.lo: src/sbearssl/sbearssl_skey_to.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ta_cert.o src/sbearssl/sbearssl_ta_cert.lo: src/sbearssl/sbearssl_ta_cert.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ta_from.o src/sbearssl/sbearssl_ta_from.lo: src/sbearssl/sbearssl_ta_from.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ta_readdir.o src/sbearssl/sbearssl_ta_readdir.lo: src/sbearssl/sbearssl_ta_readdir.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ta_readfile.o src/sbearssl/sbearssl_ta_readfile.lo: src/sbearssl/sbearssl_ta_readfile.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
+src/sbearssl/sbearssl_ta_readfile_internal.o src/sbearssl/sbearssl_ta_readfile_internal.lo: src/sbearssl/sbearssl_ta_readfile_internal.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
+src/sbearssl/sbearssl_ta_to.o src/sbearssl/sbearssl_ta_to.lo: src/sbearssl/sbearssl_ta_to.c src/include/s6-networking/sbearssl.h
+src/stls/stls_run.o src/stls/stls_run.lo: src/stls/stls_run.c src/include/s6-networking/stls.h
+src/stls/stls_s6tlsc.o src/stls/stls_s6tlsc.lo: src/stls/stls_s6tlsc.c src/include/s6-networking/stls.h
+src/stls/stls_s6tlsd.o src/stls/stls_s6tlsd.lo: src/stls/stls_s6tlsd.c src/include/s6-networking/stls.h
 
 s6-clockadd: EXTRA_LIBS := ${SYSCLOCK_LIB}
 s6-clockadd: src/clock/s6-clockadd.o -lskarnet
@@ -62,16 +97,22 @@ s6-tcpserver6-socketbinder: EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o -lskarnet
 s6-tcpserver6d: EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o -lskarnet
+s6-tlsc: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tlsc: src/conn-tools/s6-tlsc.o ${LIBCRYPTOSUPPORT} -lskarnet
+s6-tlsclient: EXTRA_LIBS :=
+s6-tlsclient: src/conn-tools/s6-tlsclient.o -lskarnet
+s6-tlsd: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tlsd: src/conn-tools/s6-tlsd.o ${LIBCRYPTOSUPPORT} -lskarnet
+s6-tlsserver: EXTRA_LIBS :=
+s6-tlsserver: src/conn-tools/s6-tlsserver.o -lskarnet
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
 libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet
 libs6net.so.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
 minidentd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
 minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet
-s6-tlsc: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-tlsc: src/tls/s6-tlsc.o src/tls/s6net_tls_mainloop.o -lskarnet ${TLS_LIBS}
-s6-tlsclient: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-tlsclient: src/tls/s6-tlsclient.o -lskarnet
-s6-tlsd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-tlsd: src/tls/s6-tlsd.o src/tls/s6net_tls_mainloop.o -lskarnet ${TLS_LIBS}
-s6-tlsserver: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-s6-tlsserver: src/tls/s6-tlsserver.o -lskarnet
+libsbearssl.a.xyzzy: src/sbearssl/sbearssl_append.o src/sbearssl/sbearssl_cert_from.o src/sbearssl/sbearssl_cert_readfile.o src/sbearssl/sbearssl_cert_to.o src/sbearssl/sbearssl_ec_pkey_from.o src/sbearssl/sbearssl_ec_pkey_to.o src/sbearssl/sbearssl_ec_skey_from.o src/sbearssl/sbearssl_ec_skey_to.o src/sbearssl/sbearssl_error_str.o src/sbearssl/sbearssl_isder.o src/sbearssl/sbearssl_pem_decode_from_buffer.o src/sbearssl/sbearssl_pem_decode_from_string.o src/sbearssl/sbearssl_pem_push.o src/sbearssl/sbearssl_pkey_from.o src/sbearssl/sbearssl_pkey_to.o src/sbearssl/sbearssl_rsa_pkey_from.o src/sbearssl/sbearssl_rsa_pkey_to.o src/sbearssl/sbearssl_rsa_skey_from.o src/sbearssl/sbearssl_rsa_skey_to.o src/sbearssl/sbearssl_run.o src/sbearssl/sbearssl_skey_from.o src/sbearssl/sbearssl_skey_readfile.o src/sbearssl/sbearssl_skey_to.o src/sbearssl/sbearssl_ta_cert.o src/sbearssl/sbearssl_ta_from.o src/sbearssl/sbearssl_ta_readdir.o src/sbearssl/sbearssl_ta_readfile.o src/sbearssl/sbearssl_ta_readfile_internal.o src/sbearssl/sbearssl_ta_to.o src/sbearssl/sbearssl_s6tlsc.o src/sbearssl/sbearssl_s6tlsd.o
+libsbearssl.so.xyzzy: EXTRA_LIBS := -lbearssl -lskarnet
+libsbearssl.so.xyzzy: src/sbearssl/sbearssl_append.lo src/sbearssl/sbearssl_cert_from.lo src/sbearssl/sbearssl_cert_readfile.lo src/sbearssl/sbearssl_cert_to.lo src/sbearssl/sbearssl_ec_pkey_from.lo src/sbearssl/sbearssl_ec_pkey_to.lo src/sbearssl/sbearssl_ec_skey_from.lo src/sbearssl/sbearssl_ec_skey_to.lo src/sbearssl/sbearssl_error_str.lo src/sbearssl/sbearssl_isder.lo src/sbearssl/sbearssl_pem_decode_from_buffer.lo src/sbearssl/sbearssl_pem_decode_from_string.lo src/sbearssl/sbearssl_pem_push.lo src/sbearssl/sbearssl_pkey_from.lo src/sbearssl/sbearssl_pkey_to.lo src/sbearssl/sbearssl_rsa_pkey_from.lo src/sbearssl/sbearssl_rsa_pkey_to.lo src/sbearssl/sbearssl_rsa_skey_from.lo src/sbearssl/sbearssl_rsa_skey_to.lo src/sbearssl/sbearssl_run.lo src/sbearssl/sbearssl_skey_from.lo src/sbearssl/sbearssl_skey_readfile.lo src/sbearssl/sbearssl_skey_to.lo src/sbearssl/sbearssl_ta_cert.lo src/sbearssl/sbearssl_ta_from.lo src/sbearssl/sbearssl_ta_readdir.lo src/sbearssl/sbearssl_ta_readfile.lo src/sbearssl/sbearssl_ta_readfile_internal.lo src/sbearssl/sbearssl_ta_to.lo src/sbearssl/sbearssl_s6tlsc.lo src/sbearssl/sbearssl_s6tlsd.lo
+libstls.a.xyzzy: src/stls/stls_run.o src/stls/stls_s6tlsc.o src/stls/stls_s6tlsd.o
+libstls.so.xyzzy: EXTRA_LIBS := -ltls -lskarnet
+libstls.so.xyzzy: src/stls/stls_run.lo src/stls/stls_s6tlsc.lo src/stls/stls_s6tlsd.lo

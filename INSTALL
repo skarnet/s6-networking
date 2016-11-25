@@ -10,6 +10,10 @@ Build Instructions
   - execline version 2.2.0.0 or later: http://skarnet.org/software/execline/
   - s6 version 2.4.0.0 or later: http://skarnet.org/software/s6/
   - s6-dns version 2.1.0.0 or later: http://skarnet.org/software/s6-dns/
+  - Depending on whether you build the SSL tools,
+        libressl version 2.5.0 or later: http://libressl.org/
+     or bearssl version 0.1 or later: http://bearssl.org/
+    (BearSSL support is experimental for now, don't use it yet.)
 
  This software will run on any operating system that implements
 POSIX.1-2008, available at:
@@ -168,3 +172,21 @@ without relying on a PATH search.
  skarnet.org packages do not support out-of-tree builds. They
 are small, so it does not cost much to duplicate the entire
 source tree if parallel builds are needed.
+
+
+* SSL support
+  -----------
+
+ s6-networking implements UCSPI tools for TLS1.2 connections: s6-tlsclient,
+s6-tlsserver, s6-tlsc and s6-tlsd. Those are built if you give the
+--enable-ssl=<implementation> flag to configure. There are two supported
+values for <implementation>: libressl (in which case the tools will be
+built against libtls) and bearssl (in which case the tools will be built
+against libbearssl). You should install the relevant header and library
+files for your chosen implementation before building a SSL-enabled
+s6-networking.
+ If your SSL headers and library files are not installed in /usr/include
+and /usr/lib, you can use the --with-ssl-path=DIR configure option:
+headers will be searched in DIR/include and libraries will be searched in
+DIR/lib. For more complex setups, use the generic --with-include and
+--with-dir configure options.
