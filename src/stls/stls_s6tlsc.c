@@ -13,10 +13,9 @@
 #define diecfg(cfg, s) strerr_diefu3x(96, (s), ": ", tls_config_error(cfg))
 #define diectx(e, ctx, s) strerr_diefu3x(e, (s), ": ", tls_error(ctx))
 
-int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, int *sfd)
+int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd)
 {
   int fds[4] = { sfd[0], sfd[1], sfd[0], sfd[1] } ;
-  struct tls *cctx ;
   struct tls *ctx ;
   struct tls_config *cfg ;
   pid_t pid ;
@@ -79,16 +78,15 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
   if (gid && setgid(gid) < 0) strerr_diefu1sys(111, "setgid") ;
   if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;
 
-  if (tls_accept_fds(ctx, &cctx, fds[2], fds[3]) < 0)
-    diectx(97, ctx, "tls_accept_fds") ;
-
-  tls_free(ctx) ;
+  if (tls_connect_fds(ctx, fds[2], fds[3], servername) < 0)
+    diectx(97, ctx, "tls_connect_fds") ;
 
   {
     int wstat ;
-    int r = stls_run(cctx, fds, verbosity, options, tto) ;
+    int r = stls_run(ctx, fds, verbosity, options, tto) ;
     if (r < 0) strerr_diefu1sys(111, "run SSL engine") ;
-    else if (r) diectx(98, cctx, "run SSL engine") ;
+    else if (r) diectx(98, ctx, "run SSL engine") ;
+    tls_free(ctx) ;
     if (wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
     return wait_estatus(wstat) ;
   }
