@@ -31,30 +31,30 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     unsigned int state = br_ssl_engine_current_state(ctx) ;
     int r ;
 
-    tain_add_g(&deadline, isopen[0] && isopen[1] && state & (BR_SSL_SENDAPP | BR_SSL_REVREC) ? tto : &tain_infinite_relative) ;
+    tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && state & (BR_SSL_SENDAPP | BR_SSL_RECVREC) ? tto : &tain_infinite_relative) ;
 
-    if (fds[0] >= 0 && st & BR_SSL_SENDAPP)
+    if (fds[0] >= 0 && state & BR_SSL_SENDAPP)
     {
       x[j].fd = fds[0] ;
       x[j].events = IOPAUSE_READ ;
       xindex[0] = j++ ;
     }
     else xindex[0] = 4 ;
-    if (fds[1] >= 0 && st & BR_SSL_RECVAPP)
+    if (fds[1] >= 0 && state & BR_SSL_RECVAPP)
     {
       x[j].fd = fds[1] ;
       x[j].events = IOPAUSE_WRITE ;
       xindex[1] = j++ ;
     }
     else xindex[1] = 4 ;
-    if (fds[2] >= 0 && st & BR_SSL_RECVREC)
+    if (fds[2] >= 0 && state & BR_SSL_RECVREC)
     {
       x[j].fd = fds[2] ;
       x[j].events = IOPAUSE_READ ;
       xindex[2] = j++ ;
     }
     else xindex[2] = 4 ;
-    if (fds[3] >= 0 && st & BR_SSL_SENDREC)
+    if (fds[3] >= 0 && state & BR_SSL_SENDREC)
     {
       x[j].fd = fds[3] ;
       x[j].events = IOPAUSE_WRITE ;
@@ -68,7 +68,7 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     else if (!r)
     {
       fd_close(fds[0]) ; fds[0] = -1 ;
-      br_ssl_engine_close(&ctx) ;
+      br_ssl_engine_close(ctx) ;
       continue ;
     }
 
@@ -82,8 +82,8 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     if (state & BR_SSL_RECVAPP && x[xindex[1]].revents & IOPAUSE_WRITE)
     {
       size_t len ;
-      char const *s = br_ssl_engine_recvapp_buf(ctx, &len) ;
-      size_t w = allwrite(fds[1], s, len) ;
+      unsigned char const *s = br_ssl_engine_recvapp_buf(ctx, &len) ;
+      size_t w = allwrite(fds[1], (char const *)s, len) ;
       if (!w)
       {
         if (!error_isagain(errno))
@@ -106,8 +106,8 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     if (state & BR_SSL_SENDREC && x[xindex[3]].revents & IOPAUSE_WRITE)
     {
       size_t len ;
-      char const *s = br_ssl_engine_sendrec_buf(ctx, &len) ;
-      size_t w = allwrite(fds[3], s, len) ;
+      unsigned char const *s = br_ssl_engine_sendrec_buf(ctx, &len) ;
+      size_t w = allwrite(fds[3], (char const *)s, len) ;
       if (!w)
       {
         if (!error_isagain(errno))
@@ -131,8 +131,8 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     if (state & BR_SSL_SENDAPP & x[xindex[0]].revents & IOPAUSE_READ)
     {
       size_t len ;
-      char *s = br_ssl_engine_sendapp_buf(ctx, &len) ;
-      size_t w = allread(fds[0], s, len) ;
+      unsigned char *s = br_ssl_engine_sendapp_buf(ctx, &len) ;
+      size_t w = allread(fds[0], (char *)s, len) ;
       if (!w)
       {
         if (!error_isagain(errno))
@@ -160,8 +160,8 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     if (state & BR_SSL_RECVREC & x[xindex[2]].revents & IOPAUSE_READ)
     {
       size_t len ;
-      char *s = br_ssl_engine_recvrec_buf(ctx, &len) ;
-      size_t w = allread(fds[2], s, len) ;
+      unsigned char *s = br_ssl_engine_recvrec_buf(ctx, &len) ;
+      size_t w = allread(fds[2], (char *)s, len) ;
       if (!w)
       {
         if (!error_isagain(errno))

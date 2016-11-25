@@ -36,15 +36,13 @@ BIN_TARGETS += s6-tlsclient s6-tlsc s6-tlsserver s6-tlsd
 
 ifeq ($(SSL_IMPL),tls)
 
-LIB_DEFS += STLS=stls
+LIB_DEFS += CRYPTOSUPPORT=stls
 CRYPTO_LIB := -ltls -lssl -lcrypto
-LIBCRYPTOSUPPORT := -lstls
 
 else ifeq ($(SSL_IMPL),bearssl)
 
-LIB_DEFS += SBEARSSL=sbearssl
+LIB_DEFS += CRYPTOSUPPORT=sbearssl
 CRYPTO_LIB := -lbearssl
-LIBCRYPTOSUPPORT := -lsbearssl
 
 endif
 endif

@@ -265,7 +265,7 @@ static struct error_s errors[] =
     BR_ERR_X509_BAD_BOOLEAN,
     "Decoding error: BOOLEAN value has invalid length."
     " (BR_ERR_X509_BAD_BOOLEAN)"
-  }
+  },
   {
     BR_ERR_X509_OVERFLOW,
     "Decoding error: value is off-limits."

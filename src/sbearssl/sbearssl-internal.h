@@ -7,6 +7,7 @@
 #include <bearssl.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
+#include <s6-networking/sbearssl.h>
 
 typedef struct sbearssl_strallocerr_s sbearssl_strallocerr, *sbearssl_strallocerr_ref ;
 struct sbearssl_strallocerr_s

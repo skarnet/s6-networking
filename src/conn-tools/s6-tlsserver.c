@@ -105,7 +105,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'D' : o.flagD = 1 ; o.doaccess = 1 ; break ;
         case 'd' : o.flagD = 0 ; break ;
         case 'H' : o.flagH = 1 ; o.doaccess = 1 ; break ;
-        case 'h' : o.flagh = 0 ; break ;
+        case 'h' : o.flagH = 0 ; break ;
         case 'R' : o.flagr = 0 ; break ;
         case 'r' : o.flagr = 1 ; o.doaccess = 1 ; break ;
         case 'P' : o.flagp = 0 ; break ;
@@ -133,14 +133,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
     char fmt[UINT_FMT * 5 + GID_FMT * (NGROUPS_MAX + 1) + UINT64_FMT] ;
     char const *newargv[44 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
-    if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" ; "-q" ;
+    if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag46) newargv[m++] = o.flag46 == 1 ? "-4" : "-6" ;
     if (o.flag1) newargv[m++] = "-1" ;
     if (o.maxconn)
     {
       newargv[m++] = "-c" ;
       newargv[m++] = fmt + pos ;
-      pos += uint_fmt(fmt + pos, maxconn) ;
+      pos += uint_fmt(fmt + pos, o.maxconn) ;
       fmt[pos++] = 0 ;
     }
     if (o.localmaxconn)
@@ -150,11 +150,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
       pos += uint_fmt(fmt + pos, o.localmaxconn) ;
       fmt[pos++] = 0 ;
     }
-    if (backlog != (unsigned int)-1)
+    if (o.backlog != (unsigned int)-1)
     {
       newargv[m++] = "-b" ;
       newargv[m++] = fmt + pos ;
-      pos += uint_fmt(fmt + pos, backlog) ;
+      pos += uint_fmt(fmt + pos, o.backlog) ;
       fmt[pos++] = 0 ;
     }
     if (o.gidn != (unsigned int)-1)

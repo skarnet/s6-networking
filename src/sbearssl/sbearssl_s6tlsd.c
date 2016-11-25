@@ -62,12 +62,12 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
     switch (skey.type)
     {
       case BR_KEYTYPE_RSA :
-        sbearssl_rsa_skey_to(&skey.rsa, &key.rsa, storage.s) ;
+        sbearssl_rsa_skey_to(&skey.data.rsa, &key.rsa, storage.s) ;
         br_ssl_server_init_full_rsa(&sc, chain, chainlen, &key.rsa) ;
         break ;
       case BR_KEYTYPE_EC :
-        sbearssl_ec_skey_to(&skey.ec, &key.ec, storage.s) ;
-        br_ssl_server_init_full_ec(&sc, chain, chainlen, &key.ec) ;
+        sbearssl_ec_skey_to(&skey.data.ec, &key.ec, storage.s) ;
+        br_ssl_server_init_full_ec(&sc, chain, chainlen, BR_KEYTYPE_EC, &key.ec) ;
         break ;
       default :
       strerr_dief1x(96, "unsupported private key type") ;
@@ -75,7 +75,7 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
 
     if (!random_init())
       strerr_diefu1sys(111, "initialize random generator") ;
-    random_string(buf, 32) ;
+    random_string((char *)buf, 32) ;
     br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
     random_finish() ;
 

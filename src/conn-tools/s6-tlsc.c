@@ -31,11 +31,12 @@
 #endif
 
 
-#define USAGE "s6-tlsc [ -S | -s ]  [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -6 rfd ] [ -7 wfd ] prog..."
+#define USAGE "s6-tlsc [ -S | -s ]  [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -k servername ] [ -6 rfd ] [ -7 wfd ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv, char const *const *envp)
 {
+  char const *servername = 0 ;
   tain_t tto ;
   unsigned int verbosity = 1 ;
   uid_t uid = 0 ;
@@ -50,7 +51,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "SsYyv:K:6:7:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "SsYyv:K:k:6:7:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -60,6 +61,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'y' : preoptions |= 1 ; break ;
         case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
         case 'K' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
+        case 'k' : servername = l.arg ; break ;
         case '6' :
         {
           unsigned int fd ;
@@ -84,7 +86,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   if (!getuid())
   {
-    x = env_get2(envp, "TLS_UID") ;
+    char const *x = env_get2(envp, "TLS_UID") ;
     if (x)
     {
       uint64 u ;
@@ -98,5 +100,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
   }
 
-  return s6tlsc(argv, envp, &tto, preoptions, options, uid, gid, verbosity) ;
+  return s6tlsc(argv, envp, &tto, preoptions, options, uid, gid, verbosity, servername, fds) ;
 }

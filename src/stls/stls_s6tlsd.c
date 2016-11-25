@@ -24,7 +24,7 @@ int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const 
 
   if (tls_init() < 0) strerr_diefu1sys(111, "tls_init") ;
   cfg = tls_config_new() ;
-  if (!cfg) strerr_diefu1sys(111, "tls_config_new")
+  if (!cfg) strerr_diefu1sys(111, "tls_config_new") ;
 
   x = env_get2(envp, "CAFILE") ;
   if (x)
@@ -57,7 +57,7 @@ int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const 
     diecfg(cfg, "tls_config_set_dheparams") ;
 
   if (tls_config_set_ecdhecurve(cfg, "auto") < 0)
-    diecfg("tls_config_set_ecdhecurve") ;
+    diecfg(cfg, "tls_config_set_ecdhecurve") ;
 
   if (preoptions & 1) tls_config_verify_client(cfg) ;
   else tls_config_verify_client_optional(cfg) ;
@@ -76,7 +76,7 @@ int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const 
   if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;
 
   if (tls_accept_fds(ctx, &cctx, fds[2], fds[3]) < 0)
-    diectx(ctx, "tls_accept_fds") ;
+    diectx(97, ctx, "tls_accept_fds") ;
 
   tls_free(ctx) ;
 

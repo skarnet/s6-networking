@@ -8,6 +8,7 @@
 #include <skalibs/direntry.h>
 #include <skalibs/djbunix.h>
 #include <s6-networking/sbearssl.h>
+#include "sbearssl-internal.h"
 
 int sbearssl_ta_readdir (char const *dirfn, genalloc *taga, stralloc *tasa)
 {

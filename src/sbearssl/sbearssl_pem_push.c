@@ -16,11 +16,11 @@ int sbearssl_pem_push (br_pem_decoder_context *ctx, char const *s, size_t len, s
     s += tlen ; len -= tlen ;
     switch (br_pem_decoder_event(ctx))
     {
-      case BR_PEM_BEGIN_OBJ ;
+      case BR_PEM_BEGIN_OBJ :
         po->name = blah->sa->len ;
         if (!stralloc_cats(blah->sa, br_pem_decoder_name(ctx)) || !stralloc_0(blah->sa)) return -1 ;
         po->data = blah->sa->len ;
-        br_pem_decoder_setdest(&ctx, &sbearssl_append, blah) ;
+        br_pem_decoder_setdest(ctx, &sbearssl_append, blah) ;
         *inobj = 1 ;
         break ;
       case BR_PEM_END_OBJ :

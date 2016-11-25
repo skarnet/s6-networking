@@ -44,7 +44,7 @@ struct sbearssl_rsa_skey_s
 } ;
 
 extern int sbearssl_rsa_skey_from (sbearssl_rsa_skey *, br_rsa_private_key const *, stralloc *) ;
-extern void sbearssl_rsa_privkey_to (sbearssl_rsa_skey const *, br_rsa_private_key *, char const *, size_t) ;
+extern void sbearssl_rsa_skey_to (sbearssl_rsa_skey const *, br_rsa_private_key *, char *) ;
 
 
 typedef struct sbearssl_ec_skey_s sbearssl_ec_skey, *sbearssl_ec_skey_ref ;
@@ -56,10 +56,10 @@ struct sbearssl_ec_skey_s
 } ;
 
 extern int sbearssl_ec_skey_from (sbearssl_ec_skey *, br_ec_private_key const *, stralloc *) ;
-extern void sbearssl_ec_skey_to (sbearssl_ec_skey const *, br_ec_private_key *, char const *, size_t) ;
+extern void sbearssl_ec_skey_to (sbearssl_ec_skey const *, br_ec_private_key *, char *) ;
 
 
-union sbearssl_skey_data_u
+union sbearssl_skey_u
 {
   sbearssl_rsa_skey rsa ;
   sbearssl_ec_skey ec ;
@@ -86,7 +86,7 @@ struct br_skey_s
 } ;
 
 extern int sbearssl_skey_from (sbearssl_skey *, br_skey const *, stralloc *) ;
-extern int sbearssl_skey_to (sbearssl_skey const *, br_skey *, char const *) ;
+extern int sbearssl_skey_to (sbearssl_skey const *, br_skey *, char *) ;
 
 extern int sbearssl_skey_readfile (char const *, sbearssl_skey *, stralloc *) ;
 
@@ -103,7 +103,7 @@ struct sbearssl_rsa_pkey_s
 } ;
 
 extern int sbearssl_rsa_pkey_from (sbearssl_rsa_pkey *, br_rsa_public_key const *, stralloc *) ;
-extern void sbearssl_rsa_pkey_to (sbearssl_rsa_pkey const *, br_rsa_public_key *, char const *) ;
+extern void sbearssl_rsa_pkey_to (sbearssl_rsa_pkey const *, br_rsa_public_key *, char *) ;
 
 
 typedef struct sbearssl_ec_pkey_s sbearssl_ec_pkey, *sbearssl_ec_pkey_ref ;
@@ -115,12 +115,12 @@ struct sbearssl_ec_pkey_s
 } ;
 
 extern int sbearssl_ec_pkey_from (sbearssl_ec_pkey *, br_ec_public_key const *, stralloc *) ;
-extern void sbearssl_ec_pkey_to (sbearssl_ec_pkey const *, br_ec_public_key *, char const *) ;
+extern void sbearssl_ec_pkey_to (sbearssl_ec_pkey const *, br_ec_public_key *, char *) ;
 
 
-union sbearssl_pkey_data_u
+union sbearssl_pkey_u
 {
-' sbearssl_rsa_pkey rsa ;
+  sbearssl_rsa_pkey rsa ;
   sbearssl_ec_pkey ec ;
 } ;
 
@@ -132,7 +132,7 @@ struct sbearssl_pkey_s
 } ;
 
 extern int sbearssl_pkey_from (sbearssl_pkey *, br_x509_pkey const *, stralloc *) ;
-extern int sbearssl_pkey_to (sbearssl_pkey const *, br_x509_pkey *, char const *) ;
+extern int sbearssl_pkey_to (sbearssl_pkey const *, br_x509_pkey *, char *) ;
 
 
  /* Certificates (x509-encoded) */
@@ -145,7 +145,7 @@ struct sbearssl_cert_s
 } ;
 
 extern int sbearssl_cert_from (sbearssl_cert *, br_x509_certificate const *, stralloc *) ;
-extern void sbearssl_cert_to (sbearssl_cert const *, br_x509_certificate *, char const *) ;
+extern void sbearssl_cert_to (sbearssl_cert const *, br_x509_certificate *, char *) ;
 
 extern int sbearssl_cert_readfile (char const *, genalloc *, stralloc *) ;
 
@@ -153,7 +153,7 @@ extern int sbearssl_cert_readfile (char const *, genalloc *, stralloc *) ;
  /* Generic PEM */
 
 typedef struct sbearssl_pemobject_s sbearssl_pemobject, *sbearssl_pemobject_ref ;
-struct sbearssl_s
+struct sbearssl_pemobject_s
 {
   size_t name ;
   size_t data ;
@@ -176,7 +176,7 @@ struct sbearssl_ta_s
 } ;
 
 extern int sbearssl_ta_from (sbearssl_ta *, br_x509_trust_anchor const *, stralloc *) ;
-extern void sbearssl_ta_to (sbearssl_ta const *, br_x509_trust_anchor *, char const *) ;
+extern void sbearssl_ta_to (sbearssl_ta const *, br_x509_trust_anchor *, char *) ;
 
 extern int sbearssl_ta_cert (sbearssl_ta *, sbearssl_cert const *, char const *, stralloc *) ;
 
@@ -196,7 +196,7 @@ extern int sbearssl_run (br_ssl_engine_context *, int *, unsigned int, uint32, t
 
  /* s6-tlsc and s6-tlsd implementations */
 
-extern int sbearssl_s6tlsc (char const *const *, char const *const *, tain_t const *, uint32_t, uint32_t, uid_t, gid_t, unsigned int, int *) ;
+extern int sbearssl_s6tlsc (char const *const *, char const *const *, tain_t const *, uint32_t, uint32_t, uid_t, gid_t, unsigned int, char const *, int *) ;
 extern int sbearssl_s6tlsd (char const *const *, char const *const *, tain_t const *, uint32_t, uint32_t, uid_t, gid_t, unsigned int) ;
 
 #endif

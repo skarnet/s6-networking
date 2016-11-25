@@ -4,7 +4,7 @@
 #include <bearssl.h>
 #include <s6-networking/sbearssl.h>
 
-int sbearssl_pkey_to (sbearssl_pkey const *l, br_x509_pkey *k, char const *s)
+int sbearssl_pkey_to (sbearssl_pkey const *l, br_x509_pkey *k, char *s)
 {
   switch (l->type)
   {

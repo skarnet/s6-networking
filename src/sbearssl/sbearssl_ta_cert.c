@@ -5,6 +5,7 @@
 #include <bearssl.h>
 #include <skalibs/stralloc.h>
 #include <s6-networking/sbearssl.h>
+#include "sbearssl-internal.h"
 
 int sbearssl_ta_cert (sbearssl_ta *ta, sbearssl_cert const *cert, char const *certstorage, stralloc *tastorage)
 {
@@ -13,15 +14,14 @@ int sbearssl_ta_cert (sbearssl_ta *ta, sbearssl_cert const *cert, char const *ce
   struct sbearssl_strallocerr_s blah = { .sa = tastorage } ;
   size_t tastoragebase = tastorage->len ;
   int tastoragewasnull = !tastorage->s ;
-  br_x509_pkey bpk ;
-  int r ;
+  br_x509_pkey *bpk ;
+  int r = -1 ;
 
   br_x509_decoder_init(&ctx, &sbearssl_append, &blah) ;
   br_x509_decoder_push(&ctx, certstorage + cert->data, cert->datalen) ;
-  if (blah->err)
+  if (blah.err)
   {
-    r = -1 ;
-    errno = blah->err ;
+    errno = blah.err ;
     goto fail ;
   }
   bpk = br_x509_decoder_get_pkey(&ctx) ;

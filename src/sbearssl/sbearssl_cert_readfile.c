@@ -10,7 +10,7 @@
 #include <skalibs/djbunix.h>
 #include <s6-networking/sbearssl.h>
 
-int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa) ;
+int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa)
 {
   char buf[BUFFER_INSIZE] ;
   int fd = open_readb(fn) ;
@@ -18,12 +18,14 @@ int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa) ;
   genalloc pems = GENALLOC_ZERO ;
   sbearssl_pemobject *p ;
   size_t certsbase = genalloc_len(sbearssl_cert, certs) ;
+  size_t sabase = sa->len ;
   size_t n ;
   size_t i = 0 ;
   int certswasnull = !genalloc_s(sbearssl_cert, certs) ;
+  int sawasnull = !sa->s ;
   int r ;
   if (fd < 0) return -1 ;
-  r = sbearssl_pem_decode_from_buffer(buf, n, &pems, sa) ;
+  r = sbearssl_pem_decode_from_buffer(&b, &pems, sa) ;
   if (r) { fd_close(fd) ; return r ; }
   fd_close(fd) ;
   p = genalloc_s(sbearssl_pemobject, &pems) ;
@@ -46,7 +48,8 @@ int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa) ;
  fail:
   if (certswasnull) genalloc_free(sbearssl_cert, certs) ;
   else genalloc_setlen(sbearssl_cert, certs, certsbase) ;
-  stralloc_free(&sa) ;
-  genalloc_free(sbearssl_pemobject, pems) ;
+  if (sawasnull) stralloc_free(sa) ;
+  else sa->len = sabase ;
+  genalloc_free(sbearssl_pemobject, &pems) ;
   return r ;
 }

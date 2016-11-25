@@ -24,7 +24,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
 
   if (tls_init() < 0) strerr_diefu1sys(111, "tls_init") ;
   cfg = tls_config_new() ;
-  if (!cfg) strerr_diefu1sys(111, "tls_config_new")
+  if (!cfg) strerr_diefu1sys(111, "tls_config_new") ;
 
   x = env_get2(envp, "CADIR") ;
   if (x)
@@ -63,7 +63,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
     diecfg(cfg, "tls_config_set_dheparams") ;
 
   if (tls_config_set_ecdhecurve(cfg, "auto") < 0)
-    diecfg("tls_config_set_ecdhecurve") ;
+    diecfg(cfg, "tls_config_set_ecdhecurve") ;
 
   tls_config_verify(cfg) ;
   tls_config_set_protocols(cfg, TLS_PROTOCOLS_DEFAULT) ;
@@ -71,7 +71,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
 
   ctx = tls_client() ;
   if (!ctx) strerr_diefu1sys(111, "tls_client") ;
-  if (tls_configure(ctx, cfg) < 0) diectx(97, ctx, "tls_configure) ;
+  if (tls_configure(ctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
   tls_config_free(cfg) ;
 
   pid = child_spawn2(argv[0], argv, envp, fds) ;
@@ -80,7 +80,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
   if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;
 
   if (tls_accept_fds(ctx, &cctx, fds[2], fds[3]) < 0)
-    diectx(ctx, "tls_accept_fds") ;
+    diectx(97, ctx, "tls_accept_fds") ;
 
   tls_free(ctx) ;
 

@@ -68,7 +68,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   if (!getuid())
   {
-    x = env_get2(envp, "TLS_UID") ;
+    char const *x = env_get2(envp, "TLS_UID") ;
     if (x)
     {
       uint64 u ;

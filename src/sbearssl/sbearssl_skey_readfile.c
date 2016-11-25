@@ -22,17 +22,17 @@ static int decode_key (sbearssl_skey *key, char const *s, size_t len, stralloc *
   {
     case 0 : return br_skey_decoder_last_error(&ctx) ;
     case BR_KEYTYPE_RSA :
-      if (!sbearssl_rsa_skey_from(&key->data.rsa, ctx.key.rsa, sa) return -1 ;
+      if (!sbearssl_rsa_skey_from(&key->data.rsa, &ctx.key.rsa, sa)) return -1 ;
       break ;
     case BR_KEYTYPE_EC :
-      if (!sbearssl_ec_skey_from(&key->data.ec, ctx.key.ec, sa) return -1 ;
+      if (!sbearssl_ec_skey_from(&key->data.ec, &ctx.key.ec, sa)) return -1 ;
       break ;
   }
   key->type = ktype ;
   return 0 ;
 }
 
-int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa) ;
+int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa)
 {
   char buf[MAXKEYFILESIZE] ;
   stralloc tmp = STRALLOC_ZERO ;
@@ -40,10 +40,10 @@ int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa) ;
   sbearssl_pemobject *p ;
   size_t n ;
   size_t i = 0 ;
-  int r = openreadnclose(fn, buf, MAKKEYFILESIZE) ;
+  int r = openreadnclose(fn, buf, MAXKEYFILESIZE) ;
   if (r < 0) return r ;
   n = r ;
-  if (sbearssl_isder(buf, n)) return decode_key(key, buf, n) ;
+  if (sbearssl_isder((unsigned char *)buf, n)) return decode_key(key, buf, n, sa) ;
   r = sbearssl_pem_decode_from_string(buf, n, &list, &tmp) ;
   if (r) return r ;
   p = genalloc_s(sbearssl_pemobject, &list) ;
@@ -66,6 +66,6 @@ int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa) ;
   r = -1 ; errno = EINVAL ;
  fail:
   stralloc_free(&tmp) ;
-  genalloc_free(sbearssl_pemobject, list) ;
+  genalloc_free(sbearssl_pemobject, &list) ;
   return r ;
 }

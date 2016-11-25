@@ -3,6 +3,7 @@
 #
 
 src/include/s6-networking/s6net.h: src/include/s6-networking/ident.h
+src/sbearssl/sbearssl-internal.h: src/include/s6-networking/sbearssl.h
 src/clock/s6-clockadd.o src/clock/s6-clockadd.lo: src/clock/s6-clockadd.c
 src/clock/s6-clockview.o src/clock/s6-clockview.lo: src/clock/s6-clockview.c
 src/clock/s6-sntpclock.o src/clock/s6-sntpclock.lo: src/clock/s6-sntpclock.c
@@ -30,7 +31,7 @@ src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_reply_parse.lo: 
 src/minidentd/mgetuid-default.o src/minidentd/mgetuid-default.lo: src/minidentd/mgetuid-default.c src/minidentd/mgetuid.h
 src/minidentd/mgetuid-linux.o src/minidentd/mgetuid-linux.lo: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid.h
 src/minidentd/minidentd.o src/minidentd/minidentd.lo: src/minidentd/minidentd.c src/minidentd/mgetuid.h
-src/sbearssl/sbearssl_append.o src/sbearssl/sbearssl_append.lo: src/sbearssl/sbearssl_append.c
+src/sbearssl/sbearssl_append.o src/sbearssl/sbearssl_append.lo: src/sbearssl/sbearssl_append.c src/sbearssl/sbearssl-internal.h
 src/sbearssl/sbearssl_cert_from.o src/sbearssl/sbearssl_cert_from.lo: src/sbearssl/sbearssl_cert_from.c src/include/s6-networking/sbearssl.h
 src/sbearssl/sbearssl_cert_readfile.o src/sbearssl/sbearssl_cert_readfile.lo: src/sbearssl/sbearssl_cert_readfile.c src/include/s6-networking/sbearssl.h
 src/sbearssl/sbearssl_cert_to.o src/sbearssl/sbearssl_cert_to.lo: src/sbearssl/sbearssl_cert_to.c src/include/s6-networking/sbearssl.h
@@ -55,9 +56,9 @@ src/sbearssl/sbearssl_s6tlsd.o src/sbearssl/sbearssl_s6tlsd.lo: src/sbearssl/sbe
 src/sbearssl/sbearssl_skey_from.o src/sbearssl/sbearssl_skey_from.lo: src/sbearssl/sbearssl_skey_from.c src/include/s6-networking/sbearssl.h
 src/sbearssl/sbearssl_skey_readfile.o src/sbearssl/sbearssl_skey_readfile.lo: src/sbearssl/sbearssl_skey_readfile.c src/include/s6-networking/sbearssl.h
 src/sbearssl/sbearssl_skey_to.o src/sbearssl/sbearssl_skey_to.lo: src/sbearssl/sbearssl_skey_to.c src/include/s6-networking/sbearssl.h
-src/sbearssl/sbearssl_ta_cert.o src/sbearssl/sbearssl_ta_cert.lo: src/sbearssl/sbearssl_ta_cert.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ta_cert.o src/sbearssl/sbearssl_ta_cert.lo: src/sbearssl/sbearssl_ta_cert.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
 src/sbearssl/sbearssl_ta_from.o src/sbearssl/sbearssl_ta_from.lo: src/sbearssl/sbearssl_ta_from.c src/include/s6-networking/sbearssl.h
-src/sbearssl/sbearssl_ta_readdir.o src/sbearssl/sbearssl_ta_readdir.lo: src/sbearssl/sbearssl_ta_readdir.c src/include/s6-networking/sbearssl.h
+src/sbearssl/sbearssl_ta_readdir.o src/sbearssl/sbearssl_ta_readdir.lo: src/sbearssl/sbearssl_ta_readdir.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
 src/sbearssl/sbearssl_ta_readfile.o src/sbearssl/sbearssl_ta_readfile.lo: src/sbearssl/sbearssl_ta_readfile.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
 src/sbearssl/sbearssl_ta_readfile_internal.o src/sbearssl/sbearssl_ta_readfile_internal.lo: src/sbearssl/sbearssl_ta_readfile_internal.c src/include/s6-networking/sbearssl.h src/sbearssl/sbearssl-internal.h
 src/sbearssl/sbearssl_ta_to.o src/sbearssl/sbearssl_ta_to.lo: src/sbearssl/sbearssl_ta_to.c src/include/s6-networking/sbearssl.h
