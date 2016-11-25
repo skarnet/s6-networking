@@ -66,9 +66,20 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
         br_ssl_server_init_full_rsa(&sc, chain, chainlen, &key.rsa) ;
         break ;
       case BR_KEYTYPE_EC :
+      {
+        int kt, r ;
         sbearssl_ec_skey_to(&skey.data.ec, &key.ec, storage.s) ;
-        br_ssl_server_init_full_ec(&sc, chain, chainlen, BR_KEYTYPE_EC, &key.ec) ;
+        r = sbearssl_ec_issuer_keytype(&kt, &chain[0]) ;
+        switch (r)
+        {
+          case -2 : strerr_dief1x(96, "certificate issuer key type not recognized") ;
+          case -1 : strerr_diefu1sys(111, "get certificate issuer key type") ;
+          case 0 : break ;
+          default : strerr_diefu3x(96, "get certificate issuer key type", ": ", sbearssl_error_str(r)) ;
+        }
+        br_ssl_server_init_full_ec(&sc, chain, chainlen, kt, &key.ec) ;
         break ;
+      }
       default :
       strerr_dief1x(96, "unsupported private key type") ;
     }

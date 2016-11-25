@@ -25,6 +25,21 @@
 extern int sbearssl_isder (unsigned char const *, size_t) ;
 
 
+ /* Certificates (x509-encoded) */
+
+typedef struct sbearssl_cert_s sbearssl_cert, *sbearssl_cert_ref ;
+struct sbearssl_cert_s
+{
+  size_t data ;
+  size_t datalen ;
+} ;
+
+extern int sbearssl_cert_from (sbearssl_cert *, br_x509_certificate const *, stralloc *) ;
+extern void sbearssl_cert_to (sbearssl_cert const *, br_x509_certificate *, char *) ;
+
+extern int sbearssl_cert_readfile (char const *, genalloc *, stralloc *) ;
+
+
  /* Private keys */
 
 typedef struct sbearssl_rsa_skey_s sbearssl_rsa_skey, *sbearssl_rsa_skey_ref ;
@@ -57,7 +72,7 @@ struct sbearssl_ec_skey_s
 
 extern int sbearssl_ec_skey_from (sbearssl_ec_skey *, br_ec_private_key const *, stralloc *) ;
 extern void sbearssl_ec_skey_to (sbearssl_ec_skey const *, br_ec_private_key *, char *) ;
-
+extern int sbearssl_ec_issuer_keytype (int *, br_x509_certificate const *) ;
 
 union sbearssl_skey_u
 {
@@ -133,21 +148,6 @@ struct sbearssl_pkey_s
 
 extern int sbearssl_pkey_from (sbearssl_pkey *, br_x509_pkey const *, stralloc *) ;
 extern int sbearssl_pkey_to (sbearssl_pkey const *, br_x509_pkey *, char *) ;
-
-
- /* Certificates (x509-encoded) */
-
-typedef struct sbearssl_cert_s sbearssl_cert, *sbearssl_cert_ref ;
-struct sbearssl_cert_s
-{
-  size_t data ;
-  size_t datalen ;
-} ;
-
-extern int sbearssl_cert_from (sbearssl_cert *, br_x509_certificate const *, stralloc *) ;
-extern void sbearssl_cert_to (sbearssl_cert const *, br_x509_certificate *, char *) ;
-
-extern int sbearssl_cert_readfile (char const *, genalloc *, stralloc *) ;
 
 
  /* Generic PEM */

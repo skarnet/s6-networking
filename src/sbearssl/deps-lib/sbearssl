@@ -2,6 +2,7 @@ sbearssl_append.o
 sbearssl_cert_from.o
 sbearssl_cert_readfile.o
 sbearssl_cert_to.o
+sbearssl_ec_issuer_keytype.o
 sbearssl_ec_pkey_from.o
 sbearssl_ec_pkey_to.o
 sbearssl_ec_skey_from.o
