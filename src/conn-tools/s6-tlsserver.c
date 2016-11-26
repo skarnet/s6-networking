@@ -8,6 +8,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
+#include <s6/config.h>
 #include <s6-networking/config.h>
 
 #define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
@@ -45,6 +46,7 @@ struct options_s
   unsigned int flagS : 1 ;
   unsigned int flagy : 1 ;
   unsigned int doaccess : 1 ;
+  unsigned int doapply : 1 ;
 } ;
 
 #define OPTIONS_ZERO \
@@ -72,7 +74,8 @@ struct options_s
   .ruleswhat = 0, \
   .flagS = 0, \
   .flagy = 0, \
-  .doaccess = 0 \
+  .doaccess = 0, \
+  .doapply = 0 \
 }
 
 int main (int argc, char const *const *argv, char const *const *envp)
@@ -96,10 +99,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'c' : if (!uint0_scan(l.arg, &o.maxconn)) dieusage() ; if (!o.maxconn) o.maxconn = 1 ; break ;
         case 'C' : if (!uint0_scan(l.arg, &o.localmaxconn)) dieusage() ; if (!o.localmaxconn) o.localmaxconn = 1 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &o.backlog)) dieusage() ; break ;
-        case 'G' : if (!gid_scanlist(o.gids, NGROUPS_MAX, l.arg, &o.gidn) && *l.arg) dieusage() ; break ;
-        case 'g' : if (!uint0_scan(l.arg, &o.gid)) dieusage() ; break ;
-        case 'u' : if (!uint0_scan(l.arg, &o.uid)) dieusage() ; break ;
-        case 'U' : o.flagU = 1 ; o.uid = 0 ; o.gid = 0 ; o.gidn = (unsigned int)-1 ; break ;
+        case 'G' : if (!gid_scanlist(o.gids, NGROUPS_MAX, l.arg, &o.gidn) && *l.arg) dieusage() ; o.doapply = 1 ; break ;
+        case 'g' : if (!uint0_scan(l.arg, &o.gid)) dieusage() ; o.doapply = 1 ; break ;
+        case 'u' : if (!uint0_scan(l.arg, &o.uid)) dieusage() ; o.doapply = 1 ; break ;
+        case 'U' : o.flagU = 1 ; o.uid = 0 ; o.gid = 0 ; o.gidn = (unsigned int)-1 ; o.doapply = 1 ; break ;
         case 'W' : o.flagw = 0 ; break ;
         case 'w' : o.flagw = 1 ; break ;
         case 'D' : o.flagD = 1 ; o.doaccess = 1 ; break ;
@@ -131,7 +134,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int m = 0 ;
     unsigned int pos = 0 ;
     char fmt[UINT_FMT * 5 + GID_FMT * (NGROUPS_MAX + 1) + UINT64_FMT] ;
-    char const *newargv[44 + argc] ;
+    char const *newargv[46 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag46) newargv[m++] = o.flag46 == 1 ? "-4" : "-6" ;
@@ -157,29 +160,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
       pos += uint_fmt(fmt + pos, o.backlog) ;
       fmt[pos++] = 0 ;
     }
-    if (o.gidn != (unsigned int)-1)
-    {
-      newargv[m++] = "-G" ;
-      newargv[m++] = fmt + pos ;
-      pos += gid_fmtlist(fmt + pos, o.gids, o.gidn) ;
-      fmt[pos++] = 0 ;
-    }
-    if (o.gid)
-    {
-      newargv[m++] = "-g" ;
-      newargv[m++] = fmt + pos ;
-      pos += gid_fmt(fmt + pos, o.gid) ;
-      fmt[pos++] = 0 ;
-    }
-    if (o.uid)
-    {
-      newargv[m++] = "-u" ;
-      newargv[m++] = fmt + pos ;
-      pos += uint64_fmt(fmt + pos, o.uid) ;
-      fmt[pos++] = 0 ;
-    }
-    if (o.flagU) newargv[m++] = "-U" ;
     newargv[m++] = "--" ;
+    newargv[m++] = *argv++ ;
+    newargv[m++] = *argv++ ;
     if (o.doaccess)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-access" ;
@@ -233,6 +216,33 @@ int main (int argc, char const *const *argv, char const *const *envp)
       fmt[pos++] = 0 ;
     }
     newargv[m++] = "--" ;
+    if (o.doapply)
+    {
+      newargv[m++] = S6_BINPREFIX "s6-applyuidgid" ;
+      if (o.gidn != (unsigned int)-1)
+      {
+        newargv[m++] = "-G" ;
+        newargv[m++] = fmt + pos ;
+        pos += gid_fmtlist(fmt + pos, o.gids, o.gidn) ;
+        fmt[pos++] = 0 ;
+      }
+      if (o.gid)
+      {
+        newargv[m++] = "-g" ;
+        newargv[m++] = fmt + pos ;
+        pos += gid_fmt(fmt + pos, o.gid) ;
+        fmt[pos++] = 0 ;
+      }
+      if (o.uid)
+      {
+        newargv[m++] = "-u" ;
+        newargv[m++] = fmt + pos ;
+        pos += uint64_fmt(fmt + pos, o.uid) ;
+        fmt[pos++] = 0 ;
+      }
+      if (o.flagU) newargv[m++] = "-Uz" ;
+      newargv[m++] = "--" ;
+    }
     while (*argv) newargv[m++] = *argv++ ;
     newargv[m++] = 0 ;
     pathexec_run(newargv[0], newargv, envp) ;
