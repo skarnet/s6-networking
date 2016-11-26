@@ -11,7 +11,7 @@
 
 #define USAGE "s6-tlsclient [ options ] host port prog...\n" \
 "s6-tcpclient options: [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h | -H ] [ -n | -N ] [ -t timeout ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ]\n" \
-"s6-tlsc options: [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -k servername ]"
+"s6-tlsc options: [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -k servername ] [ -Z | -z ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
 
@@ -35,6 +35,7 @@ struct options_s
   unsigned int flagN : 1 ;
   unsigned int flagS : 1 ;
   unsigned int flagy : 1 ;
+  unsigned int flagZ : 1 ;
   unsigned int doxy : 1 ;
 } ;
 
@@ -57,6 +58,7 @@ struct options_s
   .flagN = 0, \
   .flagS = 0, \
   .flagy = 0, \
+  .flagZ = 0, \
   .doxy = 0 \
 }
 
@@ -68,7 +70,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsYyK:k:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsYyK:k:Zz", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -109,6 +111,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'y' : o.flagy = 1 ; break ;
         case 'K' : if (!uint0_scan(l.arg, &o.kimeout)) dieusage() ; break ;
         case 'k' : o.servername = l.arg ; break ;
+        case 'Z' : o.flagZ = 1 ; break ;
+        case 'z' : o.flagZ = 0 ; break ;
         default : dieusage() ;
       }
     }
@@ -127,7 +131,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int m = 0 ;
     unsigned int pos = 0 ;
     char fmt[UINT_FMT * 4 + UINT16_FMT + IP46_FMT] ;
-    char const *newargv[28 + argc] ;
+    char const *newargv[29 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpclient" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag4) newargv[m++] = "-4" ;
@@ -187,6 +191,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       newargv[m++] = "-k" ;
       newargv[m++] = o.servername ;
     }
+    if (o.flagZ) newargv[m++] = "-Z" ;
     newargv[m++] = "--" ;
     while (*argv) newargv[m++] = *argv++ ;
     newargv[m++] = 0 ;

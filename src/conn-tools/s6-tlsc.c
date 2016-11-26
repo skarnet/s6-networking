@@ -31,7 +31,7 @@
 #endif
 
 
-#define USAGE "s6-tlsc [ -S | -s ]  [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -k servername ] [ -6 rfd ] [ -7 wfd ] prog..."
+#define USAGE "s6-tlsc [ -S | -s ]  [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -k servername ] [ -Z | -z ] [ -6 rfd ] [ -7 wfd ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv, char const *const *envp)
@@ -41,7 +41,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   unsigned int verbosity = 1 ;
   uid_t uid = 0 ;
   gid_t gid = 0 ;
-  uint32_t preoptions = 0 ;
+  uint32_t preoptions = 2 ;
   uint32_t options = 1 ;
   int fds[2] = { 6, 7 } ;
 
@@ -51,7 +51,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "SsYyv:K:k:6:7:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "SsYyv:K:k:Zz6:7:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -62,6 +62,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
         case 'K' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
         case 'k' : servername = l.arg ; break ;
+        case 'Z' : preoptions &= ~(uint32_t)2 ; break ;
+        case 'z' : preoptions |= 2 ; break ;
         case '6' :
         {
           unsigned int fd ;

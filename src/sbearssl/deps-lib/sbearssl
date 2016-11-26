@@ -31,4 +31,5 @@ sbearssl_ta_to.o
 sbearssl_s6tlsc.o
 sbearssl_s6tlsd.o
 -lbearssl
+-ls6net
 -lskarnet

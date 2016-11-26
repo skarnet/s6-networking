@@ -14,7 +14,7 @@
 #define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
 "s6-tcpserver options: [ -q | -Q | -v ] [ -4 | -6 ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
 "s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
-"s6-tlsd options: [ -S | -s ] [ -Y | -y ] [ -K timeout ]"
+"s6-tlsd options: [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
 
@@ -45,6 +45,7 @@ struct options_s
   unsigned int ruleswhat : 2 ;
   unsigned int flagS : 1 ;
   unsigned int flagy : 1 ;
+  unsigned int flagZ : 1 ;
   unsigned int doaccess : 1 ;
   unsigned int doapply : 1 ;
 } ;
@@ -74,6 +75,7 @@ struct options_s
   .ruleswhat = 0, \
   .flagS = 0, \
   .flagy = 0, \
+  .flagZ = 0, \
   .doaccess = 0, \
   .doapply = 0 \
 }
@@ -86,7 +88,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsYyK:", &l) ;
+      register int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsYyK:Zz", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -123,6 +125,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'Y' : o.flagy = 0 ; break ;
         case 'y' : o.flagy = 1 ; break ;
         case 'K' : if (!uint0_scan(l.arg, &o.kimeout)) dieusage() ; break ;
+        case 'Z' : o.flagZ = 1 ; break ;
+        case 'z' : o.flagZ = 0 ; break ;
         default : dieusage() ;
       }
     }
@@ -134,7 +138,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int m = 0 ;
     unsigned int pos = 0 ;
     char fmt[UINT_FMT * 5 + GID_FMT * (NGROUPS_MAX + 1) + UINT64_FMT] ;
-    char const *newargv[46 + argc] ;
+    char const *newargv[47 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag46) newargv[m++] = o.flag46 == 1 ? "-4" : "-6" ;
@@ -215,6 +219,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       pos += uint_fmt(fmt + pos, o.kimeout) ;
       fmt[pos++] = 0 ;
     }
+    if (o.flagZ) newargv[m++] = "-Z" ;
     newargv[m++] = "--" ;
     if (o.doapply)
     {

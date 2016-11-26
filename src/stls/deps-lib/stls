@@ -2,4 +2,5 @@ stls_run.o
 stls_s6tlsc.o
 stls_s6tlsd.o
 -ltls
+-ls6net
 -lskarnet
