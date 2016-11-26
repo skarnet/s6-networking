@@ -255,7 +255,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
       r = buffer_tls_fill(ctx, b) ;
       if (r < 0)
       {
-        if (r == -1) strerr_warnwu1sys("read from peer") ;
+        if (r == -1) strerr_warnwu2x("read from peer: ", tls_error(ctx)) ;
         if (options & 1) shutdown(fds[2], SHUT_RD) ;
         fd_close(fds[2]) ; fds[2] = -1 ;
         if (buffer_isempty(&b[1].b))
