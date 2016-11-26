@@ -93,7 +93,7 @@ static inline int buffer_tls_fill (struct tls *ctx, tlsbuf_t *b)
       case TLS_WANT_POLLIN :
         buffer_wseek(&b[1].b, w) ;
         return 0 ;
-      case 0 : ok = -1 ;
+      case 0 : ok = -1 ; errno = EPIPE ;
       default : break ;
     }
     w += r ;
@@ -236,7 +236,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
       r = sanitize_read(buffer_fill(&b[0].b)) ;
       if (r < 0)
       {
-        if (r == -1) strerr_warnwu1sys("read from application") ;
+        if (errno != EPIPE) strerr_warnwu1sys("read from application") ;
         fd_close(fds[0]) ; fds[0] = -1 ;
         if (buffer_isempty(&b[0].b))
         {
@@ -255,7 +255,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
       r = buffer_tls_fill(ctx, b) ;
       if (r < 0)
       {
-        if (errno != EPIPE) strerr_warnwu1sys("read from peer") ;
+        if (r == -1) strerr_warnwu1sys("read from peer") ;
         if (options & 1) shutdown(fds[2], SHUT_RD) ;
         fd_close(fds[2]) ; fds[2] = -1 ;
         if (buffer_isempty(&b[1].b))
