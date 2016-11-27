@@ -42,7 +42,6 @@ int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa)
   }
   
   genalloc_free(sbearssl_pemobject, &pems) ;
-  fd_close(fd) ;
   return 0 ;
 
  fail:
