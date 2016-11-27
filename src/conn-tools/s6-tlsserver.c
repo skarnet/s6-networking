@@ -223,7 +223,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     newargv[m++] = "--" ;
     if (o.doapply)
     {
-      newargv[m++] = S6_BINPREFIX "s6-applyuidgid" ;
+      newargv[m++] = S6_EXTBINPREFIX "s6-applyuidgid" ;
       if (o.gidn != (unsigned int)-1)
       {
         newargv[m++] = "-G" ;
