@@ -85,7 +85,7 @@ int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const 
     int wstat ;
     int r = stls_run(cctx, fds, verbosity, options, tto) ;
     if (r < 0) strerr_diefu1sys(111, "run SSL engine") ;
-    else if (r) diectx(98, cctx, "run SSL engine") ;
+    else if (r) diectx(98, cctx, "establish or maintain SSL connection to peer") ;
     if (wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
     return wait_estatus(wstat) ;
   }

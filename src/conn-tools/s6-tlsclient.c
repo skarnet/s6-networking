@@ -176,6 +176,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
       fmt[pos++] = 0 ;
     }
     newargv[m++] = "--" ;
+    newargv[m++] = *argv++ ;
+    newargv[m++] = *argv++ ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsc" ;
     if (o.flagS) newargv[m++] = "-S" ;
     if (o.flagy) newargv[m++] = "-y" ;

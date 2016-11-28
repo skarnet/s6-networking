@@ -14,6 +14,16 @@
 #include <skalibs/djbunix.h>
 #include <s6-networking/sbearssl.h>
 
+#ifdef DEBUG
+# include <skalibs/buffer.h>
+# include <skalibs/strerr2.h>
+# include <skalibs/lolstdio.h>
+# define PLM(...) (bprintf(buffer_2, "%s: debug: ", PROG), bprintf(buffer_2, __VA_ARGS__), buffer_putflush(buffer_2, "\n", 1))
+#else
+# define PLM(...)
+#endif
+
+
 int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto)
 {
   iopause_fd x[4] ;
@@ -23,6 +33,8 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     strerr_diefu1sys(111, "set fds non-blocking") ;
   if (sig_ignore(SIGPIPE) < 0)
     strerr_diefu1sys(111, "ignore SIGPIPE") ;
+
+  tain_now_g() ;
 
   for (;;)
   {
@@ -79,7 +91,7 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
 
    /* Flush to local */
 
-    if (state & BR_SSL_RECVAPP && x[xindex[1]].revents & IOPAUSE_WRITE)
+    if (state & BR_SSL_RECVAPP && x[xindex[1]].events & x[xindex[1]].revents & IOPAUSE_WRITE)
     {
       size_t len ;
       unsigned char const *s = br_ssl_engine_recvapp_buf(ctx, &len) ;
@@ -103,7 +115,7 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
 
    /* Flush to remote */
 
-    if (state & BR_SSL_SENDREC && x[xindex[3]].revents & IOPAUSE_WRITE)
+    if (state & BR_SSL_SENDREC && x[xindex[3]].events & x[xindex[3]].revents & IOPAUSE_WRITE)
     {
       size_t len ;
       unsigned char const *s = br_ssl_engine_sendrec_buf(ctx, &len) ;
@@ -128,7 +140,7 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
 
    /* Fill from local */
 
-    if (state & BR_SSL_SENDAPP & x[xindex[0]].revents & IOPAUSE_READ)
+    if (state & BR_SSL_SENDAPP && x[xindex[0]].events & x[xindex[0]].revents & IOPAUSE_READ)
     {
       size_t len ;
       unsigned char *s = br_ssl_engine_sendapp_buf(ctx, &len) ;
@@ -157,7 +169,7 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
 
    /* Fill from remote */
 
-    if (state & BR_SSL_RECVREC & x[xindex[2]].revents & IOPAUSE_READ)
+    if (state & BR_SSL_RECVREC && x[xindex[2]].events & x[xindex[2]].revents & IOPAUSE_READ)
     {
       size_t len ;
       unsigned char *s = br_ssl_engine_recvrec_buf(ctx, &len) ;

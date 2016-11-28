@@ -86,7 +86,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
     int wstat ;
     int r = stls_run(ctx, fds, verbosity, options, tto) ;
     if (r < 0) strerr_diefu1sys(111, "run SSL engine") ;
-    else if (r) diectx(98, ctx, "run SSL engine") ;
+    else if (r) diectx(98, ctx, "establish or maintain SSL connection to peer") ;
     tls_free(ctx) ;
     if (wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
     return wait_estatus(wstat) ;

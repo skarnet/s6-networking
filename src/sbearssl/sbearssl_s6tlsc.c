@@ -78,7 +78,7 @@ int sbearssl_s6tlsc (char const *const *argv, char const *const *envp, tain_t co
       int wstat ;
       int r = sbearssl_run(&cc.eng, fds, verbosity, options, tto) ;
       if (r < 0) strerr_diefu1sys(111, "run SSL engine") ;
-      else if (r) strerr_diefu3x(98, "run SSL engine", ": ", sbearssl_error_str(r)) ;
+      else if (r) strerr_diefu2x(98, "establish or maintain SSL connection to peer: ", sbearssl_error_str(r)) ;
       if (wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
       return wait_estatus(wstat) ;
     }
