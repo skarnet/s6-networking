@@ -34,8 +34,6 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
   if (sig_ignore(SIGPIPE) < 0)
     strerr_diefu1sys(111, "ignore SIGPIPE") ;
 
-  tain_now_g() ;
-
   for (;;)
   {
     tain_t deadline ;

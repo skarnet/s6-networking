@@ -9,8 +9,6 @@
 #include <skalibs/djbunix.h>
 #include <s6-networking/sbearssl.h>
 
-#define MAXKEYFILESIZE 8192
-
 static int decode_key (sbearssl_skey *key, char const *s, size_t len, stralloc *sa)
 {
   br_skey_decoder_context ctx ;
@@ -34,13 +32,13 @@ static int decode_key (sbearssl_skey *key, char const *s, size_t len, stralloc *
 
 int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa)
 {
-  char buf[MAXKEYFILESIZE] ;
+  char buf[SBEARSSL_MAXSKEYFILESIZE] ;
   stralloc tmp = STRALLOC_ZERO ;
   genalloc list = GENALLOC_ZERO ;
   sbearssl_pemobject *p ;
   size_t n ;
   size_t i = 0 ;
-  int r = openreadnclose(fn, buf, MAXKEYFILESIZE) ;
+  int r = openreadnclose(fn, buf, SBEARSSL_MAXSKEYFILESIZE) ;
   if (r < 0) return r ;
   n = r ;
   if (sbearssl_isder((unsigned char *)buf, n)) return decode_key(key, buf, n, sa) ;

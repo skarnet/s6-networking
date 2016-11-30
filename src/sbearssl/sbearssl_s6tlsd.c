@@ -36,7 +36,7 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
 
     x = env_get2(envp, "CERTFILE") ;
     if (!x) strerr_dienotset(100, "CERTFILE") ;
-    r = sbearssl_cert_readfile(x, &certs, &storage) ;
+    r = sbearssl_cert_readbigpem(x, &certs, &storage) ;
     if (r < 0)
       strerr_diefu2sys(111, "read certificate chain in ", x) ;
     else if (r)
@@ -98,6 +98,7 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
 
     br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
     br_ssl_server_reset(&sc) ;
+    tain_now_g() ;
 
     {
       int wstat ;

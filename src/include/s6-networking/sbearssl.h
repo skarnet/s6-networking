@@ -19,10 +19,15 @@
   * the filesystem.
   */
 
+#define SBEARSSL_MAXSKEYFILESIZE 8192
+#define SBEARSSL_MAXCERTFILESIZE 8192
+
 
  /* Utility functions */
 
 extern int sbearssl_isder (unsigned char const *, size_t) ;
+extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai_t const *) ;
+#define sbearssl_x509_minimal_set_tain(ctx, a) sbearssl_x509_minimal_set_tai(ctx, tain_secp(a))
 
 
  /* Certificates (x509-encoded) */
@@ -38,6 +43,7 @@ extern int sbearssl_cert_from (sbearssl_cert *, br_x509_certificate const *, str
 extern void sbearssl_cert_to (sbearssl_cert const *, br_x509_certificate *, char *) ;
 
 extern int sbearssl_cert_readfile (char const *, genalloc *, stralloc *) ;
+extern int sbearssl_cert_readbigpem (char const *, genalloc *, stralloc *) ;
 
 
  /* Private keys */
@@ -179,6 +185,7 @@ extern int sbearssl_ta_from (sbearssl_ta *, br_x509_trust_anchor const *, strall
 extern void sbearssl_ta_to (sbearssl_ta const *, br_x509_trust_anchor *, char *) ;
 
 extern int sbearssl_ta_cert (sbearssl_ta *, sbearssl_cert const *, char const *, stralloc *) ;
+extern int sbearssl_ta_certs (genalloc *, stralloc *, sbearssl_cert const *, size_t, char const *) ;
 
 extern int sbearssl_ta_readfile (char const *, genalloc *, stralloc *) ;
 extern int sbearssl_ta_readdir (char const *, genalloc *, stralloc *) ;

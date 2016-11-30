@@ -8,17 +8,16 @@
 #include <skalibs/direntry.h>
 #include <skalibs/djbunix.h>
 #include <s6-networking/sbearssl.h>
-#include "sbearssl-internal.h"
 
 int sbearssl_ta_readdir (char const *dirfn, genalloc *taga, stralloc *tasa)
 {
-  stralloc certsa = STRALLOC_ZERO ;
-  genalloc certga = GENALLOC_ZERO ;
   size_t tasabase = tasa->len ;
   size_t tagabase = genalloc_len(sbearssl_ta, taga) ;
   size_t dirfnlen = str_len(dirfn) ;
   int tasawasnull = !tasa->s ;
   int tagawasnull = !genalloc_s(sbearssl_ta, taga) ;
+  stralloc certsa = STRALLOC_ZERO ;
+  genalloc certga = GENALLOC_ZERO ;
   DIR *dir = opendir(dirfn) ;
   if (!dir) return -1 ;
 
@@ -36,8 +35,11 @@ int sbearssl_ta_readdir (char const *dirfn, genalloc *taga, stralloc *tasa)
       fn[dirfnlen] = '/' ;
       byte_copy(fn + dirfnlen + 1, dlen, d->d_name) ;
       fn[dirfnlen + 1 + dlen] = 0 ;
-      sbearssl_ta_readfile_internal(fn, taga, tasa, &certga, &certsa) ;
+      genalloc_setlen(sbearssl_cert, &certga, 0) ;
+      certsa.len = 0 ;
+      if (sbearssl_cert_readfile(fn, &certga, &certsa)) continue ;
     }
+    sbearssl_ta_certs(taga, tasa, genalloc_s(sbearssl_cert, &certga), genalloc_len(sbearssl_cert, &certga), certsa.s) ;
   }
   if (errno) goto fail ;
 

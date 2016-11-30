@@ -12,36 +12,49 @@
 
 int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa)
 {
-  char buf[BUFFER_INSIZE] ;
-  int fd = open_readb(fn) ;
-  buffer b = BUFFER_INIT(&buffer_read, fd, buf, BUFFER_INSIZE) ;
-  genalloc pems = GENALLOC_ZERO ;
-  sbearssl_pemobject *p ;
+  char buf[SBEARSSL_MAXCERTFILESIZE] ;
   size_t certsbase = genalloc_len(sbearssl_cert, certs) ;
   size_t sabase = sa->len ;
   size_t n ;
-  size_t i = 0 ;
   int certswasnull = !genalloc_s(sbearssl_cert, certs) ;
   int sawasnull = !sa->s ;
-  int r ;
-  if (fd < 0) return -1 ;
-  r = sbearssl_pem_decode_from_buffer(&b, &pems, sa) ;
-  if (r) { fd_close(fd) ; return r ; }
-  fd_close(fd) ;
-  p = genalloc_s(sbearssl_pemobject, &pems) ;
-  n = genalloc_len(sbearssl_pemobject, &pems) ;
-  for (; i < n ; i++)
   {
-    char const *name = sa->s + p[i].name ;
-    if (!str_diff(name, "CERTIFICATE")
-     || !str_diff(name, "X509 CERTIFICATE"))
+    register int r = openreadnclose(fn, buf, SBEARSSL_MAXCERTFILESIZE) ;
+    if (r < 0) return r ;
+    n = r ;
+  }
+  if (sbearssl_isder((unsigned char *)buf, n))
+  {
+    sbearssl_cert cert = { .data = sa->len, .datalen = n } ;
+    if (!stralloc_catb(sa, buf, n)) return -1 ;
+    if (!genalloc_append(sbearssl_cert, certs, &cert)) goto fail ;
+  }
+  else
+  {
+    genalloc pems = GENALLOC_ZERO ;
+    size_t i = 0 ;
+    sbearssl_pemobject *p ;
+    register int r = sbearssl_pem_decode_from_string(buf, n, &pems, sa) ;
+    if (r) return r ;
+    p = genalloc_s(sbearssl_pemobject, &pems) ;
+    n = genalloc_len(sbearssl_pemobject, &pems) ;
+    for (; i < n ; i++)
     {
-      sbearssl_cert sc = { .data = p[i].data, .datalen = p[i].datalen } ;
-      if (!genalloc_append(sbearssl_cert, certs, &sc)) goto fail ;
+      char const *name = sa->s + p[i].name ;
+      if (!str_diff(name, "CERTIFICATE")
+       || !str_diff(name, "X509 CERTIFICATE"))
+      {
+        sbearssl_cert cert = { .data = p[i].data, .datalen = p[i].datalen } ;
+        if (!genalloc_append(sbearssl_cert, certs, &cert))
+        {
+          genalloc_free(sbearssl_pemobject, &pems) ;
+          goto fail ;
+        }
+      }
+      genalloc_free(sbearssl_pemobject, &pems) ;
     }
   }
   
-  genalloc_free(sbearssl_pemobject, &pems) ;
   return 0 ;
 
  fail:
@@ -49,6 +62,5 @@ int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa)
   else genalloc_setlen(sbearssl_cert, certs, certsbase) ;
   if (sawasnull) stralloc_free(sa) ;
   else sa->len = sabase ;
-  genalloc_free(sbearssl_pemobject, &pems) ;
-  return r ;
+  return -1 ;
 }

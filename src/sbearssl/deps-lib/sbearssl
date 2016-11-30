@@ -1,5 +1,6 @@
 sbearssl_append.o
 sbearssl_cert_from.o
+sbearssl_cert_readbigpem.o
 sbearssl_cert_readfile.o
 sbearssl_cert_to.o
 sbearssl_ec_issuer_keytype.o
@@ -23,11 +24,12 @@ sbearssl_skey_from.o
 sbearssl_skey_readfile.o
 sbearssl_skey_to.o
 sbearssl_ta_cert.o
+sbearssl_ta_certs.o
 sbearssl_ta_from.o
 sbearssl_ta_readdir.o
 sbearssl_ta_readfile.o
-sbearssl_ta_readfile_internal.o
 sbearssl_ta_to.o
+sbearssl_x509_minimal_set_tai.o
 sbearssl_s6tlsc.o
 sbearssl_s6tlsd.o
 -lbearssl

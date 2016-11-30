@@ -58,6 +58,7 @@ int sbearssl_s6tlsc (char const *const *argv, char const *const *envp, tain_t co
     while (i--)
       sbearssl_ta_to(genalloc_s(sbearssl_ta, &tas) + i, btas + i, storage.s) ;
     genalloc_free(sbearssl_ta, &tas) ;
+    
     br_ssl_client_init_full(&cc, &xc, btas, talen) ;
 
     if (!random_init())
@@ -73,6 +74,9 @@ int sbearssl_s6tlsc (char const *const *argv, char const *const *envp, tain_t co
     br_ssl_engine_set_buffer(&cc.eng, buf, sizeof(buf), 1) ;
     if (!br_ssl_client_reset(&cc, servername, 0))
       strerr_diefu2x(97, "reset client context: ", sbearssl_error_str(br_ssl_engine_last_error(&cc.eng))) ;
+    tain_now_g() ;
+    if (!sbearssl_x509_minimal_set_tain(&xc, &STAMP))
+      strerr_diefu1sys(111, "initialize validation time") ;
 
     {
       int wstat ;
