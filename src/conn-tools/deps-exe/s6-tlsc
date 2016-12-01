@@ -3,4 +3,5 @@ ${LIBS6NET}
 -lskarnet
 ${CRYPTO_LIB}
 ${SOCKET_LIB}
+${SPAWN_LIB}
 ${TAINNOW_LIB}

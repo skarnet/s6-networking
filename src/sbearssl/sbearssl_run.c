@@ -14,16 +14,6 @@
 #include <skalibs/djbunix.h>
 #include <s6-networking/sbearssl.h>
 
-#ifdef DEBUG
-# include <skalibs/buffer.h>
-# include <skalibs/strerr2.h>
-# include <skalibs/lolstdio.h>
-# define PLM(...) (bprintf(buffer_2, "%s: debug: ", PROG), bprintf(buffer_2, __VA_ARGS__), buffer_putflush(buffer_2, "\n", 1))
-#else
-# define PLM(...)
-#endif
-
-
 int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto)
 {
   iopause_fd x[4] ;

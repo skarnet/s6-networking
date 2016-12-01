@@ -22,9 +22,9 @@
 typedef struct tlsbuf_s tlsbuf_t, *tlsbuf_t_ref ;
 struct tlsbuf_s
 {
-  char buf[STLS_BUFSIZE] ;
   buffer b ;
-  unsigned int blockedonother : 1 ;
+  unsigned char blockedonother : 1 ;
+  char buf[STLS_BUFSIZE] ;
 } ;
 
 static inline int buffer_tls_flush (struct tls *ctx, tlsbuf_t *b)
@@ -43,7 +43,7 @@ static inline int buffer_tls_flush (struct tls *ctx, tlsbuf_t *b)
     default : break ;
   }
   w = r ;
-  if (v[1].len)
+  if ((size_t)w == v[0].len && v[1].len)
   {
     r = tls_write(ctx, v[1].s, v[1].len) ;
     switch (r)
@@ -81,7 +81,7 @@ static inline int buffer_tls_fill (struct tls *ctx, tlsbuf_t *b)
     default : break ;
   }
   w = r ;
-  if (v[1].len)
+  if ((size_t)w == v[0].len && v[1].len)
   {
     r = tls_read(ctx, v[1].s, v[1].len) ;
     switch (r)
@@ -102,12 +102,15 @@ static inline int buffer_tls_fill (struct tls *ctx, tlsbuf_t *b)
   return ok ;
 }
 
-static void do_tls_close (struct tls *ctx, int fd)
+static void closeit (struct tls *ctx, int *fds, int doshd)
 {
-  iopause_fd x = { .fd = fd, .events = IOPAUSE_WRITE } ;
-  while (tls_close(ctx) == TLS_WANT_POLLOUT) 
-    if (iopause_g(&x, 1, 0) < 0)
-      strerr_diefu1sys(111, "iopause") ;
+  if (fds[2] >= 0)
+  {
+    ndelay_off(fds[3]) ;
+    tls_close(ctx) ;
+  }
+  if (doshd) shutdown(fds[3], SHUT_WR) ;
+  fd_close(fds[3]) ; fds[3] = -1 ;
 }
 
 int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options, tain_t const *tto)
@@ -115,6 +118,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
   tlsbuf_t b[2] = { { .blockedonother = 0 }, { .blockedonother = 0 } } ;
   iopause_fd x[4] ;
   unsigned int xindex[4] ;
+  int closing = 0 ;
   register unsigned int i ;
 
   for (i = 0 ; i < 2 ; i++)
@@ -161,7 +165,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
     }
     else xindex[2] = 4 ;
 
-    if (fds[3] >= 0 && !b[0].blockedonother && buffer_iswritable(&b[0].b))
+    if (fds[3] >= 0 && (!b[0].blockedonother && buffer_iswritable(&b[0].b) || closing))
     {
       x[xlen].fd = fds[3] ;
       x[xlen].events = IOPAUSE_WRITE ;
@@ -220,11 +224,17 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
         strerr_warnwu2x("write to peer: ", tls_error(ctx)) ;
         fd_close(fds[0]) ; fds[0] = -1 ;
       }
-      if (r && fds[0] < 0)
+      if (r)
       {
-        if (fds[2] >= 0) do_tls_close(ctx, fds[3]) ;
-        if (options & 1) shutdown(fds[3], SHUT_WR) ;
-        fd_close(fds[3]) ; fds[3] = -1 ;
+        if (closing && buffer_isempty(&b[0].b))
+        {
+          ndelay_off(fds[3]) ;
+          tls_close(ctx) ;
+          fd_close(fds[3]) ; fds[3] = -1 ;
+          if (fds[0] >= 0) { fd_close(fds[0]) ; fds[0] = -1 ; }
+          closing = 0 ;
+        }
+        else if (fds[0] < 0) closeit(ctx, fds, options & 1) ;
       }
     }
 
@@ -238,12 +248,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
       {
         if (errno != EPIPE) strerr_warnwu1sys("read from application") ;
         fd_close(fds[0]) ; fds[0] = -1 ;
-        if (buffer_isempty(&b[0].b))
-        {
-          if (fds[2] >= 0) do_tls_close(ctx, fds[3]) ;
-          if (options & 1) shutdown(fds[3], SHUT_WR) ;
-          fd_close(fds[3]) ; fds[3] = -1 ;
-        }
+        if (buffer_isempty(&b[0].b)) closeit(ctx, fds, options & 1) ;
       }
     }
 
@@ -256,12 +261,12 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
       if (r < 0)
       {
         if (r == -1) strerr_warnwu2x("read from peer: ", tls_error(ctx)) ;
-        if (options & 1) shutdown(fds[2], SHUT_RD) ;
         fd_close(fds[2]) ; fds[2] = -1 ;
         if (buffer_isempty(&b[1].b))
         {
           fd_close(fds[1]) ; fds[1] = -1 ;
         }
+        closing = 1 ;
       }
     }
   }
