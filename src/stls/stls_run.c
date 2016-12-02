@@ -102,14 +102,17 @@ static inline int buffer_tls_fill (struct tls *ctx, tlsbuf_t *b)
   return ok ;
 }
 
-static void closeit (struct tls *ctx, int *fds, int doshd)
+static void send_closenotify (struct tls *ctx, int const *fds)
 {
-  if (fds[2] >= 0)
-  {
-    ndelay_off(fds[3]) ;
-    tls_close(ctx) ;
-  }
-  if (doshd) shutdown(fds[3], SHUT_WR) ;
+  iopause_fd x = { .fd = fds[3], .events = IOPAUSE_WRITE } ;
+  while (tls_close(ctx) == TLS_WANT_POLLOUT)
+    iopause_g(&x, 1, 0) ;
+}
+
+static void closeit (struct tls *ctx, int *fds, int brutal)
+{
+  if (brutal) shutdown(fds[3], SHUT_WR) ;
+  else if (fds[2] >= 0) send_closenotify(ctx, fds) ;
   fd_close(fds[3]) ; fds[3] = -1 ;
 }
 
@@ -118,7 +121,6 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
   tlsbuf_t b[2] = { { .blockedonother = 0 }, { .blockedonother = 0 } } ;
   iopause_fd x[4] ;
   unsigned int xindex[4] ;
-  int closing = 0 ;
   register unsigned int i ;
 
   for (i = 0 ; i < 2 ; i++)
@@ -136,7 +138,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
     unsigned int xlen = 0 ;
     register int r ;
 
-    tain_add_g(&deadline, buffer_isempty(&b[0].b) && buffer_isempty(&b[1].b) ? tto : &tain_infinite_relative) ;
+    tain_add_g(&deadline, fds[0] >= 0 && fds[1] >= 0 && buffer_isempty(&b[0].b) && buffer_isempty(&b[1].b) ? tto : &tain_infinite_relative) ;
 
 
    /* poll() preparation */
@@ -165,7 +167,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
     }
     else xindex[2] = 4 ;
 
-    if (fds[3] >= 0 && (!b[0].blockedonother && buffer_iswritable(&b[0].b) || closing))
+    if (fds[3] >= 0 && !b[0].blockedonother && buffer_iswritable(&b[0].b))
     {
       x[xlen].fd = fds[3] ;
       x[xlen].events = IOPAUSE_WRITE ;
@@ -182,8 +184,8 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
     else if (!r)
     {
-      fd_close(fds[0]) ;
-      tls_close(ctx) ;
+      fd_close(fds[0]) ; fds[0] = -1 ;
+      closeit(ctx, fds, options & 1) ;
       continue ;
     }
 
@@ -204,6 +206,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
         {
           if (options & 1) shutdown(fds[2], SHUT_RD) ;
           fd_close(fds[2]) ; fds[2] = -1 ;
+          xindex[2] = 4 ;
         }
         r = 1 ;
       }
@@ -224,18 +227,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
         strerr_warnwu2x("write to peer: ", tls_error(ctx)) ;
         fd_close(fds[0]) ; fds[0] = -1 ;
       }
-      if (r)
-      {
-        if (closing && buffer_isempty(&b[0].b))
-        {
-          ndelay_off(fds[3]) ;
-          tls_close(ctx) ;
-          fd_close(fds[3]) ; fds[3] = -1 ;
-          if (fds[0] >= 0) { fd_close(fds[0]) ; fds[0] = -1 ; }
-          closing = 0 ;
-        }
-        else if (fds[0] < 0) closeit(ctx, fds, options & 1) ;
-      }
+      if (r && fds[0] < 0) closeit(ctx, fds, options & 1) ;
     }
 
 
@@ -261,12 +253,20 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
       if (r < 0)
       {
         if (r == -1) strerr_warnwu2x("read from peer: ", tls_error(ctx)) ;
+        if (options & 1) shutdown(fds[2], SHUT_RD) ;
+        /*
+           XXX: We need a way to detect when we've received a close_notify,
+           because then we need to trigger a write and then shut the engine
+           down. This is orthogonal to options&1, it only means that the
+           peer sent a close_notify.
+           As for now, libtls doesn't offer an API to detect that, so we
+           do nothing special - we just wait until our app sends EOF.
+        */
         fd_close(fds[2]) ; fds[2] = -1 ;
         if (buffer_isempty(&b[1].b))
         {
           fd_close(fds[1]) ; fds[1] = -1 ;
         }
-        closing = 1 ;
       }
     }
   }
