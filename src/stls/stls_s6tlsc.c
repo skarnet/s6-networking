@@ -75,7 +75,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
     diecfg(cfg, "tls_config_set_ecdhecurve") ;
 
   tls_config_verify(cfg) ;
-  tls_config_set_protocols(cfg, TLS_PROTOCOLS_DEFAULT) ;
+  tls_config_set_protocols(cfg, TLS_PROTOCOLS_ALL) ;
   tls_config_prefer_ciphers_server(cfg) ;
   if (!servername) tls_config_insecure_noverifyname(cfg) ;
 

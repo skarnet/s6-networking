@@ -24,6 +24,8 @@
 It includes command-line client and server management, TCP access
 control, privilege escalation across UNIX domain sockets, IDENT
 protocol management and clock synchronization.
+Optionally, it also includes command-line TLS/SSL tools for
+secure communications.
 </p>
 
 <p>
@@ -53,9 +55,9 @@ library. </li>
 2.1.0.0 or later. It's a build-time requirement. It's also a run-time
 requirement if you link against the shared version of the s6-dns
 libraries. </li>
- <li> If you want to build the TLS tools:
+ <li> If you want to build the TLS/SSL tools:
   <ul>
-   <li> Either <a href="http://libressl.org/">LibreSSL</a> version 2.5.0
+   <li> Either <a href="http://libressl.org/">LibreSSL</a> version 2.4.4
 or later </li>
    <li> Or <a href="http://bearssl.org/">BearSSL</a> version 0.1
 or later. <strong>THIS IS EXPERIMENTAL.</strong> </li>
@@ -134,7 +136,7 @@ relevant page.
 <li><a href="s6-tcpserver6d.html">The <tt>s6-tcpserver6d</tt> program</a></li>
 </ul>
 
-<h4> UCSPI tools for TLS 1.2 over TCP </h4>
+<h4> UCSPI tools for SSL/TLS over TCP </h4>
 
 <ul>
 <li><a href="s6-tlsclient.html">The <tt>s6-tlsclient</tt> program</a></li>
@@ -165,8 +167,12 @@ relevant page.
 <h3> Libraries </h3>
 
 <ul>
-<li> The <a href="libs6net/">s6net</a> library, containing: </li>
-<li> <a href="libs6net/ident.html">The <tt>ident</tt> library interface</a> </li>
+<li> The <a href="libstls/">stls</a> library </li>
+<li> The <a href="libsbearssl/">sbearssl</a> library </li>
+<li> The <a href="libs6net/">s6net</a> library, containing:
+ <ul>
+  <li> <a href="libs6net/ident.html">The <tt>ident</tt> library interface</a> </li>
+ </ul> </li>
 </ul>
 
 <hr />

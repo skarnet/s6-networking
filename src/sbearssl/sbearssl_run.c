@@ -71,7 +71,12 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, 
     else if (!r)
     {
       fd_close(fds[0]) ; fds[0] = -1 ;
-      br_ssl_engine_close(ctx) ;
+      if (options & 1)
+      {
+        shutdown(fds[3], SHUT_WR) ;
+        fd_close(fds[3]) ; fds[3] = -1 ;
+      }
+      else br_ssl_engine_close(ctx) ;
       continue ;
     }
 

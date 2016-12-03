@@ -1,0 +1,268 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tlsc program</title>
+    <meta name="Description" content="s6-networking: the s6-tlsc program" />
+    <meta name="Keywords" content="s6-networking s6-tlsc tlsc tls ssl ucspi tcp inet network tcp/ip client" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tlsc</tt> program </h1>
+
+<p>
+<tt>s6-tlsc</tt> is a program that establishes a TLS or SSL
+client connection over an existing TCP connection, then spawns
+an application. It is meant to make network communications
+secure even for applications that do not natively support
+TLS/SSL.
+</p>
+
+<p>
+ <a href="index.html">s6-networking</a> does not include
+cryptographic software. All the crypto used in <tt>s6-tlsc</tt>
+is provided by the chosen SSL backend:
+<a href="https://bearssl.org/">BearSSL</a> or
+<a href="https://www.libressl.org/">LibreSSL</a>, depending on
+the options given when configuring <tt>s6-networking</tt>.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tlsc [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k <em>servername</em> ] [ -6 <em>rfd</em> ] [ -7 <em>wfd</em> ] [ -- ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-tlsc expects to have an open TCP connection it
+can talk to on its (by default) descriptors 6 (for reading)
+and 7 (for writing). </li>
+ <li> It spawns <em>prog...</em> as a child process,
+interposing itself between it and the network. </li>
+ <li> It initiates a TLS/SSL handshake over the
+network connection, expecting a TLS/SSL server on the other
+side. </li>
+ <li> It manages the encryption/decryption of all the
+messages between <em>prog</em> and the server.
+<em>prog</em> speaks plaintext, but only ciphertext is sent
+on the network. </li>
+ <li> When <em>prog</em> exits, <tt>s6-tlsc</tt> exits.
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 96: error while configuring the TLS/SSL context - for instance, invalid trust anchor set. </li>
+ <li> 97: error while setting up the TLS/SSL client engine. </li>
+ <li> 98: TLS/SSL error while running the engine. </li>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed. </li>
+</ul>
+
+<p>
+ If the TLS/SSL connection closes cleanly, <tt>s6-tlsc</tt>
+waits for <em>prog</em> to exit, then exits with an
+<a href="http://skarnet.org/software/execline/exitcodes.html">approximation</a>
+of <em>prog</em>'s exit code.
+</p>
+
+<h2> Protocol version and parameters </h2>
+
+<p>
+ During the TLS/SSL handshake, <tt>s6-tlsc</tt> tries
+every version of the protocol that is supported by the
+backend, with all supported algorithms and cipher suites;
+the backend normally ensures that the most secure combination
+is tried first, with slow degradation until the client and
+the server agree.
+</p>
+
+<ul>
+ <li> For BearSSL, this means use of the
+<a href="https://bearssl.org/apidoc/bearssl__ssl_8h.html#aa386dd0b03a0123760bf63df5a41c1e0">br_ssl_client_init_full()</a>
+function. The supported protocol versions are described
+<a href="https://bearssl.org/support.html#supported-versions">here</a>. </li>
+ <li> For LibreSSL, this means use of the
+<a href="http://man.openbsd.org/OpenBSD-current/man3/tls_config_set_protocols.3">tls_config_set_protocols(TLS_PROTOCOLS_ALL)</a>
+call. </li>
+</ul>
+
+<p>
+ As a client, it is better for <tt>s6-tlsc</tt> to adapt to as many servers
+as possible, that's why it adopts a liberal approach to protocol
+versions.
+</p>
+
+<h2> Environment variables </h2>
+
+<h3> Read </h3>
+
+<p>
+ <tt>s6-tlsc</tt> expects to have one of the
+<tt>CADIR</tt> or <tt>CAFILE</tt> environment variables set.
+It will refuse to run if both are unset. If both are set,
+<tt>CADIR</tt> has priority. The value of that variable is:
+</p>
+
+<ul>
+ <li> for <tt>CADIR</tt>: a directory where trust anchors
+(i.e. root or intermediate CA certificates) can be found,
+one per file, DER- or PEM-encoded. </li>
+ <li> for <tt>CAFILE</tt>: a file containing the whole set
+of trust anchors, PEM-encoded. </li>
+</ul>
+
+<p>
+ If you are using client certificates, s6-tlsc also reads
+two more environment variables: <tt>KEYFILE</tt> contains
+the path to a file containing the private key, DER- or
+PEM-encoded; and <tt>CERTFILE</tt> contains the path to
+a file containing the client certificate, DER- or
+PEM-encoded. Please note that for now, support for client
+certificates is experimental, and only works
+with the <a href="https://www.libressl.org/">LibreSSL</a>
+backend (BearSSL does not support client certificates yet).
+</p>
+
+<p>
+ If <tt>s6-tlsc</tt> is run as root, it can also read two
+other environment variables, <tt>TLS_UID</tt> and <tt>TLS_GID</tt>,
+which contain a numeric uid and a numeric gid; <tt>s6-tlsc</tt>
+then drops its root privileges to this uid/gid after spawning
+<em>prog...</em>. This ensures that the TLS/engine and the
+application run with different privileges. Note that <em>prog...</em>
+should drop its own root privileges by its own means: the
+<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
+program is a way of doing it.
+</p>
+
+<h3> Written </h3>
+
+<p>
+ Unless the <tt>-Z</tt> option has been given to
+<tt>s6-tlsc</tt>, <em>prog...</em> is run with all the
+TLS/SSL variables <em>unset</em>: CADIR, CAFILE,
+KEYFILE, CERTFILE, TLS_UID and TLS_GID. The goal is
+for <tt>s6-tlsc</tt> to be, by default, as invisible
+as possible.
+</p>
+
+<h2> Server name determination for SNI </h2>
+
+<p>
+ The <tt>-k <em>servername</em></tt> option is important to
+<tt>s6-tlsc</tt>: it tells it to send <em>servername</em>
+as the name to require a certificate for.
+Not setting this option allows <tt>s6-tlsc</tt> to
+proceed without SNI,
+<strong>which may be a security risk.</strong>
+</p>
+
+<p>
+ The <a href="s6-tlsclient.html">s6-tlsclient</a> program can
+automatically craft a <tt>-k</tt> option for <tt>s6-tlsc</tt>
+if the <em>host</em> argument that is given to it is a
+host name. But if you're invoking <tt>s6-tlsc</tt> directly,
+do not forget to give it this option.
+</p>
+
+<h2> SSL close handling </h2>
+
+<p>
+ If <em>prog</em> initiates the end of the session by sending
+EOF, there are two ways for the TLS/SSL layer to handle it.
+</p>
+
+<ul>
+ <li> It can send a <tt>close_notify</tt> alert, and wait for
+an acknowledgement from the peer, at which point the connection
+is closed. The advantage of this setup is that it is secure
+even when the application protocol is not auto-terminated, i.e.
+when it does not know when its data stops. Old protocols such
+as HTTP-0.9 are in this case. The drawback of this setup is
+that it breaks full-duplex: once a peer has sent the
+<tt>close_notify</tt>, it must discard all the incoming
+records that are not a <tt>close_notify</tt> from the
+other peer. So if a client sends EOF while it is still
+receiving data from the server, the connection closes
+immediately and the data can be truncated. </li>
+ <li> It can simply transmit the EOF, shutting down
+half the TCP connection, and wait for the EOF back.
+The advantage of this setup is that it maintains
+full-duplex: a client can send EOF after its initial
+request, and still receive a complete answer from the
+server. The drawback is that it is insecure when the application
+protocol is not auto-terminated. </li>
+</ul>
+
+<p>
+ Nowadays (2016), most protocols are auto-terminated, so
+it is not dangerous anymore to use EOF tranmission, and that
+is the default fo <tt>s6-tlsc</tt>. Nevertheless, by
+using the <tt>-S</tt> option, you can
+force it to use the <tt>close_notify</tt> method if your
+application requires it to be secure.
+</p>
+
+<h2> <tt>s6-tlsc</tt> options </h2>
+
+<ul>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp: Be more or less
+verbose. Default for <em>verbosity</em> is 1. 0 is quiet, 2 is
+verbose, more than 2 is debug output. This option currently has
+no effect. </li>
+ <li> <tt>-Z</tt>&nbsp;: do not clean the environment of
+<tt>s6-tlsc</tt>-related variables before spawning <em>prog...</em>. </li>
+ <li> <tt>-z</tt>&nbsp;: clean the environment of
+<tt>s6-tlsc</tt>-related variables before spawning <em>prog...</em>.
+This is the default. </li>
+ <li> <tt>-S</tt>&nbsp;: send a <tt>close_notify</tt> alert
+and break the connection when <em>prog</em> sends EOF. </li>
+ <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
+connection without using <tt>close_notify</tt>. This is the default. </li>
+ <li> <tt>-Y</tt>&nbsp;: Do not send a client certificate. This is the default. </li>
+ <li> <tt>-y</tt>&nbsp;: Send a client certificate. This is experimental and
+for now unsupported by BearSSL. </li>
+ <li> <tt>-k&nbsp;<em>servername</em></tt>&nbsp: use Server Name
+Indication, and send <em>servername</em>. The default is not to
+use SNI, which may be a security risk. </li>
+ <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: close the connection
+if <em>kimeout</em> milliseconds elapse without any data being
+received from either side. The default is 0, which means
+infinite timeout (never kill the connection). </li>
+ <li> <tt>-6&nbsp;<em>rfd</em></tt>&nbsp;: expect an open file
+descriptor numbered <em>rfd</em> to read network (ciphertext)
+data from. Make sure <em>prog</em> also reads its data
+from its own fd <em>rfd</em>. Default is 6. </li>
+ <li> <tt>-7&nbsp;<em>wfd</em></tt>&nbsp;: expect an open file
+descriptor numbered <em>wfd</em> to write network (ciphertext)
+data to. Make sure <em>prog</em> also writes its data to
+its own fd <em>wfd</em>. Default is 7. </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> The goal of the <tt>s6-tlsc</tt> interface (and its
+server-side companion <a href="s6-tlsd.html">s6-tlsd</a> is to
+make it so that if you have a client, run by the command line
+<tt>client...</tt> that speaks a cleartext protocol to a server
+run by the command line <tt>server...</tt>, then if the server
+has the proper private key and certificate, and the client has
+the proper list of trust anchors, you can just change the
+client command line to <tt>s6-tlsc client...</tt> and the
+server command line to <tt>s6-tlsd server...</tt>
+without changing the client or the server themselves, and the
+communication between them will be secure. </li>
+</ul>
+
+</body>
+</html>

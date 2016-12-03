@@ -6,7 +6,6 @@
 #include <errno.h>
 #include <signal.h>
 #include <tls.h>
-#include <skalibs/uint32.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
 #include <skalibs/buffer.h>
@@ -116,7 +115,7 @@ static void closeit (struct tls *ctx, int *fds, int brutal)
   fd_close(fds[3]) ; fds[3] = -1 ;
 }
 
-int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options, tain_t const *tto)
+int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto)
 {
   tlsbuf_t b[2] = { { .blockedonother = 0 }, { .blockedonother = 0 } } ;
   iopause_fd x[4] ;
@@ -138,7 +137,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32 options,
     unsigned int xlen = 0 ;
     register int r ;
 
-    tain_add_g(&deadline, fds[0] >= 0 && fds[1] >= 0 && buffer_isempty(&b[0].b) && buffer_isempty(&b[1].b) ? tto : &tain_infinite_relative) ;
+    tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && buffer_isempty(&b[0].b) && buffer_isempty(&b[1].b) ? tto : &tain_infinite_relative) ;
 
 
    /* poll() preparation */

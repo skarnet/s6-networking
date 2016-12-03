@@ -177,16 +177,40 @@ source tree if parallel builds are needed.
 * SSL support
   -----------
 
- s6-networking implements UCSPI tools for TLS1.2 connections: s6-tlsclient,
+ s6-networking implements UCSPI tools for SSL/TLS connections: s6-tlsclient,
 s6-tlsserver, s6-tlsc and s6-tlsd. Those are built if you give the
 --enable-ssl=<implementation> flag to configure. There are two supported
 values for <implementation>: libressl (in which case the tools will be
 built against libtls) and bearssl (in which case the tools will be built
 against libbearssl). You should install the relevant header and library
-files for your chosen implementation before building a SSL-enabled
-s6-networking.
+files for your chosen implementation, be it LibreSSL or BearSSL, before
+building a SSL-enabled s6-networking.
+
  If your SSL headers and library files are not installed in /usr/include
 and /usr/lib, you can use the --with-ssl-path=DIR configure option:
 headers will be searched in DIR/include and libraries will be searched in
 DIR/lib. For more complex setups, use the generic --with-include and
 --with-dir configure options.
+
+ If you choose --enable-ssl=bearssl, then s6-networking will build a
+"libsbearssl" support library, which s6-tlsc and s6-tlsd will be linked
+against. This support library depends on libbearssl interfaces.
+
+ If you choose --enable-ssl=libressl, then s6-networking will build
+a "libstls" support library, which s6-tlsc and s6-tlsd will be linked
+against. This support library depends on libtls interfaces, but not
+on libssl or libcrypto interfaces - so it is possible to use alternative
+implementations of the libtls API.
+
+ If your SSL implementation library needs nonstandard -l options to link
+against it, you can override the CRYPTO_LIB make variable.
+By default, CRYPTO_LIB is "-lbearssl" when building against BearSSL,
+and "-ltls -lssl -lcrypto" when building against LibreSSL.
+
+ As of 2016-12-02, please note that BearSSL is experimental and not
+considered production-ready by its author yet. Nevertheless, it's an
+incredibly promising library with high-quality interfaces and likely
+high-quality implementation. When statically linked against BearSSL,
+the s6-tlsc and s6-tlsd binaries are 1/10th the size of what they are
+when statically linked against LibreSSL, with a smaller RAM footprint
+too.

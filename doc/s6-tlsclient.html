@@ -1,0 +1,168 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tlsclient program</title>
+    <meta name="Description" content="s6-networking: the s6-tlsclient program" />
+    <meta name="Keywords" content="s6-networking s6-tlsclient tlsclient tls ssl ucspi tcp inet network tcp/ip client" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tlsclient</tt> program </h1>
+
+<p>
+<tt>s6-tlsclient</tt> is an
+<a href="http://cr.yp.to/proto/ucspi.txt">UCSPI client tool</a> for
+TLS/SSL connections over INET domain sockets. It establishes a TCP
+connection to a server and a TLS transport over it,
+then executes into a program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tlsclient [ <em>options</em> ] [ -- ] <em>host</em> <em>port</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-tlsclient rewrites itself into a command line
+involving:
+  <ul>
+   <li> <a href="s6-tcpclient.html">s6-tcpclient</a>, which
+establishes a TCP connection to host <em>host</em> port <em>port</em>. </li>
+   <li> <a href="s6-tlsc.html">s6-tlsc</a>, which establishes
+a TLS transport (client-side) over that connection. </li>
+   <li> <em>prog...</em>, your client program, which is run as a
+child of <a href="s6-tlsc.html">s6-tlsc</a>. </li>
+  </ul> </li>
+ <li> It runs until the connection closes. </li>
+ <li> It exits either with a <a href="s6-tlsc.html">s6-tlsc</a>
+error code (and error message), or with an
+<a href="https://skarnet.org/software/execline/exitcodes.html">approximation</a>
+of <em>prog</em>'s exit code. </li>
+</ul>
+
+<p>
+ <em>prog</em> is expected to read from its peer on
+descriptor 6 and write to its peer on descriptor 7.
+Since there will be a <a href="s6-tlsc.html">s6-tlsc</a>
+program between <em>prog</em> and the network to perform
+the SSL encryption/decryption, those descriptors will not
+be a network socket - they will be pipes.
+</p>
+
+<h2> Server name determination for SNI </h2>
+
+<p>
+
+ If the <tt>-H</tt> option is not given to <tt>s6-tlsclient</tt>,
+then <em>host</em> will be used as the server name to verify.
+You can use the <tt>-k</tt> option to override this default.
+Please note that if you use the <tt>-H</tt> option and do not
+provide a server name via <tt>-k</tt>, <strong>SNI will not be
+used, which may be a security risk.</strong>
+</p>
+
+
+<h2> Environment variables </h2>
+
+<h3> Read </h3>
+
+<p>
+ The following variables should be set before invoking
+<tt>s6-tlsclient</tt>, because they will be used by
+<a href="s6-tlsc.html">s6-tlsc</a>:
+</p>
+
+<ul>
+ <li> CADIR </li>
+ <li> CAFILE (alternative to CADIR) </li>
+ <li> KEYFILE (if you're using a client certificate) </li>
+ <li> CERTFILE (if you're using a client certificate) </li>
+ <li> TLS_UID and TLS_GID (if you run <tt>s6-tlsclient</tt> as root) </li>
+</ul>
+
+<p>
+ Setting either CADIR or CAFILE is mandatory.
+</p>
+
+<h3> Written </h3>
+
+<p>
+ <em>prog...</em> is run with the following variables added to,
+or removed from, its environment by <a href="s6-tcpclient.html">s6-tcpclient</a>:
+</p>
+
+<ul>
+ <li> PROTO </li>
+ <li> TCPREMOTEIP </li>
+ <li> TCPREMOTEPORT </li>
+ <li> TCPREMOTEHOST </li>
+ <li> TCPLOCALHOST </li>
+ <li> TCPREMOTEINFO </li>
+</ul>
+
+<p>
+ Unless the <tt>-Z</tt> option is given to <tt>s6-tlsclient</tt>,
+the CADIR, CAFILE, KEYFILE, CERTFILE, TLS_UID and TLS_GID
+variables will not appear in <em>prog</em>'s environment.
+</p>
+
+
+<h2> Options </h2>
+
+<p>
+ <tt>s6-tlsclient</tt> accepts a myriad of options, most of which are
+passed as is to the correct executable. Not giving any options will
+generally work: the defaults are sensible.
+</p>
+
+<h3> Options passed as is to s6-tcpclient </h3>
+
+<ul>
+ <li> <tt>-q</tt>, <tt>-Q</tt>, <tt>-v</tt> </li>
+ <li> <tt>-4</tt>, <tt>-6</tt> </li>
+ <li> <tt>-d</tt>, <tt>-D</tt> </li>
+ <li> <tt>-r</tt>, <tt>-R</tt> </li>
+ <li> <tt>-h</tt>, <tt>-H</tt>, <tt>-l <em>localname</em></tt> </li>
+ <li> <tt>-n</tt>, <tt>-N</tt> </li>
+ <li> <tt>-t <em>timeout</em></tt> </li>
+ <li> <tt>-i <em>localip</em></tt>, <tt>-p <em>localport</em></tt> </li>
+ <li> <tt>-T <em>timeoutconn</em></tt> </li>
+</ul>
+
+<h3> Options passed as is to s6-tlsc </h3>
+
+<ul>
+ <li> <tt>-Z</tt>, <tt>-z</tt> </li>
+ <li> <tt>-S</tt>, <tt>-s</tt> </li>
+ <li> <tt>-Y</tt>, <tt>-y</tt> </li>
+ <li> <tt>-k <em>servername</em></tt> </li>
+ <li> <tt>-K <em>kimeout</em></tt> </li>
+</ul>
+
+<h2> Example </h2>
+
+<p>
+  <code> CADIR=/etc/ssl/certs s6-tlsclient skarnet.org 443 s6-ioconnect </code>
+</p>
+
+<p>
+ This will open a connection to
+<a href="https://skarnet.org/">the skarnet.org web server
+over TLS</a> and verify its certificate via the trust anchors
+listed in the <tt>/etc/ssl/certs</tt> directory. It will then
+branch your terminal to it: try typing
+<tt>GET / HTTP/1.0</tt> then hitting return twice.
+</p>
+
+</body>
+</html>

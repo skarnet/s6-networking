@@ -138,7 +138,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int m = 0 ;
     unsigned int pos = 0 ;
     char fmt[UINT_FMT * 5 + GID_FMT * (NGROUPS_MAX + 1) + UINT64_FMT] ;
-    char const *newargv[47 + argc] ;
+    char const *newargv[45 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag46) newargv[m++] = o.flag46 == 1 ? "-4" : "-6" ;
@@ -171,10 +171,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-access" ;
       if (o.verbosity != 1)
-      {
-        newargv[m++] = "-v" ;
-        newargv[m++] = o.verbosity ? "2" : "0" ;
-      }
+        newargv[m++] = o.verbosity ? "-v2" : "-v0" ;
       if (o.flagw) newargv[m++] = "-w" ;
       if (o.flagD) newargv[m++] = "-D" ;
       if (o.flagH) newargv[m++] = "-H" ;
@@ -206,10 +203,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsd" ;
     if (o.verbosity != 1)
-    {
-      newargv[m++] = "-v" ;
-      newargv[m++] = o.verbosity ? "2" : "0" ;
-    }
+      newargv[m++] = o.verbosity ? "-v2" : "-v0" ;
     if (o.flagS) newargv[m++] = "-S" ;
     if (o.flagy) newargv[m++] = "-y" ;
     if (o.kimeout)

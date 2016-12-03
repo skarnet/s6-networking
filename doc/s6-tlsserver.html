@@ -1,0 +1,216 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tlsserver program</title>
+    <meta name="Description" content="s6-networking: the s6-tlsserver program" />
+    <meta name="Keywords" content="s6-networking s6-tlsclient tlsserver tls ssl ucspi tcp inet network tcp/ip server superserver" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tlsserver</tt> program </h1>
+
+<p>
+<tt>s6-tlsserver</tt> is an
+<a href="http://cr.yp.to/proto/ucspi.txt">UCSPI server tool</a> for
+TLS/SSL connections over INET domain sockets. It acts as a TCP superserver
+that listens to connections, accepts them, and for each connection,
+establishes a TLS transport over it, then executes into a program.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tlsserver [ <em>options</em> ] [ -- ] <em>ip</em> <em>port</em> <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-tlsserver rewrites itself into a command line
+involving:
+  <ul>
+   <li> <a href="s6-tcpserver.html">s6-tcpserver</a>, which
+listens to TCP connections on IP address <em>ip</em> port <em>port</em>
+and forks a command line for every connection. Note that
+<a href="s6-tcpserver.html">s6-tcpserver</a> also rewrites
+itself into a more complex commnd line (the final long-lived
+process being <a href="s6-tcpserver4d.html">s6-tcpserver4d</a>
+or <a href="s6-tcpserver4d.html">s6-tcpserver6d</a>),
+so your end command line may look a lot longer in <tt>ps</tt>
+than what you originally wrote. This is normal and healthy. </li>
+   <li> (if applicable) <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>,
+which performs TCP access control and various operations on the
+TCP connection. </li>
+   <li> <a href="s6-tlsd.html">s6-tlsd</a>, which establishes
+a TLS transport (server-side) over a connection. </li>
+   <li> (if applicable)
+<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>,
+which drops root privileges. </li>
+   <li> <em>prog...</em>, your client program, which is run as a
+child of <a href="s6-tlsd.html">s6-tlsd</a>. </li>
+  </ul> </li>
+ <li> It runs until it is killed by a signal. </li>
+</ul>
+
+<p>
+ <em>prog</em> is expected to read from its peer on its
+standard input and write to its peer on its standard output.
+Since there will be a <a href="s6-tlsd.html">s6-tlsd</a>
+program between <em>prog</em> and the network to perform
+the SSL encryption/decryption, those descriptors will not
+be a network socket - they will be pipes.
+</p>
+
+<h2> Signals </h2>
+
+<p>
+ <tt>s6-tlsserver</tt> reacts to the same signals as
+<a href="s6-tcpserver4d.html">s6-tcpserver4d</a> or
+<a href="s6-tcpserver6d.html">s6-tcpserver6d</a>,
+one of which is the long-lived process hanging around.
+</p>
+
+<h2> Environment variables </h2>
+
+<h3> Read </h3>
+
+<p>
+ The following variables should be set before invoking
+<tt>s6-tlsserver</tt>, because they will be used by
+every <a href="s6-tlsd.html">s6-tlsd</a> invocation:
+</p>
+
+<ul>
+ <li> KEYFILE </li>
+ <li> CERTFILE </li>
+ <li> TLS_UID and TLS_GID (if you run <tt>s6-tlsserver</tt> as root) </li>
+ <li> CADIR (if you want client certificates) </li>
+ <li> CAFILE (if you want client certificates, alternative to CADIR) </li>
+</ul>
+
+<p>
+ Setting both KEYFILE and CERTFILE is mandatory.
+</p>
+
+<h3> Written </h3>
+
+<p>
+ <em>prog...</em> is run with the following variables added to,
+or removed from, its environment by <a href="s6-tcpserver4d.html">s6-tcpserver4d</a>
+or <a href="s6-tcpserver6d.html">s6-tcpserver6d</a>, and possibly
+by <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>:
+</p>
+
+<ul>
+ <li> PROTO </li>
+ <li> TCPREMOTEIP </li>
+ <li> TCPREMOTEPORT </li>
+ <li> TCPCONNNUM </li>
+ <li> TCPLOCALIP </li>
+ <li> TCPLOCALPORT </li>
+ <li> TCPREMOTEHOST </li>
+ <li> TCPLOCALHOST </li>
+ <li> TCPREMOTEINFO </li>
+</ul>
+
+<p>
+ Depending on TCP access rules (if the <tt>-i</tt> or <tt>-x</tt>
+option has been given), it is possible that <em>prog</em>'s
+environment undergoes more modifications. Also, since
+<a href="s6-tlsd.html">s6-tlsd</a> is always run
+after <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>,
+it is possible to set different TLS/SSL parameters (typically
+a different KEYFILE and CERTFILE) depending on the client
+connection, by writing the correct set of TCP access rules.
+</p>
+
+<p>
+ Unless the <tt>-Z</tt> option is given to <tt>s6-tlsserver</tt>,
+the CADIR, CAFILE, KEYFILE, CERTFILE, TLS_UID and TLS_GID
+variables will not appear in <em>prog</em>'s environment.
+</p>
+
+
+<h2> Options </h2>
+
+<p>
+ <tt>s6-tlsserver</tt> accepts a myriad of options, most of which are
+passed as is to the correct executable. Not giving any options will
+generally work, but unless you're running a very public server
+(such as a Web server) or base your access control on client
+certificates, you probably still want TCP access rules.
+</p>
+
+<h3> Options passed as is to s6-tcpserver </h3>
+
+<ul>
+ <li> <tt>-q</tt>, <tt>-Q</tt>, <tt>-v</tt> </li>
+ <li> <tt>-4</tt>, <tt>-6</tt> </li>
+ <li> <tt>-1</tt> </li>
+ <li> <tt>-c <em>maxconn</em></tt> </li>
+ <li> <tt>-C <em>localmaxconn</em></tt> </li>
+ <li> <tt>-b <em>backlog</em></tt> </li>
+</ul>
+
+<h3> Options passed as is to s6-tcpserver-access </h3>
+
+<ul>
+ <li> The verbosity level, if not default, as <tt>-v0</tt> or <tt>-v2</tt> </li>
+ <li> <tt>-w</tt>, <tt>-W</tt> </li>
+ <li> <tt>-d</tt>, <tt>-D</tt> </li>
+ <li> <tt>-r</tt>, <tt>-R</tt> </li>
+ <li> <tt>-p</tt>, <tt>-P</tt> </li>
+ <li> <tt>-h</tt>, <tt>-H</tt>, <tt>-l <em>localname</em></tt> </li>
+ <li> <tt>-B <em>banner</em></tt> </li>
+ <li> <tt>-t <em>timeout</em></tt> </li>
+ <li> <tt>-i <em>rulesdir</em></tt>, <tt>-x <em>rulesfile</em></tt> </li>
+</ul>
+
+<h3> Options passed as is to s6-tlsd </h3>
+
+<ul>
+ <li> <tt>-Z</tt>, <tt>-z</tt> </li>
+ <li> <tt>-S</tt>, <tt>-s</tt> </li>
+ <li> <tt>-Y</tt>, <tt>-y</tt> </li>
+ <li> <tt>-k <em>servername</em></tt> </li>
+ <li> <tt>-K <em>kimeout</em></tt> </li>
+</ul>
+
+<h3> Options passed to s6-applyuidgid </h3>
+
+<ul>
+ <li> <tt>-u <em>uid</em></tt>, <tt>-g <em>gid</em></tt>, <tt>-G <em>gidlist</em></tt> </li>
+ <li> <tt>-U</tt> (passed as <tt>-Uz</tt>) </li>
+</ul>
+
+<h2> Example </h2>
+
+
+<p>
+ As root:
+  <code> KEYFILE=/etc/ssl/private/mykey.der CERTFILE=/etc/ssl/public/mycert.pem \
+ TLS_UID=65534 TLS_UID=65536 \
+ s6-envuidgid www
+ s6-tlsserver -U -- 1.2.3.4 443 httpd </code>
+</p>
+
+<p>
+This will start a server listening to 1.2.3.4 on TCP port 443,
+ and for every connection, spawn the <tt>httpd</tt> program
+reading queries on stdin and replying on stdout, as user <tt>www</tt>,
+with a TLS layer protecting the connection, the TLS engine running
+as user <tt>nobody</tt> (<tt>65534:65534</tt>). The server is
+authentified by the certificate in <tt>/etc/ssl/public/mycert.pem</tt>
+that it sends to the client, and the private key in
+<tt>/etc/ssl/private/mykey.der</tt> that it keeps to itself.
+</p>
+
+</body>
+</html>

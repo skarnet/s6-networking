@@ -1,0 +1,548 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the sbearssl library interface</title>
+    <meta name="Description" content="s6-networking: the sbearssl interface" />
+    <meta name="Keywords" content="s6-networking net sbearssl library TLS SSL BearSSL libbearssl" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="../">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>sbearssl</tt> library interface </h1>
+
+<h2> General information </h2>
+
+<p>
+ <tt>libsbearssl</tt> is a support library for the
+<a href="../s6-tlsc.html">s6-tlsc</a> and
+<a href="../s6-tlsd.html">s6-tlsd</a> executables when they're built
+against the <a href="https://bearssl.org/">BearSSL</a>
+backend. Among other things, it offers interfaces to read private
+keys and certificates from a Unix filesystem, which BearSSL does
+not provide on its own.
+</p>
+
+<h2> Compiling </h2>
+
+<ul>
+ <li> Make sure the s6-networking headers, as well as the skalibs headers,
+and the <tt>bearssl.h</tt> header, are visible in your header search path. </li>
+ <li> Use <tt>#include &lt;s6-networking/sbearssl.h&gt;</tt> </li>
+</ul>
+
+<h2> Linking </h2>
+
+<ul>
+ <li> Make sure the s6-networking libraries, as well as the skalibs
+libraries, and the BearSSL libraries, are visible in your library search path. </li>
+ <li> Link against <tt>-lsbearssl</tt>, <tt>-lskarnet</tt>, <tt>-lbearssl</tt>,
+<tt>`cat $sysdeps/socket.lib`</tt>, <tt>`cat $sysdeps/spawn.lib`</tt>, and
+<tt>`cat $sysdeps/tainnow.lib`</tt>, where <tt>$sysdeps</tt> is your skalibs
+sysdeps directory. </li>
+</ul>
+
+<h2> Programming </h2>
+
+<h3> General concepts </h3>
+
+<p>
+  <a href="https://bearssl.org/">BearSSL</a> provides engines
+to decode PEM objects and X.509 certificates, and to run a
+TLS/SSL connection. However, it does not store such objects:
+it never allocates memory, and does not interact with the
+filesystem. <tt>sbearssl</tt> provides functions to
+address this.
+</p>
+
+<p>
+ When reading an object into memory, <tt>sbearssl</tt> stores all
+the bytes of the object in a
+<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>,
+and the <tt>sbearssl_*</tt> structures contain indices of bytes in that
+stralloc. That allows the structures to remain valid even when the stralloc
+contents get reallocated and move to some other place in the heap. After
+you have finished adding data to the stralloc and are sure its contents
+will not move again, you can use the
+<tt>sbearssl_*_to</tt> functions to convert <tt>sbearssl_*</tt> structures
+to the corresponding <tt>br_*</tt> structures (native BearSSL), which
+contain pointers to memory.
+</p>
+
+<h3> Private keys (typically for servers) </h3>
+
+<p>
+ BearSSL handles two types of private keys: RSA keys and
+EC keys (i.e. points on an elliptic curve). <tt>sbearssl</tt>
+adds some generic functions to handle keys no matter their
+type.
+</p>
+
+<h4> <code> int sbearssl_rsa_skey_from (sbearssl_rsa_skey *l, br_rsa_private_key const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts the RSA private key from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_rsa_skey_to (sbearssl_rsa_skey const *l, br_rsa_private_key *k, char *s) </code> </h4>
+
+<p>
+ Converts the RSA private key from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h4> <code> int sbearssl_ec_skey_from (sbearssl_ec_skey *l, br_ec_private_key const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts the EC private key from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_ec_skey_to (sbearssl_ec_skey const *l, br_ec_private_key *k, char *s) </code> </h4>
+
+<p>
+ Converts the EC private key from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h4> <code> int sbearssl_skey_from (sbearssl_skey *l, br_skey const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts the private key from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_skey_to (sbearssl_skey const *l, br_skey *k, char *s) </code> </h4>
+
+<p>
+ Converts the private key from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h4> <code> int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa) </code> </h4>
+
+<p>
+ Reads a private key from the file named <em>fn</em> and stores it
+in <tt>sbearssl</tt> format into the structure in *<em>key</em>,
+the bytes of the key being added to the stralloc in *<em>sa</em>.
+</p>
+
+<p>
+The private key in <em>fn</em> can be either DER-encoded (binary format)
+or PEM-encoded (text format).
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h3> Public keys </h3>
+
+<p>
+ BearSSL handles two types of public keys: RSA keys and
+EC keys (i.e. points on an elliptic curve). <tt>sbearssl</tt>
+adds some generic functions to handle keys no matter their
+type.
+</p>
+
+<p>
+ You normally should not handle public keys directly;
+you should handle x509 certificate chains instead.
+</p>
+
+<h4> <code> int sbearssl_rsa_pkey_from (sbearssl_rsa_pkey *l, br_rsa_public_key const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts the RSA public key from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_rsa_pkey_to (sbearssl_rsa_pkey const *l, br_rsa_public_key *k, char *s) </code> </h4>
+
+<p>
+ Converts the RSA public key from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h4> <code> int sbearssl_ec_pkey_from (sbearssl_ec_skey *l, br_ec_public_key const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts the EC public key from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_ec_pkey_to (sbearssl_ec_pkey const *l, br_ec_public_key *k, char *s) </code> </h4>
+
+<p>
+ Converts the EC public key from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h4> <code> int sbearssl_pkey_from (sbearssl_pkey *l, br_x509_pkey const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts the public key from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_pkey_to (sbearssl_pkey const *l, br_x509_pkey *k, char *s) </code> </h4>
+
+<p>
+ Converts the public key from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h3> Generic PEM objects </h3>
+
+<p>
+ You normally should not have to call these functions
+directly. Instead, you should use the higher-level functions for
+private keys, X509 certificate chains and trust anchors, which
+will perform the PEM decoding for you.
+</p>
+
+<h4> <code> int sbearssl_pem_decode_from_buffer (buffer *b, genalloc *list, stralloc *sa) </code> </h4>
+
+<p>
+ Decodes a PEM object, reading from the
+<a href="http://skarnet.org/software/skalibs/libstddjb/buffer.html">buffer</a>
+in *<em>b</em>. The decoded bytes are appended to *<em>sa</em>.
+<em>list</em> points to a
+<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+containing objects of type <tt>sbearssl_pemobject</tt>.
+One <tt>sbearssl_pemobject</tt> is appended to the genalloc per PEM entity
+decoded from the byte stream read from the buffer.
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h4> <code> int sbearssl_pem_decode_from_string (char const *s, size_t len, genalloc *list, stralloc *sa) </code> </h4>
+
+<p>
+ Decodes a PEM object from the <em>len</em> bytes pointed to by <em>s</em>.
+The decoded bytes are appended to *<em>sa</em>.
+<em>list</em> points to a
+<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+containing objects of type <tt>sbearssl_pemobject</tt>.
+One <tt>sbearssl_pemobject</tt> is appended to the genalloc per PEM entity
+found in the bytes in <em>s</em>.
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h3> X.509 certificates (typically for servers) </h3>
+
+<h4> <code> int sbearssl_cert_from (sbearssl_cert *l, br_x509_certificate const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts a certificate from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_cert_to (sbearssl_cert const *l, br_x509_certificate *k, char *s) </code> </h4>
+
+<p>
+ Converts a certificate from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h4> <code> int sbearssl_cert_readfile (char const *fn, genalloc *list, stralloc *sa) </code> </h4>
+
+<p>
+ Reads one or more certificates from the file named <em>fn</em> and appends
+them to the <a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+in *<em>list</em>, which is a dynamically growing list of
+<tt>sbearssl_cert</tt> structures. The bytes of the
+(maybe PEM-decoded, but still DER-encoded) certificate are
+appended to the stralloc in *<em>sa</em>.
+</p>
+
+<p>
+ The <em>fn</em> file can be either DER-encoded (binary format)
+or PEM-encoded (text format). If it is DER-encoded, it must
+contain exactly one X.509 certificate. If it is PEM-encoded,
+it may contain a chain of certificates as long as the PEM
+file fits within the size limits.
+</p>
+
+<p>
+ <em>fn</em> must not be bigger than SBEARSSL_MAXCERTFILESIZE,
+which is 8 kB. This function is meant to read individual
+certificates, not files containing large certificate chains or
+sets of trust anchors. To do that, use
+<tt>sbearssl_cert_readbigpem()</tt> instead.
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h4> <code> int sbearssl_cert_readbigpem (char const *fn, genalloc *, stralloc *sa) </code> </h4>
+
+<p>
+ Reads one or more PEM-encoded certificates from the file named
+<em>fn</em> and appends them to the
+<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+in *<em>list</em>, which is a dynamically growing list of
+<tt>sbearssl_cert</tt> structures. The bytes of the PEM-decoded (but
+still DER-encoded) certificates are appended to the stralloc
+in *<em>sa</em>.
+</p>
+
+<p>
+ The function will refuse to read a file that is not valid PEM.
+Inside the file, It will ignore PEM objects that are
+not X.509 certificates.
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h3> Trust anchors (typically for clients) </h3>
+
+<p>
+ BearSSL clients do not use X.509-encoded certificates,
+they use sets of <em>trust anchors</em>, i.e. structures
+decoded from certificates representing (intermediate or)
+root CAs.
+</p>
+
+<h4> <code> int sbearssl_ta_from (sbearssl_ta *l, br_x509_trust_anchor const *k, stralloc *sa) </code> </h4>
+
+<p>
+ Converts a trust anchor from BearSSL format (reading from a structure pointed to by <em>k</em>)
+to <tt>sbearssl</tt> format (writing to a structure pointed to by <em>l</em>).
+The data from *<em>k</em>'s contents are copied into the stralloc in *<em>sa</em>.
+The function returns 1 on success and 0 (and sets errno) on failure.
+</p>
+
+<h4> <code> void sbearssl_ta_to (sbearssl_ta const *l, br_x509_trust_anchor *k, char *s) </code> </h4>
+
+<p>
+ Converts a trust anchor from <tt>sbearssl</tt> format (reading from a structure pointed to by <em>l</em>)
+to BearSSL format (writing to a structure pointed to by <em>k</em>).
+The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
+</p>
+
+<h4> <code> int sbearssl_ta_readfile (char const *fn, genalloc *list, stralloc *sa) </code> </h4>
+
+<p>
+ Reads a set of trust anchors from a PEM file named <em>fn</em>
+which must contain a list of (intermediate or) root CA certificates.
+The trust anchors are appended to the
+<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+in *<em>list</em>, which is a dynamically growing list of
+<tt>sbearssl_ta</tt> structures. The contents of the trust anchors
+are appended to *<em>sa</em>, which is a
+<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
+used for storage.
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h4> <code> int sbearssl_ta_readdir (char const *dir, genalloc *list, stralloc *sa) </code> </h4>
+
+<p>
+ Reads a set of trust anchors from a directory named <em>dir</em>,
+which must contain a list of (intermediate or) root CA certificates
+stored as individual DER- or PEM-encoded files.
+The trust anchors are appended to the
+<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+in *<em>list</em>, which is a dynamically growing list of
+<tt>sbearssl_ta</tt> structures. The contents of the trust anchors
+are appended to *<em>sa</em>, which is a
+<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
+used for storage.
+</p>
+
+<p>
+ The function ignores files that do not contain valid DER
+or PEM objects containing X.509 certificates representing
+certification authorities.
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h3> Miscellaneous utilities </h3>
+
+<p>
+ You probably shouldn't need to call any of these functions
+directly, except for the first one.
+</p>
+
+<h4> <code> char const *sbearssl_error_str (int err) </code> </h4>
+
+<p>
+ Returns a fixed string containing an error message corresponding
+to the <em>err</em> code, which must be non-negative. The return
+value from a few <tt>sbearssl</tt> functions, if positive, can be
+interpreted via this function.
+</p>
+
+<h4> <code> int sbearssl_isder (unsigned char const *s, size_t len) </code> </h4>
+
+<p>
+ Tests whether the array of <em>len</em> bytes pointed to by <em>s</em>
+looks like a DER-encoded object. Returns 1 if it does and 0 otherwise.
+</p>
+
+<h4> <code> int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *ctx, tai_t t) </code> </h4>
+
+<p>
+ Sets the validation time for the X.509 context in *<em>ctx</em> to
+the absolute time contained in *<em>t</em>, which is a
+<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tai_t</a>.
+Returns 1 if it succeeds, or 0 if it fails - probably
+because *<em>t</em> does not represent a valid time.
+</p>
+
+<h4> <code> int sbearssl_x509_minimal_set_tain (br_x509_minimal_context *ctx, tain_t a) </code> </h4>
+
+<p>
+ Same as the above function, except the time is given as a
+<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>,
+i.e. a <tt>tai_t</tt> plus nanoseconds (which are simply ignored).
+</p>
+
+
+<h3> Running the TLS/SSL engine (both clients and servers) </h3>
+
+<h4> <code> int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto) </code> </h4>
+
+<p>
+ This function runs a full-duplex TLS/SSL engine, reading/writing
+clear text from/to two file descriptors, and writing/reading
+ciphertext to/from two other file descriptors, until the
+connection is closed both ways (either with a SSL close, or
+with EOF).
+</p>
+
+<ul>
+ <li> <em>ctx</em> is a pointer to a fully initialized context,
+connected to <em>fds</em>[2] and <em>fds</em>[3]. The
+TLS/SSL handshake does not have to be completed. </li>
+ <li> <em>fds</em> is an array of 4 file descriptors, in this
+order: fd reading clear text, fd writing clear text, fd reading
+ciphertext, fd writing ciphertext. </li>
+ <li> <em>verbosity</em> defines the engine's verbosity: the
+higher the more verbose. This parameter is currently ignored. </li>
+ <li> <em>options</em> is a bitfield.
+  <ul>
+   <li> bit 0 tells the engine how to behave when
+the local application closes the connection (i.e. when the engine
+reads EOF on <em>fds</em>[0]). If the bit is clear, then the
+engine will perform as SSL close: it will send a SSL close_notify,
+and stop processing incoming records, waiting for a peer
+acknowledgement of the close_notify. If the bit is set, then the
+engine will not send a close_notify but simply transmit EOF to
+the peer, while continuing to process incoming records until it
+gets EOF back. close_notify is secure when handling protocols that
+are not auto-terminated (such as HTTP 0.9), but it does not permit
+separate closing of both ways. EOF allows full-duplex until the
+very end, but is insecure if the application protocol does not
+know in advance how many bytes it should get. Modern application
+protocols should all work with EOF. </li>
+  </ul> </li>
+ <li> <em>tto</em> is a pointer to a
+  <a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>
+containing a relative time (i.e. a timeout) If *<em>tto</em> time elapses
+with no application data being exchanged, the engine will forcibly close the
+connection (with the method defined by <tt><em>options</em> &amp; 1</tt>).
+ You can use <tt>&amp;tain_infinite_relative</tt> as a value for <em>tto</em>
+if you don't want the engine to ever timeout. </li>
+</ul>
+
+<p>
+ <tt>sbearssl_run</tt> will make the process die with an appropriate error
+message if it encounters an unrecoverable error. If there were no problems
+and the SSL/TLS connection closed cleanly, it returns 0. If a SSL/TLS-level
+error occurred, it returns nonzero; a corresponding error message for the
+return value can be obtained via <tt>sbearssl_error_str()</tt>.
+All four descriptors in <em>fds</em> are closed when
+<tt>sbearssl_run</tt> returns.
+</p>
+
+<h4> <code> int sbearssl_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd) </code> </h4>
+
+<p>
+ This function implements <a href="../s6-tlsc.html">s6-tlsc</a> on top of BearSSL.
+It has no other practical purpose; you're better off directly invoking
+<a href="../s6-tlsc.html">s6-tlsc</a>.
+</p>
+
+<h4> <code> int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity) </code> </h4>
+
+<p>
+ This function implements <a href="../s6-tlsd.html">s6-tlsd</a> on top of BearSSL.
+It has no other practical purpose; you're better off directly invoking
+<a href="../s6-tlsd.html">s6-tlsd</a>.
+</p>
+
+</body>
+</html>

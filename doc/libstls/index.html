@@ -1,0 +1,127 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the stls library interface</title>
+    <meta name="Description" content="s6-networking: the stls library interface" />
+    <meta name="Keywords" content="s6-networking net stls library TLS SSL LibreSSL OpenSSL libtls" />
+    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="../">s6-networking</a><br />
+<a href="http://skarnet.org/software/">Software</a><br />
+<a href="http://skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>stls</tt> library interface </h1>
+
+<h2> General information </h2>
+
+<p>
+ <tt>libstls</tt> is a small support library for the
+<a href="../s6-tlsc.html">s6-tlsc</a> and
+<a href="../s6-tlsd.html">s6-tlsd</a> executables when they're built
+against the <a href="https://www.libressl.org/">LibreSSL</a>
+backend. You can use it in your own programs, but since
+<a href="http://man.openbsd.org/OpenBSD-current/man3/tls_init.3">libtls</a>
+is already relatively high-level, it's probably not very useful.
+</p>
+
+<h2> Compiling </h2>
+
+<ul>
+ <li> Make sure the s6-networking headers, as well as the skalibs headers,
+and the <tt>tls.h</tt> header, are visible in your header search path. </li>
+ <li> Use <tt>#include &lt;s6-networking/stls.h&gt;</tt> </li>
+</ul>
+
+<h2> Linking </h2>
+
+<ul>
+ <li> Make sure the s6-networking libraries, as well as the skalibs
+libraries, and the LibreSSL libraries, are visible in your library search path. </li>
+ <li> Link against <tt>-lstls</tt>, <tt>-lskarnet</tt>, <tt>-ltls</tt>,
+<tt>-lssl</tt>, <tt>-lcrypto</tt>,
+<tt>`cat $sysdeps/socket.lib`</tt>, <tt>`cat $sysdeps/spawn.lib`</tt>, and
+<tt>`cat $sysdeps/tainnow.lib`</tt>, where <tt>$sysdeps</tt> is your skalibs
+sysdeps directory. </li>
+</ul>
+
+<h2> Programming </h2>
+
+<h3> Running the TLS/SSL engine </h3>
+
+<h4> <code> int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto) </code> </h4>
+
+<p>
+ This function runs a full-duplex TLS/SSL engine, reading/writing
+clear text from/to two file descriptors, and writing/reading
+ciphertext to/from two other file descriptors, until the
+connection is closed both ways (either with a SSL close, or
+with EOF).
+</p>
+
+<ul>
+ <li> <em>ctx</em> is a pointer to a fully initialized context,
+connected to <em>fds</em>[2] and <em>fds</em>[3]. The TLS
+handshake must already be completed. </li>
+ <li> <em>fds</em> is an array of 4 file descriptors, in this
+order: fd reading clear text, fd writing clear text, fd reading
+ciphertext, fd writing ciphertext. </li>
+ <li> <em>verbosity</em> defines the engine's verbosity: the
+higher the more verbose. This parameter is currently ignored. </li>
+ <li> <em>options</em> is a bitfield.
+  <ul>
+   <li> bit 0 tells the engine how to behave when
+the local application closes the connection (i.e. when the engine
+reads EOF on <em>fds</em>[0]). If the bit is clear, then the
+engine will perform as SSL close: it will send a SSL close_notify,
+and stop processing incoming records, waiting for a peer
+acknowledgement of the close_notify. If the bit is set, then the
+engine will not send a close_notify but simply transmit EOF to
+the peer, while continuing to process incoming records until it
+gets EOF back. close_notify is secure when handling protocols that
+are not auto-terminated (such as HTTP 0.9), but it does not permit
+separate closing of both ways. EOF allows full-duplex until the
+very end, but is insecure if the application protocol does not
+know in advance how many bytes it should get. Modern application
+protocols should all work with EOF. </li>
+  </ul> </li>
+ <li> <em>tto</em> is a pointer to a
+  <a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>
+containing a relative time (i.e. a timeout). If *<em>tto</em> time elapses
+with no application data being exchanged, the engine will forcibly close the
+connection (with the method defined by <tt><em>options</em> &amp; 1</tt>).
+ You can use <tt>&amp;tain_infinite_relative</tt> as a value for <em>tto</em>
+if you don't want the engine to ever timeout. </li>
+</ul>
+
+<p>
+ <tt>stls_run</tt> will make the process die with an appropriate error
+message if it encounters an error. If there were no problems and the
+SSL/TLS connection closed cleanly, it returns 0. All four descriptors
+in <em>fds</em> are closed when <tt>stls_run</tt> returns, but the
+caller should still free <em>ctx</em> itself.
+</p>
+
+<h4> <code> int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd) </code> </h4>
+
+<p>
+ This function implements <a href="../s6-tlsc.html">s6-tlsc</a> on top of LibreSSL.
+It has no other practical purpose; you're better off directly invoking
+<a href="../s6-tlsc.html">s6-tlsc</a>.
+</p>
+
+<h4> <code> int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity) </code> </h4>
+
+<p>
+ This function implements <a href="../s6-tlsd.html">s6-tlsd</a> on top of LibreSSL.
+It has no other practical purpose; you're better off directly invoking
+<a href="../s6-tlsd.html">s6-tlsd</a>.
+</p>
+
+</body>
+</html>
