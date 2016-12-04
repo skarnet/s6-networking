@@ -8,20 +8,11 @@
 #include <skalibs/tai.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
-#include <s6-networking/s6net-utils.h>
 #include <s6-networking/stls.h>
+#include "stls-internal.h"
 
 #define diecfg(cfg, s) strerr_diefu3x(96, (s), ": ", tls_config_error(cfg))
 #define diectx(e, ctx, s) strerr_diefu3x(e, (s), ": ", tls_error(ctx))
-
-#ifdef DEBUG
-# include <skalibs/buffer.h>
-# include <skalibs/strerr2.h>
-# include <skalibs/lolstdio.h>
-# define PLM(...) (bprintf(buffer_2, "%s: debug: ", PROG), bprintf(buffer_2, __VA_ARGS__), buffer_putflush(buffer_2, "\n", 1))
-#else
-# define PLM(...)
-#endif
 
 int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd)
 {
@@ -83,7 +74,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
   if (!ctx) strerr_diefu1sys(111, "tls_client") ;
   if (tls_configure(ctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
 
-  pid = s6net_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
+  pid = stls_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[0]) ;
   if (gid && setgid(gid) < 0) strerr_diefu1sys(111, "setgid") ;
   if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;

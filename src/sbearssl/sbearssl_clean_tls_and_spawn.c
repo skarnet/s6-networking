@@ -3,9 +3,9 @@
 #include <sys/types.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
-#include <s6-networking/s6net-utils.h>
+#include "sbearssl-internal.h"
 
-pid_t s6net_clean_tls_and_spawn (char const *const *argv, char const *const *envp, int *fds, uint32_t options)
+pid_t sbearssl_clean_tls_and_spawn (char const *const *argv, char const *const *envp, int *fds, uint32_t options)
 {
   if (!(options & 1)) return child_spawn2(argv[0], argv, envp, fds) ;
   else

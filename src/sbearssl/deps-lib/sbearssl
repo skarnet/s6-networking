@@ -1,4 +1,5 @@
 sbearssl_append.o
+sbearssl_clean_tls_and_spawn.o
 sbearssl_cert_from.o
 sbearssl_cert_readbigpem.o
 sbearssl_cert_readfile.o
@@ -33,5 +34,4 @@ sbearssl_x509_minimal_set_tai.o
 sbearssl_s6tlsc.o
 sbearssl_s6tlsd.o
 -lbearssl
--ls6net
 -lskarnet

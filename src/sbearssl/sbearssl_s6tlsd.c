@@ -11,7 +11,6 @@
 #include <skalibs/genalloc.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/random.h>
-#include <s6-networking/s6net-utils.h>
 #include <s6-networking/sbearssl.h>
 
 int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity)

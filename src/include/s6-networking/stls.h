@@ -1,7 +1,7 @@
 /* ISC license. */
 
-#ifndef STLS_INTERNAL_H
-#define STLS_INTERNAL_H
+#ifndef STLS_H
+#define STLS_H
 
 #include <sys/types.h>
 #include <tls.h>

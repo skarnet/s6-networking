@@ -8,8 +8,8 @@
 #include <skalibs/tai.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
-#include <s6-networking/s6net-utils.h>
 #include <s6-networking/stls.h>
+#include "stls-internal.h"
 
 #define diecfg(cfg, s) strerr_diefu3x(96, (s), ": ", tls_config_error(cfg))
 #define diectx(e, ctx, s) strerr_diefu3x(e, (s), ": ", tls_error(ctx))
@@ -71,7 +71,7 @@ int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const 
   if (tls_configure(ctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
   tls_config_free(cfg) ;
 
-  pid = s6net_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
+  pid = stls_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", argv[0]) ;
   if (gid && setgid(gid) < 0) strerr_diefu1sys(111, "setgid") ;
   if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;
