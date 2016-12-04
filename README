@@ -5,7 +5,8 @@ s6-networking - small network and client-server tools
 Unix systems, including command-line client and server
 management, TCP access control, privilege escalation
 across UNIX domain sockets, IDENT protocol management,
-and clock synchronization.
+clock synchronization, and secure connections using the
+TLS protocol.
 
  See http://skarnet.org/software/s6-networking/ for details.
 
