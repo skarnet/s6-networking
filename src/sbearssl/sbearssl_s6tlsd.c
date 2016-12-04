@@ -12,6 +12,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/random.h>
 #include <s6-networking/sbearssl.h>
+#include "sbearssl-internal.h"
 
 int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity)
 {
@@ -90,7 +91,7 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
     br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
     random_finish() ;
 
-    pid = s6net_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
+    pid = sbearssl_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
     if (!pid) strerr_diefu2sys(111, "spawn ", argv[0]) ;
     if (gid && setgid(gid) < 0) strerr_diefu1sys(111, "setgid") ;
     if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;
