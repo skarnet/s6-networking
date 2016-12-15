@@ -28,7 +28,7 @@ TLS/SSL.
 
 <p>
  <a href="index.html">s6-networking</a> does not include
-cryptographic software. All the crypto used in <tt>s6-tlsc</tt>
+cryptographic software. All the crypto used in <tt>s6-tlsd</tt>
 is provided by the chosen SSL backend:
 <a href="https://bearssl.org/">BearSSL</a> or
 <a href="https://www.libressl.org/">LibreSSL</a>, depending on
@@ -229,7 +229,7 @@ protocol is not auto-terminated. </li>
 <p>
  Nowadays (2016), most protocols are auto-terminated, so
 it is not dangerous anymore to use EOF tranmission, and that
-is the default fo <tt>s6-tlsd</tt>. Nevertheless, by
+is the default for <tt>s6-tlsd</tt>. Nevertheless, by
 using the <tt>-S</tt> option, you can
 force it to use the <tt>close_notify</tt> method if your
 application requires it to be secure.
