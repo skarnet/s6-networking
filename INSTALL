@@ -6,14 +6,15 @@ Build Instructions
 
   - A POSIX-compliant C development environment
   - GNU make version 3.81 or later
-  - skalibs version 2.4.0.2 or later: http://skarnet.org/software/skalibs/
-  - execline version 2.2.0.0 or later: http://skarnet.org/software/execline/
-  - s6 version 2.4.0.0 or later: http://skarnet.org/software/s6/
-  - s6-dns version 2.1.0.0 or later: http://skarnet.org/software/s6-dns/
+  - skalibs version 2.5.0.0 or later: http://skarnet.org/software/skalibs/
+  - execline version 2.3.0.0 or later: http://skarnet.org/software/execline/
+  - s6 version 2.5.0.0 or later: http://skarnet.org/software/s6/
+  - s6-dns version 2.2.0.0 or later: http://skarnet.org/software/s6-dns/
   - Depending on whether you build the SSL tools,
         libressl version 2.4.4 or later: http://libressl.org/
-     or bearssl version 0.1 or later: http://bearssl.org/
-    (BearSSL support is experimental for now, don't use it yet.)
+     or bearssl version 0.2 or later: http://bearssl.org/
+    (BearSSL support is experimental for now, I encourage you to use it
+    but be aware it's bleeding-edge and APIs may change.)
 
  This software will run on any operating system that implements
 POSIX.1-2008, available at:

@@ -4,6 +4,7 @@
 #define SBEARSSL_INTERNAL_H
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <bearssl.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>

@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 #include <limits.h>
+#include <skalibs/uint64.h>
 #include <skalibs/uint.h>
 #include <skalibs/gidstuff.h>
 #include <skalibs/sgetopt.h>
@@ -19,7 +20,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   int flag1 = 0 ;
   int flagU = 0 ;
   int flagreuse = 1 ;
-  unsigned int uid = 0, gid = 0 ;
+  uint64 uid = 0 ;
+  gid_t gid = 0 ;
   gid_t gids[NGROUPS_MAX] ;
   unsigned int gidn = (unsigned int)-1 ;
   unsigned int maxconn = 0 ;
@@ -40,8 +42,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'c' : if (!uint0_scan(l.arg, &maxconn)) dieusage() ; if (!maxconn) maxconn = 1 ; break ;
         case 'C' : if (!uint0_scan(l.arg, &localmaxconn)) dieusage() ; if (!localmaxconn) localmaxconn = 1 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &backlog)) dieusage() ; break ;
-        case 'u' : if (!uint0_scan(l.arg, &uid)) dieusage() ; break ;
-        case 'g' : if (!uint0_scan(l.arg, &gid)) dieusage() ; break ;
+        case 'u' : if (!uint640_scan(l.arg, &uid)) dieusage() ; break ;
+        case 'g' : if (!gid0_scan(l.arg, &gid)) dieusage() ; break ;
         case 'G' : if (!gid_scanlist(gids, NGROUPS_MAX, l.arg, &gidn) && *l.arg) dieusage() ; break ;
         case '1' : flag1 = 1 ; break ;
         case 'U' : flagU = 1 ; uid = 0 ; gid = 0 ; gidn = (unsigned int)-1 ; break ;
@@ -53,9 +55,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   {
+    size_t pos = 0 ;
     unsigned int m = 0 ;
-    unsigned int pos = 0 ;
-    char fmt[UINT_FMT * 6 + GID_FMT * NGROUPS_MAX] ;
+    char fmt[UINT_FMT * 4 + UINT64_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
     char const *newargv[24 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver4-socketbinder" ;
     if (!flagreuse) newargv[m++] = "-D" ;
@@ -78,14 +80,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
       {
         newargv[m++] = "-u" ;
         newargv[m++] = fmt + pos ;
-        pos += uint_fmt(fmt + pos, uid) ;
+        pos += uint64_fmt(fmt + pos, uid) ;
         fmt[pos++] = 0 ;
       }
       if (gid)
       {
         newargv[m++] = "-g" ;
         newargv[m++] = fmt + pos ;
-        pos += uint_fmt(fmt + pos, gid) ;
+        pos += gid_fmt(fmt + pos, gid) ;
         fmt[pos++] = 0 ;
       }
       if (gidn != (unsigned int)-1)

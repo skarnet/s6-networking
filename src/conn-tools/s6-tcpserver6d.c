@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -96,7 +97,7 @@ static void log_status (void)
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
 
-static void log_deny (char const *ip, uint16 port, unsigned int num)
+static void log_deny (char const *ip, uint16_t port, unsigned int num)
 {
   char fmtip[IP6_FMT] ;
   char fmtport[UINT16_FMT] ;
@@ -107,12 +108,12 @@ static void log_deny (char const *ip, uint16 port, unsigned int num)
   strerr_warni7sys("deny ", fmtip, " port ", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_accept (unsigned int pid, char const *ip, uint16 port, unsigned int num)
+static void log_accept (unsigned int pid, char const *ip, uint16_t port, unsigned int num)
 {
   char fmtipport[IP6_FMT + UINT16_FMT + 6] ;
   char fmtpid[UINT_FMT] ;
   char fmtnum[UINT_FMT] ;
-  register unsigned int n ;
+  register size_t n ;
   n = ip6_fmt(fmtipport, ip) ;
   byte_copy(fmtipport + n, 6, " port ") ; n += 6 ;
   n += uint16_fmt(fmtipport + n, port) ;
@@ -216,11 +217,11 @@ static void handle_signals (void)
 
  /* New connection handling */
 
-static void run_child (int, char const *, uint16, unsigned int, char const *const *, char const *const *) gccattr_noreturn ;
-static void run_child (int s, char const *ip, uint16 port, unsigned int num, char const *const *argv, char const *const *envp)
+static void run_child (int, char const *, uint16_t, unsigned int, char const *const *, char const *const *) gccattr_noreturn ;
+static void run_child (int s, char const *ip, uint16_t port, unsigned int num, char const *const *argv, char const *const *envp)
 {
   char fmt[98] ;
-  unsigned int n = 0 ;
+  size_t n = 0 ;
   PROG = "s6-tcpserver6 (child)" ;
   if ((fd_move(0, s) < 0) || (fd_copy(1, 0) < 0))
     strerr_diefu1sys(111, "move fds") ;
@@ -234,7 +235,7 @@ static void run_child (int s, char const *ip, uint16 port, unsigned int num, cha
   strerr_dieexec(111, argv[0]) ;
 }
 
-static void new_connection (int s, char const *ip, uint16 port, char const *const *argv, char const *const *envp)
+static void new_connection (int s, char const *ip, uint16_t port, char const *const *argv, char const *const *envp)
 {
   unsigned int i = lookup_ip(ip) ;
   unsigned int num = (i < iplen) ? ipnum[i].num : 0 ;
@@ -353,7 +354,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         if (x[1].revents & IOPAUSE_READ)
         {
           char ip[16] ;
-          uint16 port ;
+          uint16_t port ;
           register int fd = socket_accept6(x[1].fd, ip, &port) ;
           if (fd < 0)
           {

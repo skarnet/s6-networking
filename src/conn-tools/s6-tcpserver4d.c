@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <errno.h>
@@ -94,7 +95,7 @@ static void log_status (void)
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
 
-static void log_deny (uint32 ip, uint16 port, unsigned int num)
+static void log_deny (uint32_t ip, uint16_t port, unsigned int num)
 {
   char fmtip[UINT32_FMT] ;
   char fmtport[UINT16_FMT] ;
@@ -105,12 +106,12 @@ static void log_deny (uint32 ip, uint16 port, unsigned int num)
   strerr_warni7sys("deny ", fmtip, ":", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_accept (uint32 pid, uint32 ip, uint16 port, unsigned int num)
+static void log_accept (uint32_t pid, uint32_t ip, uint16_t port, unsigned int num)
 {
   char fmtipport[IP4_FMT + UINT16_FMT + 1] ;
   char fmtpid[UINT32_FMT] ;
   char fmtnum[UINT_FMT] ;
-  register unsigned int n ;
+  register size_t n ;
   n = ip4_fmtu32(fmtipport, ip) ;
   fmtipport[n++] = ':' ;
   n += uint16_fmt(fmtipport + n, port) ;
@@ -120,7 +121,7 @@ static void log_accept (uint32 pid, uint32 ip, uint16 port, unsigned int num)
   strerr_warni7x("allow ", fmtipport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_close (uint32 pid, uint32 ip, int w)
+static void log_close (uint32_t pid, uint32_t ip, int w)
 {
   char fmtpid[UINT32_FMT] ;
   char fmtip[IP4_FMT] = "?" ;
@@ -146,7 +147,7 @@ static void wait_children (void)
   {
     unsigned int i ;
     int w ;
-    register int pid = wait_nohang(&w) ;
+    register pid_t pid = wait_nohang(&w) ;
     if (pid < 0)
       if (errno != ECHILD) strerr_diefu1sys(111, "wait_nohang") ;
       else break ;
@@ -154,7 +155,7 @@ static void wait_children (void)
     i = lookup_pid(pid) ;
     if (i < numconn) /* it's one of ours ! */
     {
-      uint32 ip = pidip[i].right ;
+      uint32_t ip = pidip[i].right ;
       register unsigned int j = lookup_ip(ip) ;
       if (j >= iplen) X() ;
       if (!--ipnum[j].right) ipnum[j] = ipnum[--iplen] ;
@@ -214,11 +215,11 @@ static void handle_signals (void)
 
  /* New connection handling */
 
-static void run_child (int, uint32, uint16, unsigned int, char const *const *, char const *const *) gccattr_noreturn ;
-static void run_child (int s, uint32 ip, uint16 port, unsigned int num, char const *const *argv, char const *const *envp)
+static void run_child (int, uint32_t, uint16_t, unsigned int, char const *const *, char const *const *) gccattr_noreturn ;
+static void run_child (int s, uint32_t ip, uint16_t port, unsigned int num, char const *const *argv, char const *const *envp)
 {
   char fmt[74] ;
-  unsigned int n = 0 ;
+  size_t n = 0 ;
   PROG = "s6-tcpserver (child)" ;
   if ((fd_move(0, s) < 0) || (fd_copy(1, 0) < 0))
     strerr_diefu1sys(111, "move fds") ;
@@ -232,11 +233,11 @@ static void run_child (int s, uint32 ip, uint16 port, unsigned int num, char con
   strerr_dieexec(111, argv[0]) ;
 }
 
-static void new_connection (int s, uint32 ip, uint16 port, char const *const *argv, char const *const *envp)
+static void new_connection (int s, uint32_t ip, uint16_t port, char const *const *argv, char const *const *envp)
 {
   unsigned int i = lookup_ip(ip) ;
   unsigned int num = (i < iplen) ? ipnum[i].right : 0 ;
-  register int pid ;
+  register pid_t pid ;
   if (num >= localmaxconn)
   {
     log_deny(ip, port, num) ;
@@ -260,11 +261,11 @@ static void new_connection (int s, uint32 ip, uint16 port, char const *const *ar
     ipnum[iplen].left = ip ;
     ipnum[iplen++].right = 1 ;
   }
-  pidip[numconn].left = (uint32)pid ;
+  pidip[numconn].left = (uint32_t)pid ;
   pidip[numconn++].right = ip ;
   if (verbosity >= 2)
   {
-    log_accept((uint32)pid, ip, port, ipnum[i].right) ;
+    log_accept((uint32_t)pid, ip, port, ipnum[i].right) ;
     log_status() ;
   }
 }
@@ -353,7 +354,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         if (x[1].revents & IOPAUSE_READ)
         {
           char packedip[4] ;
-          uint16 port ;
+          uint16_t port ;
           register int fd = socket_accept4(x[1].fd, packedip, &port) ;
           if (fd < 0)
           {
@@ -361,7 +362,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
           }
           else
           {
-            uint32 ip ;
+            uint32_t ip ;
             uint32_unpack_big(packedip, &ip) ;
             new_connection(fd, ip, port, argv, envp) ;
             fd_close(fd) ;

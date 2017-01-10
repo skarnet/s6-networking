@@ -1,5 +1,8 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
+#include <skalibs/uint16.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
@@ -16,7 +19,7 @@ int main (int argc, char const *const *argv)
 {
   int s ;
   ip46_t ip = IP46_ZERO ;
-  uint16 port = 4014 ;
+  uint16_t port = 4014 ;
   subgetopt_t l = SUBGETOPT_ZERO ;
   PROG = "s6-taiclockd" ;
   for (;;)
@@ -40,7 +43,7 @@ int main (int argc, char const *const *argv)
   for (;;)
   {
     char packet[256] ;
-    register int r = socket_recv46(s, packet, 256, &ip, &port) ;
+    register ssize_t r = socket_recv46(s, packet, 256, &ip, &port) ;
     if ((r >= 20) && !byte_diff(packet, 4, "ctai"))
     {
       tain_t now ;

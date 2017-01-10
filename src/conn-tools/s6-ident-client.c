@@ -1,5 +1,6 @@
 /* ISC license. */
 
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint16.h>
 #include <skalibs/uint.h>
@@ -19,7 +20,7 @@ int main (int argc, char const *const *argv)
 {
   tain_t deadline ;
   ip46_t ra, la ;
-  uint16 rp, lp ;
+  uint16_t rp, lp ;
   PROG = "s6-ident-client" ;
   {
     unsigned int t = 0 ;

@@ -1,11 +1,12 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
+#include <skalibs/ip46.h>
 #include "mgetuid.h"
 
-int mgetuid (ip46_t const *localaddr, uint16 localport, ip46_t const *remoteaddr, uint16 remoteport)
+uid_t mgetuid (ip46_t const *localaddr, uint16_t localport, ip46_t const *remoteaddr, uint16_t remoteport)
 {
   (void)localaddr ;
   (void)localport ;

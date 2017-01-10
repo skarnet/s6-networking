@@ -38,7 +38,7 @@ int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa)
   sbearssl_pemobject *p ;
   size_t n ;
   size_t i = 0 ;
-  int r = openreadnclose(fn, buf, SBEARSSL_MAXSKEYFILESIZE) ;
+  int r = openreadnclose(fn, buf, SBEARSSL_MAXSKEYFILESIZE) ; /* fits in an int */
   if (r < 0) return r ;
   n = r ;
   if (sbearssl_isder((unsigned char *)buf, n)) return decode_key(key, buf, n, sa) ;

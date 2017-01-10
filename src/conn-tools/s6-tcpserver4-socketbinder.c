@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <skalibs/uint16.h>
@@ -20,7 +21,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   int flagreuse = 1 ;
   int flagudp = 0 ;
   char ip[4] ;
-  uint16 port ;
+  uint16_t port ;
   PROG = "s6-tcpserver4-socketbinder" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;

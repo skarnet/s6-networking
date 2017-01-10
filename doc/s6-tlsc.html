@@ -126,10 +126,7 @@ two more environment variables: <tt>KEYFILE</tt> contains
 the path to a file containing the private key, DER- or
 PEM-encoded; and <tt>CERTFILE</tt> contains the path to
 a file containing the client certificate, DER- or
-PEM-encoded. Please note that for now, support for client
-certificates is experimental, and only works
-with the <a href="https://www.libressl.org/">LibreSSL</a>
-backend (BearSSL does not support client certificates yet).
+PEM-encoded.
 </p>
 
 <p>
@@ -229,8 +226,7 @@ and break the connection when <em>prog</em> sends EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
  <li> <tt>-Y</tt>&nbsp;: Do not send a client certificate. This is the default. </li>
- <li> <tt>-y</tt>&nbsp;: Send a client certificate. This is experimental and
-for now unsupported by BearSSL. </li>
+ <li> <tt>-y</tt>&nbsp;: Send a client certificate. </li>
  <li> <tt>-k&nbsp;<em>servername</em></tt>&nbsp: use Server Name
 Indication, and send <em>servername</em>. The default is not to
 use SNI, which may be a security risk. </li>

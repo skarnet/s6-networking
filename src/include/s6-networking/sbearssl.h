@@ -4,6 +4,7 @@
 #define SBEARSSL_H
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <bearssl.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
@@ -189,6 +190,9 @@ extern int sbearssl_ta_certs (genalloc *, stralloc *, sbearssl_cert const *, siz
 
 extern int sbearssl_ta_readfile (char const *, genalloc *, stralloc *) ;
 extern int sbearssl_ta_readdir (char const *, genalloc *, stralloc *) ;
+
+extern size_t sbearssl_x500_name_len (sbearssl_ta const *, size_t) ;
+extern void sbearssl_x500_from_ta (br_x500_name *, sbearssl_ta const *, size_t, char *, char const *) ;
 
 
  /* Errors */

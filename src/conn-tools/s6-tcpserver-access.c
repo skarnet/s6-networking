@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/gccattributes.h>
@@ -62,12 +64,12 @@ int main (int argc, char const *const *argv, char const *const *envp)
   int cdbfd = -1 ;
   unsigned int rulestype = 0 ;
   unsigned int verbosity = 1 ;
-  unsigned int protolen ;
+  size_t protolen ;
   s6_accessrules_result_t accepted ;
   ip46_t remoteip, localip ;
   int flagfatal = 1, flagnodelay = 0, flagdnslookup = 1,
     flagident = 0, flagparanoid = 0, e = 0 ;
-  uint16 remoteport, localport ;
+  uint16_t remoteport, localport ;
   PROG = "s6-tcpserver-access" ;
   {
     unsigned int timeout = 0 ;
@@ -92,7 +94,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'l' : localname = l.arg ; break ;
         case 'B' :
         {
-          register unsigned int n = str_len(l.arg) ;
+          register size_t n = str_len(l.arg) ;
           if (buffer_putnoflush(buffer_1small, l.arg, n) < n)
             strerr_dief1x(100, "banner too long") ;
           break ;

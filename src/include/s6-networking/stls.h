@@ -4,6 +4,7 @@
 #define STLS_H
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <tls.h>
 #include <skalibs/tai.h>
 

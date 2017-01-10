@@ -21,15 +21,15 @@ int sbearssl_pem_decode_from_buffer (buffer *b, genalloc *list, stralloc *sa)
   int listwasnull = !genalloc_s(sbearssl_pemobject, list) ;
   int sawasnull = !sa->s ;
   int inobj = 0 ;
-  int r ;
+  int r = -1 ;
 
   br_pem_decoder_init(&ctx) ;
   for (;;)
   {
     siovec_t v[2] ;
-    r = buffer_fill(b) ;
-    if (r < 0) goto fail ;
-    if (!r) break ;
+    ssize_t rr = buffer_fill(b) ;
+    if (rr < 0) goto rfail ;
+    if (!rr) break ;
     buffer_rpeek(b, v) ;
     r = sbearssl_pem_push(&ctx, v[0].s, v[0].len, &po, list, &blah, &inobj) ;
     if (r) goto fail ;
@@ -42,8 +42,9 @@ int sbearssl_pem_decode_from_buffer (buffer *b, genalloc *list, stralloc *sa)
   }
   if (!inobj) return 0 ;
 
-  r = -1 ;
   errno = EPROTO ;
+ rfail:
+  r = -1 ;
  fail:
   if (listwasnull) genalloc_free(sbearssl_pemobject, list) ;
   else genalloc_setlen(sbearssl_pemobject, list, listbase) ;

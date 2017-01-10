@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <skalibs/uint16.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
@@ -24,7 +26,7 @@ struct options_s
   unsigned int ximeout ;
   unsigned int yimeout ;
   unsigned int kimeout ;
-  uint16 localport ;
+  uint16_t localport ;
   ip46full_t localip ;
   unsigned int verbosity : 2 ;
   unsigned int flag4 : 1 ;
@@ -128,8 +130,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   {
+    size_t pos = 0 ;
     unsigned int m = 0 ;
-    unsigned int pos = 0 ;
     char fmt[UINT_FMT * 4 + UINT16_FMT + IP46_FMT] ;
     char const *newargv[29 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpclient" ;

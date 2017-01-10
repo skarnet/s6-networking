@@ -30,6 +30,8 @@ sbearssl_ta_from.o
 sbearssl_ta_readdir.o
 sbearssl_ta_readfile.o
 sbearssl_ta_to.o
+sbearssl_x500_name_len.o
+sbearssl_x500_from_ta.o
 sbearssl_x509_minimal_set_tai.o
 sbearssl_s6tlsc.o
 sbearssl_s6tlsd.o

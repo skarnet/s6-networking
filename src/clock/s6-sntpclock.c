@@ -1,11 +1,13 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/error.h>
 #include <skalibs/uint16.h>
 #include <skalibs/uint32.h>
+#include <skalibs/uint64.h>
 #include <skalibs/uint.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/allreadwrite.h>
@@ -31,8 +33,8 @@ int ntp_exchange (int s, ip46_t const *ip, uint16 port, tain_t *stamps, tain_t c
   tain_t starttime ;
   uint64 ntpstamp ;
   ip46_t dummyip ;
-  uint16 dummyport ;
-  int r ;
+  uint16_t dummyport ;
+  ssize_t r ;
   tain_copynow(&starttime) ;
   query[0] = 35 ; /* SNTPv4, client */
   if (!ntp_from_tain(&ntpstamp, &starttime)) return 0 ;
@@ -87,7 +89,7 @@ int main (int argc, char const *const *argv)
   int sock ;
   int flagforce = 0 ;
   ip46_t ipremote ;
-  uint16 portremote = 123 ;
+  uint16_t portremote = 123 ;
   PROG = "s6-sntpclock" ;
 
   {

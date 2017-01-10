@@ -1,25 +1,27 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint16.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <s6-networking/ident.h>
 
-static unsigned int skipspace (char const *s)
+static size_t skipspace (char const *s)
 {
-  register unsigned int n = 0 ;
+  register size_t n = 0 ;
   while ((s[n] == ' ') || (s[n] == '\t')) n++ ;
   return n ;
 }
 
-int s6net_ident_reply_parse (char const *s, uint16 rp, uint16 lp)
+ssize_t s6net_ident_reply_parse (char const *s, uint16_t rp, uint16_t lp)
 {
-  unsigned int n = 0 ;
+  size_t n = 0 ;
   n += skipspace(s+n) ; if (!s[n]) goto err ;
   {
-    unsigned int i ;
-    uint16 u ;
+    size_t i ;
+    uint16_t u ;
     i = uint16_scan(s+n, &u) ; if (!i) goto err ; n += i ;
     if (u != rp) goto err ;
     n += skipspace(s+n) ; if (!s[n]) goto err ;

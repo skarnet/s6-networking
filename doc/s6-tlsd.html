@@ -147,13 +147,6 @@ of trust anchors, PEM-encoded. </li>
 </ul>
 
 <p>
-Please note that for now, support for client
-certificates is experimental, and only works
-with the <a href="https://www.libressl.org/">LibreSSL</a>
-backend (BearSSL does not support client certificates yet).
-</p>
-
-<p>
  If <tt>s6-tlsd</tt> is run as root, it can also read two
 more environment variables, <tt>TLS_UID</tt> and <tt>TLS_GID</tt>,
 which contain a numeric uid and a numeric gid; <tt>s6-tlsd</tt>
@@ -251,9 +244,10 @@ This is the default. </li>
 and break the connection when <em>prog</em> sends EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
- <li> <tt>-Y</tt>&nbsp;: Do not require a client certificate. This is the default. </li>
- <li> <tt>-y</tt>&nbsp;: Require a client certificate. This is experimental and
-for now unsupported by BearSSL. </li>
+ <li> <tt>-Y</tt>&nbsp;: Require an optional client certificate. </li>
+ <li> <tt>-y</tt>&nbsp;: Require a mandatory client certificate.
+The default, with neither the <tt>-Y</tt> nor the <tt>-y</tt> option,
+is not to require a client certificate at all. </li>
  <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: close the connection
 if <em>kimeout</em> milliseconds elapse without any data being
 received from either side. The default is 0, which means

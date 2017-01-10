@@ -135,8 +135,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   {
+    size_t pos = 0 ;
     unsigned int m = 0 ;
-    unsigned int pos = 0 ;
     char fmt[UINT_FMT * 5 + GID_FMT * (NGROUPS_MAX + 1) + UINT64_FMT] ;
     char const *newargv[45 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;

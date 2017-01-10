@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <skalibs/uint64.h>
 #include <skalibs/uint.h>
 #include <skalibs/gidstuff.h>
@@ -54,8 +55,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
       {
         case 'S' : options &= ~(uint32_t)1 ; break ;
         case 's' : options |= 1 ; break ;
-        case 'Y' : preoptions &= ~(uint32_t)1 ; break ;
-        case 'y' : preoptions |= 1 ; break ;
+        case 'Y' : preoptions |= 1 ; preoptions &= ~(uint32_t)4 ; break ;
+        case 'y' : preoptions |= 5 ; break ;
         case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
         case 'K' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
         case 'Z' : preoptions &= ~(uint32_t)2 ; break ;

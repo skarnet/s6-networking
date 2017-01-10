@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint16.h>
 #include <skalibs/uint.h>
@@ -39,7 +41,7 @@ struct tflags_s
   unsigned int timeout ;
   unsigned int timeoutconn[2] ;
   ip46_t localip ;
-  uint16 localport ;
+  uint16_t localport ;
   unsigned int verbosity : 2 ;
 #ifdef SKALIBS_IPV6_ENABLED
   unsigned int ip4 : 1 ;
@@ -57,7 +59,7 @@ int main (int argc, char const *const *argv)
 {
   int s ;
   tflags flags = TFLAGS_DEFAULT ;
-  uint16 remoteport ;
+  uint16_t remoteport ;
   PROG = "s6-tcpclient" ;
   {
     subgetopt_t l = SUBGETOPT_ZERO ;
@@ -86,7 +88,7 @@ int main (int argc, char const *const *argv)
         case 'l' : flags.localname = l.arg ; break ;
         case 'T' :
         {
-          unsigned int n = uint_scan(l.arg, &flags.timeoutconn[0]) ;
+          size_t n = uint_scan(l.arg, &flags.timeoutconn[0]) ;
           if (!n) usage() ;
           if (!l.arg[n])
           {

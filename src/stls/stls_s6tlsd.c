@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <tls.h>
@@ -27,20 +28,6 @@ int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const 
   cfg = tls_config_new() ;
   if (!cfg) strerr_diefu1sys(111, "tls_config_new") ;
 
-  x = env_get2(envp, "CAFILE") ;
-  if (x)
-  {
-    if (tls_config_set_ca_file(cfg, x) < 0)
-      diecfg(cfg, "tls_config_set_ca_file") ;
-  }
-
-  x = env_get2(envp, "CADIR") ;
-  if (x)
-  {
-    if (tls_config_set_ca_path(cfg, x) < 0)
-      diecfg(cfg, "tls_config_set_ca_path") ;
-  }
-
   x = env_get2(envp, "CERTFILE") ;
   if (!x) strerr_dienotset(100, "CERTFILE") ;
   if (tls_config_set_cert_file(cfg, x) < 0)
@@ -60,7 +47,27 @@ int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const 
   if (tls_config_set_ecdhecurve(cfg, "auto") < 0)
     diecfg(cfg, "tls_config_set_ecdhecurve") ;
 
-  if (preoptions & 1) tls_config_verify_client(cfg) ;
+  if (preoptions & 1)
+  {
+    x = env_get2(envp, "CADIR") ;
+    if (x)
+    {
+      if (tls_config_set_ca_path(cfg, x) < 0)
+        diecfg(cfg, "tls_config_set_ca_path") ;
+    }
+    else
+    {
+      x = env_get2(envp, "CAFILE") ;
+      if (x)
+      {
+        if (tls_config_set_ca_file(cfg, x) < 0)
+          diecfg(cfg, "tls_config_set_ca_file") ;
+      }
+      else strerr_dienotset(100, "CADIR or CAFILE") ;
+    }
+    if (preoptions & 4) tls_config_verify_client(cfg) ;
+    else tls_config_verify_client_optional(cfg) ;
+  }
   else tls_config_insecure_noverifycert(cfg) ;
 
   tls_config_set_protocols(cfg, TLS_PROTOCOLS_DEFAULT) ;

@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/error.h>
@@ -31,8 +32,8 @@ int tain_exchange (int s, ip46_t const *ip, uint16 port, tain_t *serversays, tai
   char query[N] = "ctai" ;
   char answer[N] ;
   ip46_t dummyip ;
-  int r ;
-  uint16 dummyport ;
+  ssize_t r ;
+  uint16_t dummyport ;
   tain_pack(query+4, &STAMP) ;
   random_string(query+20, N-20) ; /* cookie */
   r = socket_sendnb46_g(s, query, N, ip, port, deadline) ;
@@ -60,7 +61,7 @@ int main (int argc, char const *const *argv)
   ip46_t ipremote ;
   int sock ;
   int flagforce = 0 ;
-  uint16 portremote = 4014 ;
+  uint16_t portremote = 4014 ;
   PROG = "s6-taiclock" ;
 
   {

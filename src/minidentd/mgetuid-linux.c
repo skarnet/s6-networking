@@ -1,7 +1,10 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <skalibs/uint16.h>
 #include <skalibs/uint32.h>
+#include <skalibs/uint64.h>
 #include <skalibs/uint.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/fmtscan.h>
@@ -28,9 +31,9 @@ static int skipspace (char **s)
   return (int)**s ;
 }
 
-static void reverse_address (char *s, unsigned int n)
+static void reverse_address (char *s, size_t n)
 {
-  register unsigned int i = n >> 1 ;
+  register size_t i = n >> 1 ;
   while (i--)
   {
     register char tmp = s[i] ;
@@ -39,11 +42,12 @@ static void reverse_address (char *s, unsigned int n)
   }
 }
 
-static int parseline (char *s, unsigned int len, unsigned int *u, char *la, uint16 *lp, char *ra, uint16 *rp, int is6)
+static int parseline (char *s, size_t len, uid_t *u, char *la, uint16_t *lp, char *ra, uint16_t *rp, int is6)
 {
   char *cur = s ;
-  unsigned int pos ;
-  uint32 junk ;
+  size_t pos ;
+  uint64 uu ;
+  uint32_t junk ;
   register unsigned int iplen = is6 ? 16 : 4 ;
 
   if (!skipspace(&cur)) bug("initial whitespace") ;
@@ -102,15 +106,15 @@ static int parseline (char *s, unsigned int len, unsigned int *u, char *la, uint
   cur += pos ;
 
   if (!skipspace(&cur)) bug("retrnsmt SPACE") ;
-  pos = uint_scan(cur, u) ;  /* uid */
+  pos = uint64_scan(cur, &uu) ;  /* uid */
   if (!pos || (cur-s+1+pos) > len) bug("uid") ;
-
+  *u = uu ;
   return 1 ;
 }
 
 #ifdef DEBUG
 
-static void debuglog (uint16 a, uint16 b, unsigned int c, char const *d, char const *e, int is6)
+static void debuglog (uint16_t a, uint16_t b, unsigned int c, char const *d, char const *e, int is6)
 {
   char sa[UINT16_FMT] ;
   char sb[UINT16_FMT] ;
@@ -138,10 +142,10 @@ static void debuglog (uint16 a, uint16 b, unsigned int c, char const *d, char co
 
 #endif
 
-int mgetuid (ip46_t const *localaddr, uint16 localport, ip46_t const *remoteaddr, uint16 remoteport)
+uid_t mgetuid (ip46_t const *localaddr, uint16_t localport, ip46_t const *remoteaddr, uint16_t remoteport)
 {
   int r ;
-  int u = -2 ;
+  uid_t u = -2 ;
   stralloc line = STRALLOC_ZERO ;
   buffer b ;
   char y[BUFFER_INSIZE] ;
@@ -158,8 +162,8 @@ int mgetuid (ip46_t const *localaddr, uint16 localport, ip46_t const *remoteaddr
   {
     char la[16] ;
     char ra[16] ;
-    unsigned int nu ;
-    uint16 lp, rp ;
+    uid_t nu ;
+    uint16_t lp, rp ;
     line.len = 0 ;
     r = skagetln(&b, &line, '\n') ;
     if (r <= 0) { u = -1 ; break ; }

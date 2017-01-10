@@ -2,6 +2,7 @@
 
 #include <skalibs/nonposix.h>
 #include <sys/types.h>
+#include <stdint.h>
 #include <sys/socket.h>
 #include <errno.h>
 #include <signal.h>

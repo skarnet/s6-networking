@@ -19,7 +19,7 @@ int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa)
   int certswasnull = !genalloc_s(sbearssl_cert, certs) ;
   int sawasnull = !sa->s ;
   {
-    register int r = openreadnclose(fn, buf, SBEARSSL_MAXCERTFILESIZE) ;
+    register ssize_t r = openreadnclose(fn, buf, SBEARSSL_MAXCERTFILESIZE) ;
     if (r < 0) return r ;
     n = r ;
   }

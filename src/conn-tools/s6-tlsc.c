@@ -1,6 +1,7 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint64.h>
 #include <skalibs/uint.h>

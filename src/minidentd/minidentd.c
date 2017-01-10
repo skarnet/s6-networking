@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
@@ -34,15 +36,16 @@ static char logfmt[UINT_FMT] ;
 #define DECIMAL "0123456789"
 #define godecimal(s) while (*(s) && !DECIMAL[str_chr(DECIMAL, *(s))]) (s)++
 
-static int parseline (char const *s, uint16 *localport, uint16 *remoteport)
+static int parseline (char const *s, uint16_t *localport, uint16_t *remoteport)
 {
-  unsigned int pos = 0 ;
-
+  size_t pos ;
   godecimal(s) ;
   if (!*s) return 0 ;
-  s += uint16_scan(s, localport) ;
+  pos = uint16_scan(s, localport) ;
+  if (!pos) return 0 ;
+  s += pos ;
   if (!*s) return 0 ;
-  s += str_chr(s+pos, ',') ;
+  s += str_chr(s, ',') ;
   if (*s) s++ ;
   godecimal(s) ;
   if (!*s) return 0 ;
@@ -50,7 +53,7 @@ static int parseline (char const *s, uint16 *localport, uint16 *remoteport)
   return 1 ;
 }
 
-static void formatlr (char *s, uint16 lp, uint16 rp)
+static void formatlr (char *s, uint16_t lp, uint16_t rp)
 {
   s += uint16_fmt(s, lp) ;
   *s++ = ',' ;
@@ -101,10 +104,10 @@ static void logreply (char const *type, char const *reply1, char const *reply2)
 static int userident (char *s, char const *home)
 {
   int fd ;
-  int r = 1 ;
+  size_t r = 1 ;
   {
-    unsigned int homelen = str_len(home) ;
-    unsigned int userlen = str_len(userfile) ;
+    size_t homelen = str_len(home) ;
+    size_t userlen = str_len(userfile) ;
     char tmp[homelen + userlen + 2] ;
     byte_copy(tmp, homelen, home) ;
     tmp[homelen] = '/' ;
@@ -119,7 +122,6 @@ static int userident (char *s, char const *home)
   }
   r = allread(fd, s, 14) ;
   fd_close(fd) ;
-  if (r == -1) return -1 ;
   if (!r) return 1 ;
   s[r] = 0 ;
   s[byte_chr(s, r, '\n')] = 0 ;
@@ -130,9 +132,9 @@ static int userident (char *s, char const *home)
 static void doit (char const *s, ip46_t const *localaddr, ip46_t const *remoteaddr)
 {
   char lr[15] ;
-  uint16 localport, remoteport ;
+  uint16_t localport, remoteport ;
   struct passwd *pw ;
-  int uid ;
+  uid_t uid ;
   if (!parseline(s, &localport, &remoteport))
   {
     reply("0, 0", "ERROR", "INVALID-PORT") ;
@@ -233,7 +235,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (!proto) strerr_dienotset(100, "PROTO") ;
     {
       char const *x ;
-      unsigned int protolen = str_len(proto) ;
+      size_t protolen = str_len(proto) ;
       char tmp[protolen + 9] ;
       byte_copy(tmp, protolen, proto) ;
       byte_copy(tmp + protolen, 8, "LOCALIP") ;

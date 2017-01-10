@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <sys/types.h>
+#include <stdint.h>
 #include <errno.h>
 #include <skalibs/uint16.h>
 #include <skalibs/allreadwrite.h>
@@ -11,9 +13,9 @@
 #include <skalibs/unix-timed.h>
 #include <s6-networking/ident.h>
 
-int s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16 remoteport, ip46_t const *localip, uint16 localport, tain_t const *deadline, tain_t *stamp)
+ssize_t s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16_t remoteport, ip46_t const *localip, uint16_t localport, tain_t const *deadline, tain_t *stamp)
 {
-  unsigned int len ;
+  unsigned int len ; /* XXX: change when skalibs changes */
   int fd ;
   if (ip46_is6(remoteip) != ip46_is6(localip)) return (errno = EAFNOSUPPORT, -1) ;
   fd = socket_tcp46(ip46_is6(remoteip)) ;
@@ -24,7 +26,7 @@ int s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16 remoteport, i
     char buf[S6NET_IDENT_REPLY_SIZE + 1] ;
     char fmt[UINT16_FMT] ;
     buffer b = BUFFER_INIT(&buffer_write, fd, buf, 256) ;
-    unsigned int n = uint16_fmt(fmt, remoteport) ;
+    size_t n = uint16_fmt(fmt, remoteport) ;
     buffer_putnoflush(&b, fmt, n) ;
     buffer_putnoflush(&b, " , ", 3) ;
     n = uint16_fmt(fmt, localport) ;
@@ -37,7 +39,7 @@ int s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16 remoteport, i
   fd_close(fd) ;
   if (!len--) return (errno = EPROTO, -1) ;
   s[len] = 0 ;
-  return (int)len ;
+  return len ;
 
 err:
   fd_close(fd) ;
