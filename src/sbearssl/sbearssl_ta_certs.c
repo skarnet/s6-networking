@@ -18,7 +18,7 @@ int sbearssl_ta_certs (genalloc *taga, stralloc *tasa, sbearssl_cert const *cert
   for (; i < certn ; i++)
   {
     sbearssl_ta ta ;
-    int r = sbearssl_ta_cert(&ta, certs + i, certstorage, tasa) ;
+    r = sbearssl_ta_cert(&ta, certs + i, certstorage, tasa) ;
     if (r) goto fail ;
     if (!genalloc_append(sbearssl_ta, taga, &ta)) goto rfail ;
   }
