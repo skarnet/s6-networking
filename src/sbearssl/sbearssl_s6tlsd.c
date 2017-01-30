@@ -1,7 +1,6 @@
 /* ISC license. */
 
 #include <sys/types.h>
-#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <bearssl.h>
@@ -21,10 +20,9 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
   sbearssl_skey skey ;
   genalloc certs = GENALLOC_ZERO ;
   size_t chainlen ;
-  size_t x500n = 1 ;
-  size_t x500len = 1 ;
-  stralloc tastorage = STRALLOC_ZERO ;
-  genalloc tas = GENALLOC_ZERO ;
+
+  if (preoptions & 1)
+    strerr_dief1x(100, "client certificates are not supported yet") ;
 
   {
     char const *x = env_get2(envp, "KEYFILE") ;
@@ -46,45 +44,17 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
     chainlen = genalloc_len(sbearssl_cert, &certs) ;
     if (!chainlen)
       strerr_diefu2x(96, "find a certificate in ", x) ;
-
-    if (preoptions & 1)
-    {
-      x = env_get2(envp, "CADIR") ;
-      if (x) r = sbearssl_ta_readdir(x, &tas, &tastorage) ;
-      else
-      {
-        x = env_get2(envp, "CAFILE") ;
-        if (!x) strerr_dienotset(100, "CADIR or CAFILE") ;
-        r = sbearssl_ta_readfile(x, &tas, &tastorage) ;
-      }
-
-      if (r < 0)
-        strerr_diefu2sys(111, "read trust anchors in ", x) ;
-      else if (r)
-        strerr_diefu4x(96, "read trust anchors in ", x, ": ", sbearssl_error_str(r)) ;
-      x500n = genalloc_len(sbearssl_ta, &tas) ;
-      if (!x500n) strerr_dief2x(96, "no trust anchor found in ", x) ;
-      x500len = sbearssl_x500_name_len(genalloc_s(sbearssl_ta, &tas), x500n) ;
-    }
   }
 
   {
     int fds[4] = { 0, 1, 0, 1 } ;
     unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
-    char x500storage[x500len] ;
     br_ssl_server_context sc ;
     union br_skey_u key ;
     br_x509_certificate chain[chainlen] ;
-    br_x500_name x500names[x500n] ;
     size_t i = chainlen ;
     pid_t pid ;
 
-    if (preoptions & 1)
-    {
-      sbearssl_x500_from_ta(x500names, genalloc_s(sbearssl_ta, &tas), x500n, x500storage, tastorage.s) ;
-      genalloc_free(sbearssl_ta, &tas) ;
-      stralloc_free(&tastorage) ;
-    }
     stralloc_shrink(&storage) ;
     while (i--)
       sbearssl_cert_to(genalloc_s(sbearssl_cert, &certs) + i, chain + i, storage.s) ;
@@ -130,11 +100,12 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
       uint32_t flags = BR_OPT_ENFORCE_SERVER_PREFERENCES | BR_OPT_NO_RENEGOTIATION ;
       if (preoptions & 1)
       {
-        br_ssl_server_set_trust_anchor_names(&sc, x500names, x500n) ;
+        /* br_ssl_server_set_trust_anchor_names(&sc, x500names, x500n) ; */
         if (!(preoptions & 4)) flags |= BR_OPT_TOLERATE_NO_CLIENT_AUTH ;
       }
       br_ssl_engine_add_flags(&sc.eng, flags) ;
     }
+
     br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
     br_ssl_server_reset(&sc) ;
     tain_now_g() ;

@@ -23,7 +23,7 @@ int sbearssl_s6tlsc (char const *const *argv, char const *const *envp, tain_t co
   size_t talen ;
 
   if (preoptions & 1)
-    strerr_dief1x(100, "client certificates are not supported by BearSSL yet") ;
+    strerr_dief1x(100, "client certificates are not supported yet") ;
 
   {
     int r ;

@@ -192,7 +192,7 @@ extern int sbearssl_ta_readfile (char const *, genalloc *, stralloc *) ;
 extern int sbearssl_ta_readdir (char const *, genalloc *, stralloc *) ;
 
 extern size_t sbearssl_x500_name_len (sbearssl_ta const *, size_t) ;
-extern void sbearssl_x500_from_ta (br_x500_name *, sbearssl_ta const *, size_t, char *, char const *) ;
+/* extern void sbearssl_x500_from_ta (br_x500_name *, sbearssl_ta const *, size_t, char *, char const *) ; */
 
 
  /* Errors */
@@ -202,7 +202,7 @@ extern char const *sbearssl_error_str (int) ;
 
  /* Engine */
 
-extern int sbearssl_run (br_ssl_engine_context *, int *, unsigned int, uint32, tain_t const *) ;
+extern int sbearssl_run (br_ssl_engine_context *, int *, unsigned int, uint32_t, tain_t const *) ;
 
 
  /* s6-tlsc and s6-tlsd implementations */
