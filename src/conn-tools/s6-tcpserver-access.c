@@ -1,12 +1,11 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/gccattributes.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/buffer.h>
@@ -30,22 +29,22 @@
 #define X() strerr_dief1x(101, "internal inconsistency. Please submit a bug-report.")
 
 
-static void logit (unsigned int pid, ip46_t const *ip, int h)
+static void logit (pid_t pid, ip46_t const *ip, int h)
 {
-  char fmtpid[UINT_FMT] ;
+  char fmtpid[PID_FMT] ;
   char fmtip[IP46_FMT] ;
   fmtip[ip46_fmt(fmtip, ip)] = 0 ;
-  fmtpid[uint_fmt(fmtpid, pid)] = 0 ;
+  fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
   if (h) strerr_warni5x("allow", " pid ", fmtpid, " ip ", fmtip) ;
   else strerr_warni5sys("deny", " pid ", fmtpid, " ip ", fmtip) ;
 }
 
-static inline void log_accept (unsigned int pid, ip46_t const *ip)
+static inline void log_accept (pid_t pid, ip46_t const *ip)
 {
   logit(pid, ip, 1) ;
 }
 
-static inline void log_deny (unsigned int pid, ip46_t const *ip)
+static inline void log_deny (pid_t pid, ip46_t const *ip)
 {
   logit(pid, ip, 0) ;
 }
@@ -76,7 +75,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "WwDdHhRrPpv:l:B:t:i:x:", &l) ;
+      int opt = subgetopt_r(argc, argv, "WwDdHhRrPpv:l:B:t:i:x:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -94,8 +93,8 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'l' : localname = l.arg ; break ;
         case 'B' :
         {
-          register size_t n = str_len(l.arg) ;
-          if (buffer_putnoflush(buffer_1small, l.arg, n) < n)
+          size_t n = strlen(l.arg) ;
+          if (buffer_putnoflush(buffer_1small, l.arg, n) < (ssize_t)n)
             strerr_dief1x(100, "banner too long") ;
           break ;
         }
@@ -114,16 +113,16 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   proto = env_get2(envp, "PROTO") ;
   if (!proto) strerr_dienotset(100, "PROTO") ;
-  protolen = str_len(proto) ;
+  protolen = strlen(proto) ;
   {
     char const *x ;
     char tmp[protolen + 11] ;
-    byte_copy(tmp, protolen, proto) ;
-    byte_copy(tmp + protolen, 9, "REMOTEIP") ;
+    memcpy(tmp, proto, protolen) ;
+    memcpy(tmp + protolen, "REMOTEIP", 9) ;
     x = env_get2(envp, tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
     if (!ip46_scan(x, &remoteip)) strerr_dieinvalid(100, tmp) ;
-    byte_copy(tmp + protolen + 6, 5, "PORT") ;
+    memcpy(tmp + protolen + 6, "PORT", 5) ;
     x = env_get2(envp, tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
     if (!uint160_scan(x, &remoteport)) strerr_dieinvalid(100, tmp) ;
@@ -184,16 +183,16 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (socket_local46(0, &localip, &localport) < 0)
       strerr_diefu1sys(111, "socket_local") ;
     fmt[ip46_fmt(fmt, &localip)] = 0 ;
-    byte_copy(tmp, protolen, proto) ;
-    byte_copy(tmp + protolen, 8, "LOCALIP") ;
+    memcpy(tmp, proto, protolen) ;
+    memcpy(tmp + protolen, "LOCALIP", 8) ;
     if (!env_addmodif(&modifs, tmp, fmt)) dienomem() ;
     fmt[uint16_fmt(fmt, localport)] = 0 ;
-    byte_copy(tmp + protolen + 5, 5, "PORT") ;
+    memcpy(tmp + protolen + 5, "PORT", 5) ;
     if (!env_addmodif(&modifs, tmp, fmt)) dienomem() ;
-    byte_copy(tmp + protolen, 11, "REMOTEINFO") ;
+    memcpy(tmp + protolen, "REMOTEINFO", 11) ;
     if (flagident)
     {
-      register int r = s6net_ident_client_g(idbuf, S6NET_IDENT_ID_SIZE, &remoteip, remoteport, &localip, localport, &deadline) ;
+      ssize_t r = s6net_ident_client_g(idbuf, S6NET_IDENT_ID_SIZE, &remoteip, remoteport, &localip, localport, &deadline) ;
       if (r < 0)
       {
         if (verbosity >= 3) strerr_warnwu1sys("s6net_ident_client") ;
@@ -221,10 +220,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!flagdnslookup)
   {
     char tmp[protolen + 11] ;
-    byte_copy(tmp, protolen, proto) ;
-    byte_copy(tmp + protolen, 10, "LOCALHOST") ;
+    memcpy(tmp, proto, protolen) ;
+    memcpy(tmp + protolen, "LOCALHOST", 10) ;
     if (!env_addmodif(&modifs, tmp, localname)) dienomem() ;
-    byte_copy(tmp + protolen, 11, "REMOTEHOST") ;
+    memcpy(tmp + protolen, "REMOTEHOST", 11) ;
     if (!env_addmodif(&modifs, tmp, 0)) dienomem() ;
   }
   else
@@ -236,10 +235,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int remotelen = 0 ;
     char tcplocalhost[(protolen << 1) + 21] ;
     char *tcpremotehost = tcplocalhost + protolen + 10 ;
-    byte_copy(tcplocalhost, protolen, proto) ;
-    byte_copy(tcplocalhost + protolen, 10, "LOCALHOST") ;
-    byte_copy(tcpremotehost, protolen, proto) ;
-    byte_copy(tcpremotehost + protolen, 11, "REMOTEHOST") ;
+    memcpy(tcplocalhost, proto, protolen) ;
+    memcpy(tcplocalhost + protolen, "LOCALHOST", 10) ;
+    memcpy(tcpremotehost, proto, protolen) ;
+    memcpy(tcpremotehost + protolen, "REMOTEHOST", 11) ;
 
     if (!s6dns_init())
     {
@@ -293,7 +292,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         else
         {
           char s[256] ;
-          register unsigned int len = 0 ;
+          unsigned int len = 0 ;
           if (genalloc_len(s6dns_domain_t, &data[0].ds))
           {
             s6dns_domain_noqualify(genalloc_s(s6dns_domain_t, &data[0].ds)) ;
@@ -314,7 +313,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         remotebuf[remotelen] = 0 ;
         if (flagparanoid)
         {
-          register int r ;
+          int r ;
           data[1].ds.len = 0 ;
           r = ip46_is6(&remoteip) ? s6dns_resolve_aaaa_g(&data[1].ds, remotebuf, remotelen, 0, &deadline) : s6dns_resolve_a_g(&data[1].ds, remotebuf, remotelen, 0, &deadline) ;
           if (r <= 0)
@@ -329,9 +328,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
           }
           else
           {
-            register unsigned int i = 0 ;
+            size_t i = 0 ;
             for (; i < data[1].ds.len ; i += ip46_is6(&remoteip) ? 16 : 4)
-              if (!byte_diff(remoteip.ip, ip46_is6(&remoteip) ? 16 : 4, data[1].ds.s + i)) break ;
+              if (!memcmp(remoteip.ip, data[1].ds.s + i, ip46_is6(&remoteip) ? 16 : 4)) break ;
             if (i >= data[1].ds.len) remotelen = 0 ;
           }
         }
@@ -390,10 +389,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
  reject:
   if (verbosity >= 2)
   {
-    char fmtpid[UINT_FMT] ;
+    char fmtpid[PID_FMT] ;
     char fmtip[IP46_FMT] ;
     fmtip[ip46_fmt(fmtip, &remoteip)] = 0 ;
-    fmtpid[uint_fmt(fmtpid, getpid())] = 0 ;
+    fmtpid[pid_fmt(fmtpid, getpid())] = 0 ;
     strerr_dief5x(e, "reject", " pid ", fmtpid, " ip ", fmtip) ;
   }
   else return e ;

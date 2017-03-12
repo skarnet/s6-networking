@@ -1,16 +1,13 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/error.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbtime.h>
@@ -27,7 +24,7 @@ static unsigned int verbosity = 1 ;
 
 #define N 28
 
-int tain_exchange (int s, ip46_t const *ip, uint16 port, tain_t *serversays, tain_t const *deadline)
+int tain_exchange (int s, ip46_t const *ip, uint16_t port, tain_t *serversays, tain_t const *deadline)
 {
   char query[N] = "ctai" ;
   char answer[N] ;
@@ -42,8 +39,8 @@ int tain_exchange (int s, ip46_t const *ip, uint16 port, tain_t *serversays, tai
   r = socket_recvnb46_g(s, answer, N, &dummyip, &dummyport, deadline) ;
   if (r < 0) return 0 ;
   if (r < N) return (errno = EPROTO, 0) ;
-  if (byte_diff(answer, 4, "stai")) return (errno = EPROTO, 0) ;
-  if (byte_diff(query+20, N-20, answer+20)) return (errno = EPROTO, 0) ;
+  if (memcmp(answer, "stai", 4)) return (errno = EPROTO, 0) ;
+  if (memcmp(query+20, answer+20, N-20)) return (errno = EPROTO, 0) ;
   tain_unpack(answer+4, serversays) ;
   return 1 ;
 }
@@ -72,7 +69,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "fv:r:t:h:T:e:p:", &l) ;
+      int opt = subgetopt_r(argc, argv, "fv:r:t:h:T:e:p:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

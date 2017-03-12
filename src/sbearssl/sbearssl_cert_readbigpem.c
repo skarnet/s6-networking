@@ -1,9 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <errno.h>
 #include <bearssl.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
@@ -33,8 +32,8 @@ int sbearssl_cert_readbigpem (char const *fn, genalloc *certs, stralloc *sa)
   for (; i < n ; i++)
   {
     char const *name = sa->s + p[i].name ;
-    if (!str_diff(name, "CERTIFICATE")
-     || !str_diff(name, "X509 CERTIFICATE"))
+    if (!strcmp(name, "CERTIFICATE")
+     || !strcmp(name, "X509 CERTIFICATE"))
     {
       sbearssl_cert sc = { .data = p[i].data, .datalen = p[i].datalen } ;
       if (!genalloc_append(sbearssl_cert, certs, &sc)) goto fail ;

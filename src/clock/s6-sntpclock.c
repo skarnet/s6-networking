@@ -1,17 +1,14 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <skalibs/error.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
 #include <skalibs/uint64.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/error.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
@@ -26,12 +23,12 @@
 
 static unsigned int verbosity = 1 ;
 
-int ntp_exchange (int s, ip46_t const *ip, uint16 port, tain_t *stamps, tain_t const *deadline)
+int ntp_exchange (int s, ip46_t const *ip, uint16_t port, tain_t *stamps, tain_t const *deadline)
 {
   char query[48] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0" ;
   char answer[48] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0" ;
   tain_t starttime ;
-  uint64 ntpstamp ;
+  uint64_t ntpstamp ;
   ip46_t dummyip ;
   uint16_t dummyport ;
   ssize_t r ;
@@ -54,7 +51,7 @@ int ntp_exchange (int s, ip46_t const *ip, uint16 port, tain_t *stamps, tain_t c
   if (r < 48) return (errno = EPROTO, 0) ;
   if (((answer[0] & 7) != 2) && ((answer[0] & 7) != 4)) return (errno = EPROTO, 0) ;
   if (!(answer[0] & 56)) return (errno = EPROTO, 0) ;
-  if (byte_diff(query+40, 8, answer+24)) return (errno = EPROTO, 0) ;
+  if (memcmp(query+40, answer+24, 8)) return (errno = EPROTO, 0) ;
   stamps[0] = starttime ;
   uint64_unpack_big(answer+32, &ntpstamp) ;
   tain_from_ntp(stamps+1, ntpstamp) ;
@@ -100,7 +97,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "fv:r:t:h:T:e:p:", &l) ;
+      int opt = subgetopt_r(argc, argv, "fv:r:t:h:T:e:p:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -169,7 +166,7 @@ int main (int argc, char const *const *argv)
         unsigned int j = 0 ;
         for (; j < 4 ; j++)
         {
-          uint64 ntp ;
+          uint64_t ntp ;
           localtmn_t l ;
           char fmt[UINT_FMT] ;
           char fmtntp[UINT64_XFMT] ;

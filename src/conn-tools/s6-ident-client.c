@@ -2,8 +2,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/buffer.h>
@@ -27,7 +26,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "t:", &l) ;
+      int opt = subgetopt_r(argc, argv, "t:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -56,7 +55,7 @@ int main (int argc, char const *const *argv)
 
   {
     char buf[BUFFER_OUTSIZE_SMALL] ;
-    register int r = s6net_ident_client_g(buf, BUFFER_OUTSIZE_SMALL, &ra, rp, &la, lp, &deadline) ;
+    int r = s6net_ident_client_g(buf, BUFFER_OUTSIZE_SMALL, &ra, rp, &la, lp, &deadline) ;
     if (r < 0) strerr_diefu1sys(errno == ETIMEDOUT ? 99 : 111, "s6net_ident_client") ;
     else if (!r)
     {

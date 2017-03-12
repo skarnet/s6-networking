@@ -1,9 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <errno.h>
 #include <bearssl.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/djbunix.h>
@@ -49,9 +48,9 @@ int sbearssl_skey_readfile (char const *fn, sbearssl_skey *key, stralloc *sa)
   for (; i < n ; i++)
   {
     char const *name = tmp.s + p[i].name ;
-    if (!str_diff(name, "RSA PRIVATE KEY")
-     || !str_diff(name, "EC PRIVATE KEY")
-     || !str_diff(name, "PRIVATE KEY"))
+    if (!strcmp(name, "RSA PRIVATE KEY")
+     || !strcmp(name, "EC PRIVATE KEY")
+     || !strcmp(name, "PRIVATE KEY"))
     {
       r = decode_key(key, tmp.s + p[i].data, p[i].datalen, sa) ;
       if (r) goto fail ;

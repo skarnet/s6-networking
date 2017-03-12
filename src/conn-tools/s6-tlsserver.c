@@ -2,9 +2,7 @@
 
 #include <sys/types.h>
 #include <limits.h>
-#include <skalibs/uint64.h>
-#include <skalibs/uint.h>
-#include <skalibs/gidstuff.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -21,16 +19,16 @@
 typedef struct options_s options_t, *options_t_ref ;
 struct options_s
 {
-  uint64 uid ;
   char const *localname ;
   char const *banner ;
   char const *rules ;
   gid_t gids[NGROUPS_MAX] ;
+  size_t gidn ;
+  uid_t uid ;
   gid_t gid ;
   unsigned int maxconn ;
   unsigned int localmaxconn ;
   unsigned int backlog ;
-  unsigned int gidn ;
   unsigned int timeout ;
   unsigned int kimeout ;
   unsigned int verbosity : 2 ;
@@ -52,15 +50,15 @@ struct options_s
 
 #define OPTIONS_ZERO \
 { \
-  .uid = 0, \
   .localname = 0, \
   .banner = 0, \
   .rules = 0, \
+  .backlog = (unsigned int)-1, \
+  .gidn = (size_t)-1, \
+  .uid = 0, \
+  .gid = 0, \
   .maxconn = 0, \
   .localmaxconn = 0, \
-  .backlog = (unsigned int)-1, \
-  .gidn = (unsigned int)-1, \
-  .gid = 0, \
   .timeout = 0, \
   .kimeout = 0, \
   .verbosity = 1, \
@@ -88,7 +86,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsYyK:Zz", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsYyK:Zz", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -102,9 +100,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'C' : if (!uint0_scan(l.arg, &o.localmaxconn)) dieusage() ; if (!o.localmaxconn) o.localmaxconn = 1 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &o.backlog)) dieusage() ; break ;
         case 'G' : if (!gid_scanlist(o.gids, NGROUPS_MAX, l.arg, &o.gidn) && *l.arg) dieusage() ; o.doapply = 1 ; break ;
-        case 'g' : if (!uint0_scan(l.arg, &o.gid)) dieusage() ; o.doapply = 1 ; break ;
-        case 'u' : if (!uint0_scan(l.arg, &o.uid)) dieusage() ; o.doapply = 1 ; break ;
-        case 'U' : o.flagU = 1 ; o.uid = 0 ; o.gid = 0 ; o.gidn = (unsigned int)-1 ; o.doapply = 1 ; break ;
+        case 'g' : if (!gid0_scan(l.arg, &o.gid)) dieusage() ; o.doapply = 1 ; break ;
+        case 'u' : if (!uid0_scan(l.arg, &o.uid)) dieusage() ; o.doapply = 1 ; break ;
+        case 'U' : o.flagU = 1 ; o.uid = 0 ; o.gid = 0 ; o.gidn = (size_t)-1 ; o.doapply = 1 ; break ;
         case 'W' : o.flagw = 0 ; break ;
         case 'w' : o.flagw = 1 ; break ;
         case 'D' : o.flagD = 1 ; o.doaccess = 1 ; break ;
@@ -137,7 +135,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     size_t pos = 0 ;
     unsigned int m = 0 ;
-    char fmt[UINT_FMT * 5 + GID_FMT * (NGROUPS_MAX + 1) + UINT64_FMT] ;
+    char fmt[UINT_FMT * 5 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
     char const *newargv[45 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
@@ -218,7 +216,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (o.doapply)
     {
       newargv[m++] = S6_EXTBINPREFIX "s6-applyuidgid" ;
-      if (o.gidn != (unsigned int)-1)
+      if (o.gidn != (size_t)-1)
       {
         newargv[m++] = "-G" ;
         newargv[m++] = fmt + pos ;
@@ -236,7 +234,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       {
         newargv[m++] = "-u" ;
         newargv[m++] = fmt + pos ;
-        pos += uint64_fmt(fmt + pos, o.uid) ;
+        pos += uid_fmt(fmt + pos, o.uid) ;
         fmt[pos++] = 0 ;
       }
       if (o.flagU) newargv[m++] = "-Uz" ;

@@ -47,7 +47,7 @@ any kind of authentication or secure operation.
 <h3> Main interface </h3>
 
 <p>
-<code> int s6net_ident_client (char *s, unsigned int max, ip46_t const *remoteip, uint16 remoteport, ip46_t const *localip, uint16 localport,
+<code> ssize_t s6net_ident_client (char *s, size_t max, ip46_t const *remoteip, uint16_t remoteport, ip46_t const *localip, uint16_t localport,
 tain_t const *deadline, tain_t *stamp) </code>
 </p>
 
@@ -97,7 +97,7 @@ from the server by *<em>deadline</em>, then the call is aborted and returns
 <h3> Low-level functions </h3>
 
 <p>
-<code> int s6net_ident_reply_get (char *s, ip46_t const *ra, uint16 rp, ip46_t const *la, uint16 lp,
+<code> ssize_t s6net_ident_reply_get (char *s, ip46_t const *ra, uint16_t rp, ip46_t const *la, uint16_t lp,
 tain_t const *deadline, tain_t *stamp) </code>
 </p>
 
@@ -110,7 +110,7 @@ Returns -1 if an error occurs, or the number of bytes written into <em>s</em>.
 </p>
 
 <p>
-<code> int s6net_ident_reply_parse (char const *s, uint16 rp, uint16 lp) </code>
+<code> ssize_t s6net_ident_reply_parse (char const *s, uint16_t rp, uint16_t lp) </code>
 </p>
 
 <p>

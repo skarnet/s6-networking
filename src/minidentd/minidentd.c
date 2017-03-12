@@ -1,13 +1,11 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
 #include <skalibs/fmtscan.h>
@@ -33,8 +31,7 @@ static tain_t deadline ;
 static unsigned int nquery = 0 ;
 static char logfmt[UINT_FMT] ;
 
-#define DECIMAL "0123456789"
-#define godecimal(s) while (*(s) && !DECIMAL[str_chr(DECIMAL, *(s))]) (s)++
+#define godecimal(s) while (*(s) && !strchr("0123456789", *(s))) (s)++
 
 static int parseline (char const *s, uint16_t *localport, uint16_t *remoteport)
 {
@@ -106,12 +103,12 @@ static int userident (char *s, char const *home)
   int fd ;
   size_t r = 1 ;
   {
-    size_t homelen = str_len(home) ;
-    size_t userlen = str_len(userfile) ;
+    size_t homelen = strlen(home) ;
+    size_t userlen = strlen(userfile) ;
     char tmp[homelen + userlen + 2] ;
-    byte_copy(tmp, homelen, home) ;
+    memcpy(tmp, home, homelen) ;
     tmp[homelen] = '/' ;
-    byte_copy(tmp + homelen + 1, userlen + 1, userfile) ;
+    memcpy(tmp + homelen + 1, userfile, userlen + 1) ;
     fd = open_readb(tmp) ;
   }  
   if (fd == -1) return (errno != ENOENT) ? -1 : 0 ;
@@ -181,7 +178,7 @@ static void doit (char const *s, ip46_t const *localaddr, ip46_t const *remotead
   if (how)
   {
     char s[15] ;
-    register int r = userident(s, pw->pw_dir) ;
+    int r = userident(s, pw->pw_dir) ;
     if ((how == 1) || (r == 1))
     {
       reply(lr, "ERROR", "HIDDEN-USER") ;
@@ -213,7 +210,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "vniry:t:", &l) ;
+      int opt = subgetopt_r(argc, argv, "vniry:t:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -235,14 +232,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (!proto) strerr_dienotset(100, "PROTO") ;
     {
       char const *x ;
-      size_t protolen = str_len(proto) ;
+      size_t protolen = strlen(proto) ;
       char tmp[protolen + 9] ;
-      byte_copy(tmp, protolen, proto) ;
-      byte_copy(tmp + protolen, 8, "LOCALIP") ;
+      memcpy(tmp, proto, protolen) ;
+      memcpy(tmp + protolen, "LOCALIP", 8) ;
       x = env_get2(envp, tmp) ;
       if (!x) strerr_dienotset(100, tmp) ;
       if (!ip46_scan(x, &localaddr)) strerr_dieinvalid(100, tmp) ;
-      byte_copy(tmp + protolen, 9, "REMOTEIP") ;
+      memcpy(tmp + protolen, "REMOTEIP", 9) ;
       x = env_get2(envp, tmp) ;
       if (!x) strerr_dienotset(100, tmp) ;
       if (!ip46_scan(x, &remoteaddr)) strerr_dieinvalid(100, tmp) ;
@@ -258,7 +255,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
                                                                                     
   for (;;)
   {
-    register int r ;
+    int r ;
     line.len = 0 ;
     tain_add_g(&deadline, &tto) ;
     r = timed_getln_g(buffer_0small, &line, '\n', &deadline) ;

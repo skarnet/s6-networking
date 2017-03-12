@@ -1,10 +1,9 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <sys/uio.h>
 #include <errno.h>
 #include <bearssl.h>
 #include <skalibs/error.h>
-#include <skalibs/siovec.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
@@ -26,19 +25,19 @@ int sbearssl_pem_decode_from_buffer (buffer *b, genalloc *list, stralloc *sa)
   br_pem_decoder_init(&ctx) ;
   for (;;)
   {
-    siovec_t v[2] ;
+    struct iovec v[2] ;
     ssize_t rr = buffer_fill(b) ;
     if (rr < 0) goto rfail ;
     if (!rr) break ;
     buffer_rpeek(b, v) ;
-    r = sbearssl_pem_push(&ctx, v[0].s, v[0].len, &po, list, &blah, &inobj) ;
+    r = sbearssl_pem_push(&ctx, v[0].iov_base, v[0].iov_len, &po, list, &blah, &inobj) ;
     if (r) goto fail ;
-    if (v[1].len)
+    if (v[1].iov_len)
     {
-      r = sbearssl_pem_push(&ctx, v[1].s, v[1].len, &po, list, &blah, &inobj) ;
+      r = sbearssl_pem_push(&ctx, v[1].iov_base, v[1].iov_len, &po, list, &blah, &inobj) ;
       if (r) goto fail ;
     }
-    buffer_rseek(b, v[0].len + v[1].len) ;
+    buffer_rseek(b, v[0].iov_len + v[1].iov_len) ;
   }
   if (!inobj) return 0 ;
 

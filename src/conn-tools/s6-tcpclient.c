@@ -1,11 +1,9 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/fmtscan.h>
 #include <skalibs/strerr2.h>
@@ -65,7 +63,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, OPTSTRING, &l) ;
+      int opt = subgetopt_r(argc, argv, OPTSTRING, &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -119,8 +117,7 @@ int main (int argc, char const *const *argv)
   {
     ip46_t ip[2][MAXIP] ;
     unsigned int j = 0 ;
-    unsigned int n[2] = { 0, 0 } ;
-    register unsigned int i = 0 ;
+    size_t n[2] = { 0, 0 } ;
     if (!**argv || ((**argv == '0') && !argv[0][1]))
     {
 #ifdef SKALIBS_IPV6_ENABLED
@@ -136,14 +133,14 @@ int main (int argc, char const *const *argv)
         if (flags.ip6 && !flags.ip4)
         {
           char ip6[MAXIP << 4] ;
-          register unsigned int i = 0 ;
+          size_t i = 0 ;
           if (!ip6_scanlist(ip6, MAXIP, argv[0], &n[0])) usage() ;
           for (; i < n[0] ; i++) ip46_from_ip6(&ip[0][i], ip6 + (i << 4)) ;
         }
         else if (!flags.ip6)
         {
           char ip4[MAXIP << 2] ;
-          register unsigned int i = 0 ;
+          size_t i = 0 ;
           if (!ip4_scanlist(ip4, MAXIP, argv[0], &n[0])) usage() ;
           for (; i < n[0] ; i++) ip46_from_ip4(&ip[0][i], ip4 + (i << 2)) ;
         }
@@ -159,7 +156,8 @@ int main (int argc, char const *const *argv)
           if (!ip46_scanlist(ip[0], MAXIP, argv[0], &n[0]))
           {
             genalloc ips = STRALLOC_ZERO ;
-            if (s6dns_resolve_aaaaa_g(&ips, argv[0], str_len(argv[0]), flags.qualif, &deadline) <= 0)
+            size_t i = 0 ;
+            if (s6dns_resolve_aaaaa_g(&ips, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
               strerr_diefu4x(111, "resolve ", argv[0], ": ", s6dns_constants_error_str(errno)) ;
             n[0] = genalloc_len(ip46_t, &ips) ;
             if (n[0] >= MAXIP) n[0] = MAXIP ;
@@ -172,13 +170,14 @@ int main (int argc, char const *const *argv)
           char ip6[MAXIP << 4] ;
           if (ip6_scanlist(ip6, MAXIP, argv[0], &n[0]))
           {
-            register unsigned int i = 0 ;
+            size_t i = 0 ;
             for (; i < n[0] ; i++) ip46_from_ip6(&ip[0][i], ip6 + (i << 4)) ;
           }
           else
           {
             stralloc ip6s = STRALLOC_ZERO ;
-            if (s6dns_resolve_aaaa_g(&ip6s, argv[0], str_len(argv[0]), flags.qualif, &deadline) <= 0)
+            size_t i = 0 ;
+            if (s6dns_resolve_aaaa_g(&ip6s, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
               strerr_diefu4x(111, "resolve ", argv[0], ": ", s6dns_constants_error_str(errno)) ;
             n[0] = ip6s.len >> 4 ;
             if (n[0] >= MAXIP) n[0] = MAXIP ;
@@ -192,13 +191,14 @@ int main (int argc, char const *const *argv)
           char ip4[MAXIP << 2] ;
           if (ip4_scanlist(ip4, MAXIP, argv[0], &n[0]))
           {
-            register unsigned int i = 0 ;
+            size_t i = 0 ;
             for (; i < n[0] ; i++) ip46_from_ip4(&ip[0][i], ip4 + (i << 2)) ;
           }
           else
           {
             stralloc ip4s = STRALLOC_ZERO ;
-            if (s6dns_resolve_a_g(&ip4s, argv[0], str_len(argv[0]), flags.qualif, &deadline) <= 0)
+            size_t i = 0 ;
+            if (s6dns_resolve_a_g(&ip4s, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
               strerr_diefu4x(111, "resolve ", argv[0], ": ", s6dns_constants_error_str(errno)) ;
             n[0] = ip4s.len >> 2 ;
             if (n[0] >= MAXIP) n[0] = MAXIP ;
@@ -218,7 +218,7 @@ int main (int argc, char const *const *argv)
 
     for (; j < 2 ; j++)
     {
-      unsigned int i = 0 ;
+      size_t i = 0 ;
       for (; i < n[j] ; i++)
       {
         tain_t localdeadline ;
@@ -319,7 +319,7 @@ int main (int argc, char const *const *argv)
         else
         {
           char s[256] ;
-          register unsigned int len = 0 ;
+          unsigned int len = 0 ;
           if (genalloc_len(s6dns_domain_t, &data[0].ds))
            len = s6dns_domain_tostring(s, 255, genalloc_s(s6dns_domain_t, &data[0].ds)) ;
           genalloc_free(s6dns_domain_t, &data[0].ds) ;
@@ -336,7 +336,7 @@ int main (int argc, char const *const *argv)
         else
         {
           char s[256] ;
-          register unsigned int len = 0 ;
+          unsigned int len = 0 ;
           if (genalloc_len(s6dns_domain_t, &data[1].ds))
            len = s6dns_domain_tostring(s, 255, genalloc_s(s6dns_domain_t, &data[1].ds)) ;
           genalloc_free(s6dns_domain_t, &data[1].ds) ;
@@ -357,7 +357,7 @@ int main (int argc, char const *const *argv)
       char idbuf[S6NET_IDENT_ID_SIZE] ;
       if (flags.remoteinfo)
       {
-        register int r = s6net_ident_client_g(idbuf, S6NET_IDENT_ID_SIZE, &remoteip, remoteport, &flags.localip, flags.localport, &deadline) ;
+        ssize_t r = s6net_ident_client_g(idbuf, S6NET_IDENT_ID_SIZE, &remoteip, remoteport, &flags.localip, flags.localport, &deadline) ;
         if (r <= 0)
         {
           if (flags.verbosity)

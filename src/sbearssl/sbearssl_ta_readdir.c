@@ -1,8 +1,7 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <errno.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/direntry.h>
@@ -13,7 +12,7 @@ int sbearssl_ta_readdir (char const *dirfn, genalloc *taga, stralloc *tasa)
 {
   size_t tasabase = tasa->len ;
   size_t tagabase = genalloc_len(sbearssl_ta, taga) ;
-  size_t dirfnlen = str_len(dirfn) ;
+  size_t dirfnlen = strlen(dirfn) ;
   int tasawasnull = !tasa->s ;
   int tagawasnull = !genalloc_s(sbearssl_ta, taga) ;
   stralloc certsa = STRALLOC_ZERO ;
@@ -29,11 +28,11 @@ int sbearssl_ta_readdir (char const *dirfn, genalloc *taga, stralloc *tasa)
     if (!d) break ;
     if (d->d_name[0] == '.') continue ;
     {
-      size_t dlen = str_len(d->d_name) ;
+      size_t dlen = strlen(d->d_name) ;
       char fn[dirfnlen + dlen + 2] ;
-      byte_copy(fn, dirfnlen, dirfn) ;
+      memcpy(fn, dirfn, dirfnlen) ;
       fn[dirfnlen] = '/' ;
-      byte_copy(fn + dirfnlen + 1, dlen, d->d_name) ;
+      memcpy(fn + dirfnlen + 1, d->d_name, dlen) ;
       fn[dirfnlen + 1 + dlen] = 0 ;
       genalloc_setlen(sbearssl_cert, &certga, 0) ;
       certsa.len = 0 ;

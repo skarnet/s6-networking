@@ -27,7 +27,7 @@ static int const s6net_ident_error_codes[N] =
 
 char const *s6net_ident_error_str (int e)
 {
-  register unsigned int i = 0 ;
+  unsigned int i = 0 ;
   for (; i < N ; i++) if (e == s6net_ident_error_codes[i]) break ;
   return s6net_ident_error_strings[i] ;
 }

@@ -1,10 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
@@ -72,7 +70,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsYyK:k:Zz", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsYyK:k:Zz", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -93,7 +91,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'l' : o.localname = l.arg ; break ;
         case 'T' :
         {
-          unsigned int n = uint_scan(l.arg, &o.ximeout) ;
+          size_t n = uint_scan(l.arg, &o.ximeout) ;
           if (!n) dieusage() ;
           o.doxy = 1 ;
           if (!l.arg[n])
@@ -163,7 +161,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
       pos += uint_fmt(fmt + pos, o.yimeout) ;
       fmt[pos++] = 0 ;
     }
-    if (byte_diff(o.localip.ip, 16, IP6_ANY))
+    if (memcmp(o.localip.ip, IP6_ANY, 16))
     {
       newargv[m++] = "-i" ;
       newargv[m++] = fmt + pos ;

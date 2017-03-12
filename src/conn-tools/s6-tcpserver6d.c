@@ -1,6 +1,6 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -10,9 +10,7 @@
 #include <signal.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/fmtscan.h>
@@ -27,21 +25,27 @@
 
 #define USAGE "s6-tcpserver6d [ -v verbosity ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] prog..."
 
+typedef struct pidip_s pidip_t, *pidip_t_ref ;
+struct pidip_s
+{
+  pid_t pid ;
+  char ip[16] ;
+} ;
+
 typedef struct ipnum_s ipnum_t, *ipnum_t_ref ;
 struct ipnum_s
 {
   char ip[16] ;
   unsigned int num ;
 } ;
-#define IPNUM_ZERO { "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 0 }
 
 static unsigned int maxconn = 40 ;
 static unsigned int localmaxconn = 40 ;
 static unsigned int verbosity = 1 ;
 static int cont = 1 ;
-static ipnum_t_ref pidip = 0 ;
+static pidip_t *pidip = 0 ;
 static unsigned int numconn = 0 ;
-static ipnum_t_ref ipnum = 0 ;
+static ipnum_t *ipnum = 0 ;
 static unsigned int iplen = 0 ;
 
 static char fmtmaxconn[UINT_FMT+1] = "/" ;
@@ -63,17 +67,17 @@ static inline void X (void)
 
  /* Lookup primitives */
  
-static unsigned int lookup_pid (unsigned int pid)
+static inline unsigned int lookup_pid (pid_t pid)
 {
-  register unsigned int i = 0 ;
-  for (; i < numconn ; i++) if (pid == pidip[i].num) break ;
+  unsigned int i = 0 ;
+  for (; i < numconn ; i++) if (pid == pidip[i].pid) break ;
   return i ;
 }
 
-static unsigned int lookup_ip (char const *ip)
+static inline unsigned int lookup_ip (char const *ip)
 {
-  register unsigned int i = 0 ;
-  for (; i < iplen ; i++) if (!byte_diff(ip, 16, ipnum[i].ip)) break ;
+  unsigned int i = 0 ;
+  for (; i < iplen ; i++) if (!memcmp(ip, ipnum[i].ip, 16)) break ;
   return i ;
 }
 
@@ -108,27 +112,27 @@ static void log_deny (char const *ip, uint16_t port, unsigned int num)
   strerr_warni7sys("deny ", fmtip, " port ", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_accept (unsigned int pid, char const *ip, uint16_t port, unsigned int num)
+static void log_accept (pid_t pid, char const *ip, uint16_t port, unsigned int num)
 {
   char fmtipport[IP6_FMT + UINT16_FMT + 6] ;
-  char fmtpid[UINT_FMT] ;
+  char fmtpid[PID_FMT] ;
   char fmtnum[UINT_FMT] ;
-  register size_t n ;
+  size_t n ;
   n = ip6_fmt(fmtipport, ip) ;
-  byte_copy(fmtipport + n, 6, " port ") ; n += 6 ;
+  memcpy(fmtipport + n, " port ", 6) ; n += 6 ;
   n += uint16_fmt(fmtipport + n, port) ;
   fmtipport[n] = 0 ;
   fmtnum[uint_fmt(fmtnum, num)] = 0 ;
-  fmtpid[uint_fmt(fmtpid, pid)] = 0 ;
+  fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
   strerr_warni7x("allow ", fmtipport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_close (unsigned int pid, char const *ip, int w)
+static void log_close (pid_t pid, char const *ip, int w)
 {
-  char fmtpid[UINT_FMT] ;
+  char fmtpid[PID_FMT] ;
   char fmtip[IP6_FMT] = "?" ;
   char fmtw[UINT_FMT] ;
-  fmtpid[uint_fmt(fmtpid, pid)] = 0 ;
+  fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
   fmtip[ip6_fmt(fmtip, ip)] = 0 ;
   fmtw[uint_fmt(fmtw, WIFSIGNALED(w) ? WTERMSIG(w) : WEXITSTATUS(w))] = 0 ;
   strerr_warni6x("end pid ", fmtpid, " ip ", fmtip, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
@@ -139,8 +143,8 @@ static void log_close (unsigned int pid, char const *ip, int w)
 
 static void killthem (int sig)
 {
-  register unsigned int i = 0 ;
-  for (; i < numconn ; i++) kill(pidip[i].num, sig) ;
+  unsigned int i = 0 ;
+  for (; i < numconn ; i++) kill(pidip[i].pid, sig) ;
 }
 
 static void wait_children (void)
@@ -149,7 +153,7 @@ static void wait_children (void)
   {
     unsigned int i ;
     int w ;
-    register pid_t pid = wait_nohang(&w) ;
+    pid_t pid = wait_nohang(&w) ;
     if (pid < 0)
       if (errno != ECHILD) strerr_diefu1sys(111, "wait_nohang") ;
       else break ;
@@ -157,7 +161,7 @@ static void wait_children (void)
     i = lookup_pid(pid) ;
     if (i < numconn) /* it's one of ours ! */
     {
-      register unsigned int j = lookup_ip(pidip[i].ip) ;
+      unsigned int j = lookup_ip(pidip[i].ip) ;
       if (j >= iplen) X() ;
       if (!--ipnum[j].num) ipnum[j] = ipnum[--iplen] ;
       --numconn ;
@@ -225,11 +229,11 @@ static void run_child (int s, char const *ip, uint16_t port, unsigned int num, c
   PROG = "s6-tcpserver6 (child)" ;
   if ((fd_move(0, s) < 0) || (fd_copy(1, 0) < 0))
     strerr_diefu1sys(111, "move fds") ;
-  byte_copy(fmt+n, 24, "PROTO=TCP\0TCPREMOTEIP=") ; n += 22 ;
+  memcpy(fmt+n, "PROTO=TCP\0TCPREMOTEIP=", 24) ; n += 22 ;
   n += ip6_fmt(fmt+n, ip) ; fmt[n++] = 0 ;
-  byte_copy(fmt+n, 14, "TCPREMOTEPORT=") ; n += 14 ;
+  memcpy(fmt+n, "TCPREMOTEPORT=", 14) ; n += 14 ;
   n += uint16_fmt(fmt+n, port) ; fmt[n++] = 0 ;
-  byte_copy(fmt+n, 11, "TCPCONNNUM=") ; n += 11 ;
+  memcpy(fmt+n, "TCPCONNNUM=", 11) ; n += 11 ;
   n += uint_fmt(fmt+n, num) ; fmt[n++] = 0 ;
   pathexec_r(argv, envp, env_len(envp), fmt, n) ;
   strerr_dieexec(111, argv[0]) ;
@@ -239,7 +243,7 @@ static void new_connection (int s, char const *ip, uint16_t port, char const *co
 {
   unsigned int i = lookup_ip(ip) ;
   unsigned int num = (i < iplen) ? ipnum[i].num : 0 ;
-  register pid_t pid ;
+  pid_t pid ;
   if (num >= localmaxconn)
   {
     log_deny(ip, port, num) ;
@@ -260,11 +264,11 @@ static void new_connection (int s, char const *ip, uint16_t port, char const *co
   if (i < iplen) ipnum[i].num = num + 1 ;
   else
   {
-    byte_copy(ipnum[iplen].ip, 16, ip) ;
+    memcpy(ipnum[iplen].ip, ip, 16) ;
     ipnum[iplen++].num = 1 ;
   }
-  pidip[numconn].num = pid ;
-  byte_copy(pidip[numconn++].ip, 16, ip) ;
+  pidip[numconn].pid = pid ;
+  memcpy(pidip[numconn++].ip, ip, 16) ;
   if (verbosity >= 2)
   {
     log_accept(pid, ip, port, ipnum[i].num) ;
@@ -282,7 +286,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     int flag1 = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "1c:C:v:", &l) ;
+      int opt = subgetopt_r(argc, argv, "1c:C:v:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -339,8 +343,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
 
   {
-    ipnum_t inyostack[maxconn<<1] ;
-    pidip = inyostack ; ipnum = inyostack + maxconn ;
+    pidip_t pidip_inyostack[maxconn] ;
+    ipnum_t ipnum_inyostack[maxconn] ;
+    pidip = pidip_inyostack ; ipnum = ipnum_inyostack ;
+
     while (cont)
     {
       if (iopause_g(x, 1 + (numconn < maxconn), 0) < 0)
@@ -355,7 +361,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         {
           char ip[16] ;
           uint16_t port ;
-          register int fd = socket_accept6(x[1].fd, ip, &port) ;
+          int fd = socket_accept6(x[1].fd, ip, &port) ;
           if (fd < 0)
           {
             if (verbosity) strerr_warnwu1sys("accept") ;

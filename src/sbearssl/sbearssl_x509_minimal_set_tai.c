@@ -9,7 +9,7 @@
 
 int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *ctx, tai_t const *t)
 {
-  uint64 u ;
+  uint64_t u ;
   if (!utc_from_tai(&u, t)) return 0 ;
   u -= TAI_MAGIC ;
   br_x509_minimal_set_time(ctx, (uint32_t)(u / 86400 + 719528), u % 86400) ;

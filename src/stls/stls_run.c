@@ -1,7 +1,7 @@
 /* ISC license. */
 
 #include <skalibs/nonposix.h>
-#include <sys/types.h>
+#include <sys/uio.h>
 #include <stdint.h>
 #include <sys/socket.h>
 #include <errno.h>
@@ -16,7 +16,6 @@
 #include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
-#include <skalibs/siovec.h>
 #include <s6-networking/stls.h>
 
 typedef struct tlsbuf_s tlsbuf_t, *tlsbuf_t_ref ;
@@ -29,10 +28,10 @@ struct tlsbuf_s
 
 static inline int buffer_tls_flush (struct tls *ctx, tlsbuf_t *b)
 {
-  siovec_t v[2] ;
+  struct iovec v[2] ;
   ssize_t r, w ;
   buffer_rpeek(&b[0].b, v) ;
-  r = tls_write(ctx, v[0].s, v[0].len) ;
+  r = tls_write(ctx, v[0].iov_base, v[0].iov_len) ;
   switch (r)
   {
     case -1 : return -1 ;
@@ -43,9 +42,9 @@ static inline int buffer_tls_flush (struct tls *ctx, tlsbuf_t *b)
     default : break ;
   }
   w = r ;
-  if ((size_t)w == v[0].len && v[1].len)
+  if ((size_t)w == v[0].iov_len && v[1].iov_len)
   {
-    r = tls_write(ctx, v[1].s, v[1].len) ;
+    r = tls_write(ctx, v[1].iov_base, v[1].iov_len) ;
     switch (r)
     {
       case TLS_WANT_POLLIN :
@@ -65,11 +64,11 @@ static inline int buffer_tls_flush (struct tls *ctx, tlsbuf_t *b)
 
 static inline int buffer_tls_fill (struct tls *ctx, tlsbuf_t *b)
 {
-  siovec_t v[2] ;
+  struct iovec v[2] ;
   ssize_t r, w ;
   int ok = 1 ;
   buffer_wpeek(&b[1].b, v) ;
-  r = tls_read(ctx, v[0].s, v[0].len) ;
+  r = tls_read(ctx, v[0].iov_base, v[0].iov_len) ;
   switch (r)
   {
     case 0 : return -2 ;
@@ -81,9 +80,9 @@ static inline int buffer_tls_fill (struct tls *ctx, tlsbuf_t *b)
     default : break ;
   }
   w = r ;
-  if ((size_t)w == v[0].len && v[1].len)
+  if ((size_t)w == v[0].iov_len && v[1].iov_len)
   {
-    r = tls_read(ctx, v[1].s, v[1].len) ;
+    r = tls_read(ctx, v[1].iov_base, v[1].iov_len) ;
     switch (r)
     {
       case TLS_WANT_POLLOUT :
@@ -121,9 +120,9 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
   tlsbuf_t b[2] = { { .blockedonother = 0 }, { .blockedonother = 0 } } ;
   iopause_fd x[4] ;
   unsigned int xindex[4] ;
-  register unsigned int i ;
+  unsigned int i = 0 ;
 
-  for (i = 0 ; i < 2 ; i++)
+  for (; i < 2 ; i++)
   {
     buffer_init(&b[i].b, i ? &buffer_write : &buffer_read, fds[i], b[i].buf, STLS_BUFSIZE) ;
     if (ndelay_on(fds[2+i]) < 0) strerr_diefu1sys(111, "set fds non-blocking") ;
@@ -136,7 +135,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
   {
     tain_t deadline ;
     unsigned int xlen = 0 ;
-    register int r ;
+    int r ;
 
     tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && buffer_isempty(&b[0].b) && buffer_isempty(&b[1].b) ? tto : &tain_infinite_relative) ;
 

@@ -1,7 +1,7 @@
 /* ISC license. */
 
 #include <skalibs/sgetopt.h>
-#include <skalibs/uint.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
@@ -19,7 +19,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "fe:", &l) ;
+      int opt = subgetopt_r(argc, argv, "fe:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {

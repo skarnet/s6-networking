@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 #include <netdb.h>
-#include <skalibs/uint16.h>
+#include <skalibs/types.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
 

@@ -1,12 +1,10 @@
 /* ISC license. */
 
 #include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
-#include <skalibs/uint16.h>
-#include <skalibs/uint32.h>
 #include <skalibs/uint64.h>
-#include <skalibs/uint.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/fmtscan.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
@@ -33,10 +31,10 @@ static int skipspace (char **s)
 
 static void reverse_address (char *s, size_t n)
 {
-  register size_t i = n >> 1 ;
+  size_t i = n >> 1 ;
   while (i--)
   {
-    register char tmp = s[i] ;
+    char tmp = s[i] ;
     s[i] = s[n-1-i] ;
     s[n-1-i] = tmp ;
   }
@@ -46,9 +44,9 @@ static int parseline (char *s, size_t len, uid_t *u, char *la, uint16_t *lp, cha
 {
   char *cur = s ;
   size_t pos ;
-  uint64 uu ;
+  uint64_t uu ;
   uint32_t junk ;
-  register unsigned int iplen = is6 ? 16 : 4 ;
+  unsigned int iplen = is6 ? 16 : 4 ;
 
   if (!skipspace(&cur)) bug("initial whitespace") ;
   pos = uint32_scan(cur, &junk) ;  /* sl */
@@ -149,7 +147,7 @@ uid_t mgetuid (ip46_t const *localaddr, uint16_t localport, ip46_t const *remote
   stralloc line = STRALLOC_ZERO ;
   buffer b ;
   char y[BUFFER_INSIZE] ;
-  register int is6 = ip46_is6(localaddr) ;
+  int is6 = ip46_is6(localaddr) ;
   int fd = open_readb(is6 ? "/proc/net/tcp6" : "/proc/net/tcp") ;
   if (fd == -1) return -2 ;
   buffer_init(&b, &buffer_read, fd, y, BUFFER_INSIZE_SMALL) ;
@@ -173,8 +171,8 @@ uid_t mgetuid (ip46_t const *localaddr, uint16_t localport, ip46_t const *remote
     debuglog(lp, rp, nu, la, ra, is6) ;
 #endif
     if ((lp == localport) && (rp == remoteport)
-     && !byte_diff(la, is6 ? 16 : 4, localaddr->ip)
-     && !byte_diff(ra, is6 ? 16 : 4, remoteaddr->ip))
+     && !memcmp(la, localaddr->ip, is6 ? 16 : 4)
+     && !memcmp(ra, remoteaddr->ip, is6 ? 16 : 4))
     {
       u = nu ; break ;
     }

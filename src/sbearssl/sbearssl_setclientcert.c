@@ -24,6 +24,5 @@ int sbearssl_setclientcert (br_ssl_client_context *cc, br_x509_certificate const
     strerr_dief1x(96, "unsupported private key type") ;
   }
 
-
   return 0 ;
 }

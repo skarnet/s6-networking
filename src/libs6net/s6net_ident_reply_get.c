@@ -1,9 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint16.h>
+#include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/buffer.h>
 #include <skalibs/error.h>
@@ -15,7 +14,7 @@
 
 ssize_t s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16_t remoteport, ip46_t const *localip, uint16_t localport, tain_t const *deadline, tain_t *stamp)
 {
-  unsigned int len ; /* XXX: change when skalibs changes */
+  size_t len ;
   int fd ;
   if (ip46_is6(remoteip) != ip46_is6(localip)) return (errno = EAFNOSUPPORT, -1) ;
   fd = socket_tcp46(ip46_is6(remoteip)) ;

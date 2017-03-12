@@ -3,9 +3,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <errno.h>
-#include <skalibs/uint64.h>
-#include <skalibs/uint.h>
-#include <skalibs/gidstuff.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
@@ -52,7 +50,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      register int opt = subgetopt_r(argc, argv, "SsYyv:K:k:Zz6:7:", &l) ;
+      int opt = subgetopt_r(argc, argv, "SsYyv:K:k:Zz6:7:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -90,17 +88,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!getuid())
   {
     char const *x = env_get2(envp, "TLS_UID") ;
-    if (x)
-    {
-      uint64 u ;
-      if (!uint640_scan(x, &u)) strerr_dieinvalid(100, "TLS_UID") ;
-      uid = (uid_t)u ;
-    }
+    if (x && !uid0_scan(x, &uid)) strerr_dieinvalid(100, "TLS_UID") ;
     x = env_get2(envp, "TLS_GID") ;
-    if (x)
-    {
-      if (!gid0_scan(x, &gid)) strerr_dieinvalid(100, "TLS_GID") ;
-    }
+    if (x && !gid0_scan(x, &gid)) strerr_dieinvalid(100, "TLS_GID") ;
   }
 
   return s6tlsc(argv, envp, &tto, preoptions, options, uid, gid, verbosity, servername, fds) ;

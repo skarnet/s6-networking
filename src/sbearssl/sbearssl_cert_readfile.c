@@ -1,9 +1,8 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <errno.h>
 #include <bearssl.h>
-#include <skalibs/bytestr.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
@@ -19,7 +18,7 @@ int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa)
   int certswasnull = !genalloc_s(sbearssl_cert, certs) ;
   int sawasnull = !sa->s ;
   {
-    register ssize_t r = openreadnclose(fn, buf, SBEARSSL_MAXCERTFILESIZE) ;
+    ssize_t r = openreadnclose(fn, buf, SBEARSSL_MAXCERTFILESIZE) ;
     if (r < 0) return r ;
     n = r ;
   }
@@ -34,15 +33,15 @@ int sbearssl_cert_readfile (char const *fn, genalloc *certs, stralloc *sa)
     genalloc pems = GENALLOC_ZERO ;
     size_t i = 0 ;
     sbearssl_pemobject *p ;
-    register int r = sbearssl_pem_decode_from_string(buf, n, &pems, sa) ;
+    int r = sbearssl_pem_decode_from_string(buf, n, &pems, sa) ;
     if (r) return r ;
     p = genalloc_s(sbearssl_pemobject, &pems) ;
     n = genalloc_len(sbearssl_pemobject, &pems) ;
     for (; i < n ; i++)
     {
       char const *name = sa->s + p[i].name ;
-      if (!str_diff(name, "CERTIFICATE")
-       || !str_diff(name, "X509 CERTIFICATE"))
+      if (!strcmp(name, "CERTIFICATE")
+       || !strcmp(name, "X509 CERTIFICATE"))
       {
         sbearssl_cert cert = { .data = p[i].data, .datalen = p[i].datalen } ;
         if (!genalloc_append(sbearssl_cert, certs, &cert))

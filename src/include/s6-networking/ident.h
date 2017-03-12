@@ -13,7 +13,7 @@
 
  /* High-level */
 
-extern int s6net_ident_client (char *, size_t, ip46_t const *, uint16_t, ip46_t const *, uint16_t, tain_t const *, tain_t *) ;
+extern ssize_t s6net_ident_client (char *, size_t, ip46_t const *, uint16_t, ip46_t const *, uint16_t, tain_t const *, tain_t *) ;
 #define s6net_ident_client_g(s, max, ra, rp, la, lp, deadline) s6net_ident_client(s, max, ra, rp, la, lp, (deadline), &STAMP)
 extern char const *s6net_ident_error_str (int) ;
 

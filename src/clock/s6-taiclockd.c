@@ -1,12 +1,10 @@
 /* ISC license. */
 
-#include <sys/types.h>
+#include <string.h>
 #include <stdint.h>
-#include <skalibs/uint16.h>
-#include <skalibs/bytestr.h>
+#include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/fmtscan.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/socket.h>
 #include <skalibs/tai.h>
@@ -24,7 +22,7 @@ int main (int argc, char const *const *argv)
   PROG = "s6-taiclockd" ;
   for (;;)
   {
-    register int opt = subgetopt_r(argc, argv, "i:p:", &l) ;
+    int opt = subgetopt_r(argc, argv, "i:p:", &l) ;
     if (opt == -1) break ;
     switch (opt)
     {
@@ -43,8 +41,8 @@ int main (int argc, char const *const *argv)
   for (;;)
   {
     char packet[256] ;
-    register ssize_t r = socket_recv46(s, packet, 256, &ip, &port) ;
-    if ((r >= 20) && !byte_diff(packet, 4, "ctai"))
+    ssize_t r = socket_recv46(s, packet, 256, &ip, &port) ;
+    if ((r >= 20) && !memcmp(packet, "ctai", 4))
     {
       tain_t now ;
       packet[0] = 's' ;
