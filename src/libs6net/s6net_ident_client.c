@@ -1,10 +1,7 @@
 /* ISC license. */
 
 #include <string.h>
-#include <stdint.h>
 #include <errno.h>
-#include <skalibs/tai.h>
-#include <skalibs/ip46.h>
 #include <s6-networking/ident.h>
 
 ssize_t s6net_ident_client (char *s, size_t max, ip46_t const *remoteip, uint16_t remoteport, ip46_t const *localip, uint16_t localport, tain_t const *deadline, tain_t *stamp)

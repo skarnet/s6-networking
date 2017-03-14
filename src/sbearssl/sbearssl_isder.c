@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <s6-networking/sbearssl.h>
 
 int sbearssl_isder (unsigned char const *s, size_t len)

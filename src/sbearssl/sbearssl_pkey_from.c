@@ -2,7 +2,6 @@
 
 #include <errno.h>
 #include <bearssl.h>
-#include <skalibs/stralloc.h>
 #include <s6-networking/sbearssl.h>
 
 int sbearssl_pkey_from (sbearssl_pkey *l, br_x509_pkey const *k, stralloc *sa)

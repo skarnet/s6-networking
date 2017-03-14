@@ -2,7 +2,6 @@
 
 #include <errno.h>
 #include <bearssl.h>
-#include <skalibs/stralloc.h>
 #include <s6-networking/sbearssl.h>
 
 int sbearssl_skey_from (sbearssl_skey *l, br_skey const *k, stralloc *sa)

@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <bearssl.h>
 #include <s6-networking/sbearssl.h>
 
 void sbearssl_ta_to (sbearssl_ta const *sta, br_x509_trust_anchor *bta, char *s)

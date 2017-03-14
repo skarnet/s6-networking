@@ -1,7 +1,7 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <stdint.h>
+#include <unistd.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>

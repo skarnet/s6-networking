@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <bearssl.h>
 #include <s6-networking/sbearssl.h>
 
 void sbearssl_rsa_pkey_to (sbearssl_rsa_pkey const *l, br_rsa_public_key *k, char *s)

@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <errno.h>
 #include <skalibs/stralloc.h>
 #include "sbearssl-internal.h"

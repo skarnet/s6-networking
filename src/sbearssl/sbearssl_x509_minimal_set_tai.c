@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <stdint.h>
 #include <bearssl.h>
 #include <skalibs/uint64.h>
 #include <skalibs/tai.h>

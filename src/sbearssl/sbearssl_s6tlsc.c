@@ -1,11 +1,9 @@
 /* ISC license. */
 
-#include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
 #include <bearssl.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/tai.h>
 #include <skalibs/env.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>

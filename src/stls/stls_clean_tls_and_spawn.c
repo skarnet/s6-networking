@@ -1,7 +1,6 @@
 /* ISC license. */
 
 #include <sys/types.h>
-#include <stdint.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include "stls-internal.h"

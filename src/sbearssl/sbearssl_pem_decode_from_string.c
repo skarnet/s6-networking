@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <sys/types.h>
 #include <errno.h>
 #include <bearssl.h>
 #include <skalibs/error.h>
