@@ -229,7 +229,7 @@ static void run_child (int s, char const *ip, uint16_t port, unsigned int num, c
   PROG = "s6-tcpserver6 (child)" ;
   if ((fd_move(0, s) < 0) || (fd_copy(1, 0) < 0))
     strerr_diefu1sys(111, "move fds") ;
-  memcpy(fmt+n, "PROTO=TCP\0TCPREMOTEIP=", 24) ; n += 22 ;
+  memcpy(fmt+n, "PROTO=TCP\0TCPREMOTEIP=", 22) ; n += 22 ;
   n += ip6_fmt(fmt+n, ip) ; fmt[n++] = 0 ;
   memcpy(fmt+n, "TCPREMOTEPORT=", 14) ; n += 14 ;
   n += uint16_fmt(fmt+n, port) ; fmt[n++] = 0 ;
