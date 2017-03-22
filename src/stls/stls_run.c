@@ -114,12 +114,31 @@ static void closeit (struct tls *ctx, int *fds, int brutal)
   fd_close(fds[3]) ; fds[3] = -1 ;
 }
 
-int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto)
+static void handle_signals (pid_t pid, int *e)
+{
+  for (;;) switch (selfpipe_read())
+  {
+    case -1 : strerr_diefu1sys(111, "read selfpipe") ;
+    case 0 : return ;
+    case SIGCHLD :
+    {
+      int wstat ;
+      if (wait_pid_nohang(pid, &wstat) == pid)
+      {
+        *e = wstat ;
+        return ;
+      }
+    }
+  }
+}
+
+int stls_run (struct tls *ctx, int *fds, pid_t pid, unsigned int verbosity, uint32_t options, tain_t const *tto)
 {
   tlsbuf_t b[2] = { { .blockedonother = 0 }, { .blockedonother = 0 } } ;
-  iopause_fd x[4] ;
+  iopause_fd x[5] = { { .fd = fds[4], .events = IOPAUSE_READ } } ;
   unsigned int xindex[4] ;
   unsigned int i = 0 ;
+  int e = -1 ;
 
   for (; i < 2 ; i++)
   {
@@ -133,7 +152,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
   for (;;)
   {
     tain_t deadline ;
-    unsigned int xlen = 0 ;
+    unsigned int xlen = 1 ;
     int r ;
 
     tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && buffer_isempty(&b[0].b) && buffer_isempty(&b[1].b) ? tto : &tain_infinite_relative) ;
@@ -147,7 +166,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
       x[xlen].events = IOPAUSE_READ ;
       xindex[0] = xlen++ ;
     }
-    else xindex[0] = 4 ;
+    else xindex[0] = 5 ;
 
     if (fds[1] >= 0 && buffer_iswritable(&b[1].b))
     {
@@ -155,7 +174,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
       x[xlen].events = IOPAUSE_WRITE ;
       xindex[1] = xlen++ ;
     }
-    else xindex[1] = 4 ;
+    else xindex[1] = 5 ;
 
     if (fds[2] >= 0 && !b[1].blockedonother && buffer_isreadable(&b[1].b))
     {
@@ -163,7 +182,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
       x[xlen].events = IOPAUSE_READ ;
       xindex[2] = xlen++ ;
     }
-    else xindex[2] = 4 ;
+    else xindex[2] = 5 ;
 
     if (fds[3] >= 0 && !b[0].blockedonother && buffer_iswritable(&b[0].b))
     {
@@ -171,9 +190,9 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
       x[xlen].events = IOPAUSE_WRITE ;
       xindex[3] = xlen++ ;
     }
-    else xindex[3] = 4 ;
+    else xindex[3] = 5 ;
 
-    if (!xlen) break ;
+    if (xlen == 1) break ;
 
 
    /* poll() */
@@ -184,6 +203,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
     {
       fd_close(fds[0]) ; fds[0] = -1 ;
       closeit(ctx, fds, options & 1) ;
+      if (e >= 0) break ;
       continue ;
     }
 
@@ -192,9 +212,14 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
         x[xlen].revents |= IOPAUSE_READ | IOPAUSE_WRITE ;
 
 
+   /* Signal */
+
+    if (x[0].revents & IOPAUSE_READ) handle_signals(pid, &e) ;
+
+
    /* Flush to local */
 
-    if (xindex[1] < 4 && x[xindex[1]].revents & IOPAUSE_WRITE)
+    if (xindex[1] < 5 && x[xindex[1]].revents & IOPAUSE_WRITE)
     {
       r = buffer_flush(&b[1].b) ;
       if (!r && !error_isagain(errno))
@@ -217,7 +242,7 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
 
    /* Flush to remote */
 
-    if (xindex[3] < 4 && x[xindex[3]].revents & IOPAUSE_WRITE)
+    if (xindex[3] < 5 && x[xindex[3]].revents & IOPAUSE_WRITE)
     {
       r = buffer_tls_flush(ctx, b) ;
       if (r < 0)
@@ -225,27 +250,35 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
         strerr_warnwu2x("write to peer: ", tls_error(ctx)) ;
         fd_close(fds[0]) ; fds[0] = -1 ;
       }
-      if (r && fds[0] < 0) closeit(ctx, fds, options & 1) ;
+      if (r && fds[0] < 0)
+      {
+        closeit(ctx, fds, options & 1) ;
+        if (e >= 0) break ;
+      }
     }
 
 
    /* Fill from local */
 
-    if (xindex[0] < 4 && x[xindex[0]].revents & IOPAUSE_READ)
+    if (xindex[0] < 5 && x[xindex[0]].revents & IOPAUSE_READ)
     {
       r = sanitize_read(buffer_fill(&b[0].b)) ;
       if (r < 0)
       {
         if (errno != EPIPE) strerr_warnwu1sys("read from application") ;
         fd_close(fds[0]) ; fds[0] = -1 ;
-        if (buffer_isempty(&b[0].b)) closeit(ctx, fds, options & 1) ;
+        if (buffer_isempty(&b[0].b))
+        {
+          closeit(ctx, fds, options & 1) ;
+          if (e >= 0) break ;
+        }
       }
     }
 
 
    /* Fill from remote */
 
-    if (xindex[2] < 4 && x[xindex[2]].revents & IOPAUSE_READ)
+    if (xindex[2] < 5 && x[xindex[2]].revents & IOPAUSE_READ)
     {
       r = buffer_tls_fill(ctx, b) ;
       if (r < 0)
@@ -273,5 +306,5 @@ int stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t option
   if (fds[0] >= 0) fd_close(fds[0]) ;
   if (fds[3] >= 0) fd_close(fds[3]) ;
   if (fds[2] >= 0) fd_close(fds[2]) ;
-  return 0 ;
+  return e ;
 }

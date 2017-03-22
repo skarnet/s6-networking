@@ -14,11 +14,12 @@
 
 int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd)
 {
-  int fds[4] = { sfd[0], sfd[1], sfd[0], sfd[1] } ;
+  int fds[5] = { sfd[0], sfd[1], sfd[0], sfd[1] } ;
   struct tls *ctx ;
   struct tls_config *cfg ;
   pid_t pid ;
   char const *x ;
+  int wstat ;
 
   if (tls_init() < 0) strerr_diefu1sys(111, "tls_init") ;
   cfg = tls_config_new() ;
@@ -72,23 +73,14 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
   if (!ctx) strerr_diefu1sys(111, "tls_client") ;
   if (tls_configure(ctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
 
-  pid = stls_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
-  if (!pid) strerr_diefu2sys(111, "spawn ", argv[0]) ;
-  if (gid && setgid(gid) < 0) strerr_diefu1sys(111, "setgid") ;
-  if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;
+  pid = stls_prep_spawn_drop(argv, envp, fds, uid, gid, !!(preoptions & 2)) ;
 
   if (tls_connect_fds(ctx, fds[2], fds[3], servername) < 0)
     diectx(97, ctx, "tls_connect_fds") ;
   tls_config_free(cfg) ;
   if (tls_handshake(ctx) < 0) diectx(97, ctx, "perform SSL handshake") ;
 
-  {
-    int wstat ;
-    int r = stls_run(ctx, fds, verbosity, options, tto) ;
-    if (r < 0) strerr_diefu1sys(111, "run SSL engine") ;
-    else if (r) diectx(98, ctx, "maintain SSL connection to peer") ;
-    tls_free(ctx) ;
-    if (wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
-    return wait_estatus(wstat) ;
-  }
+  wstat = stls_run(ctx, fds, pid, verbosity, options, tto) ;
+  if (wstat < 0 && wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
+  return wait_estatus(wstat) ;
 }

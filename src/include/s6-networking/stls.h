@@ -13,7 +13,7 @@
 
  /* Engine */
 
-extern int stls_run (struct tls *, int *, unsigned int, uint32_t, tain_t const *) ;
+extern int stls_run (struct tls *, int *, pid_t, unsigned int, uint32_t, tain_t const *) ;
 
 
  /* s6-tlsc and s6-tlsd implementations */

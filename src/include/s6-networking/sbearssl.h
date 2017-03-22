@@ -202,7 +202,7 @@ extern char const *sbearssl_error_str (int) ;
 
  /* Engine */
 
-extern int sbearssl_run (br_ssl_engine_context *, int *, unsigned int, uint32_t, tain_t const *) ;
+extern int sbearssl_run (br_ssl_engine_context *, int *, pid_t, unsigned int, uint32_t, tain_t const *) ;
 
 
  /* s6-tlsc and s6-tlsd implementations */

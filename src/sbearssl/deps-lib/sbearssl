@@ -1,5 +1,5 @@
 sbearssl_append.o
-sbearssl_clean_tls_and_spawn.o
+sbearssl_prep_spawn_drop.o
 sbearssl_cert_from.o
 sbearssl_cert_readbigpem.o
 sbearssl_cert_readfile.o

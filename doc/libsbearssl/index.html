@@ -473,23 +473,28 @@ i.e. a <tt>tai_t</tt> plus nanoseconds (which are simply ignored).
 
 <h3> Running the TLS/SSL engine (both clients and servers) </h3>
 
-<h4> <code> int sbearssl_run (br_ssl_engine_context *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto) </code> </h4>
+<h4> <code> int sbearssl_run (br_ssl_engine_context *ctx, int *fds, pid_t pid, unsigned int verbosity, uint32_t options, tain_t const *tto) </code> </h4>
 
 <p>
  This function runs a full-duplex TLS/SSL engine, reading/writing
 clear text from/to two file descriptors, and writing/reading
 ciphertext to/from two other file descriptors, until the
 connection is closed both ways (either with a SSL close, or
-with EOF).
+with EOF) or a given subprocess dies.
 </p>
 
 <ul>
  <li> <em>ctx</em> is a pointer to a fully initialized context,
 connected to <em>fds</em>[2] and <em>fds</em>[3]. The
 TLS/SSL handshake does not have to be completed. </li>
- <li> <em>fds</em> is an array of 4 file descriptors, in this
+ <li> <em>fds</em> is an array of 5 file descriptors, in this
 order: fd reading clear text, fd writing clear text, fd reading
-ciphertext, fd writing ciphertext. </li>
+ciphertext, fd writing ciphertext, selfpipe. </li>
+ <li> <em>pid</em> is the pid of the application subprocess.
+When a SIGCHLD is detected on the selfpipe, the newly deceased
+process is reaped, and if it was <em>pid</em>, then the function
+returns as soon as it doesn't have anything left to write to
+the network peer. </li>
  <li> <em>verbosity</em> defines the engine's verbosity: the
 higher the more verbose. This parameter is currently ignored. </li>
  <li> <em>options</em> is a bitfield.
@@ -520,12 +525,13 @@ if you don't want the engine to ever timeout. </li>
 
 <p>
  <tt>sbearssl_run</tt> will make the process die with an appropriate error
-message if it encounters an unrecoverable error. If there were no problems
-and the SSL/TLS connection closed cleanly, it returns 0. If a SSL/TLS-level
-error occurred, it returns nonzero; a corresponding error message for the
-return value can be obtained via <tt>sbearssl_error_str()</tt>.
-All four descriptors in <em>fds</em> are closed when
-<tt>sbearssl_run</tt> returns.
+message if it encounters an unrecoverable error. If there were no problems and the
+SSL/TLS connection closed cleanly, it returns -1. If the application
+subprocess dies early, <tt>sbearssl_run</tt> returns the <em>wstat</em>
+for that subprocess, i.e. the integer containing the information about
+its exit code or crash signal. No matter how <tt>sbearssl_run</tt> returns,
+the first four descriptors in <em>fds</em> are closed, but the
+selfpipe is untouched and the caller should free <em>ctx</em> itself.
 </p>
 
 <h4> <code> int sbearssl_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd) </code> </h4>

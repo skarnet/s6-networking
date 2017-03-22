@@ -14,10 +14,12 @@
 
 int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity)
 {
+  int fds[5] = { 0, 1, 0, 1 } ;
   stralloc storage = STRALLOC_ZERO ;
   sbearssl_skey skey ;
   genalloc certs = GENALLOC_ZERO ;
   size_t chainlen ;
+  pid_t pid ;
 
   if (preoptions & 1)
     strerr_dief1x(100, "client certificates are not supported yet") ;
@@ -44,14 +46,17 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
       strerr_diefu2x(96, "find a certificate in ", x) ;
   }
 
+  if (!random_init()) strerr_diefu1sys(111, "initialize random generator") ;
+
+  pid = sbearssl_prep_spawn_drop(argv, envp, fds, uid, gid, !!(preoptions & 2)) ;
+
   {
-    int fds[4] = { 0, 1, 0, 1 } ;
     unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
     br_ssl_server_context sc ;
     union br_skey_u key ;
     br_x509_certificate chain[chainlen] ;
     size_t i = chainlen ;
-    pid_t pid ;
+    int wstat ;
 
     stralloc_shrink(&storage) ;
     while (i--)
@@ -83,17 +88,6 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
       strerr_dief1x(96, "unsupported private key type") ;
     }
 
-    if (!random_init())
-      strerr_diefu1sys(111, "initialize random generator") ;
-    random_string((char *)buf, 32) ;
-    br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
-    random_finish() ;
-
-    pid = sbearssl_clean_tls_and_spawn(argv, envp, fds, !!(preoptions & 2)) ;
-    if (!pid) strerr_diefu2sys(111, "spawn ", argv[0]) ;
-    if (gid && setgid(gid) < 0) strerr_diefu1sys(111, "setgid") ;
-    if (uid && setuid(uid) < 0) strerr_diefu1sys(111, "setuid") ;
-
     {
       uint32_t flags = BR_OPT_ENFORCE_SERVER_PREFERENCES | BR_OPT_NO_RENEGOTIATION ;
       if (preoptions & 1)
@@ -104,17 +98,15 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
       br_ssl_engine_add_flags(&sc.eng, flags) ;
     }
 
+    random_string((char *)buf, 32) ;
+    br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
+    random_finish() ;
     br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
     br_ssl_server_reset(&sc) ;
     tain_now_g() ;
 
-    {
-      int wstat ;
-      int r = sbearssl_run(&sc.eng, fds, verbosity, options, tto) ;
-      if (r < 0) strerr_diefu1sys(111, "run SSL engine") ;
-      else if (r) strerr_diefu2x(98, "establish or maintain SSL connection to peer: ", sbearssl_error_str(r)) ;
-      if (wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
-      return wait_estatus(wstat) ;
-    }
+    wstat = sbearssl_run(&sc.eng, fds, pid, verbosity, options, tto) ;
+    if (wstat < 0 && wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
+    return wait_estatus(wstat) ;
   }
 }
