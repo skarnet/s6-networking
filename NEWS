@@ -1,0 +1,17 @@
+Changelog for s6-networking.
+
+In 2.3.0.0
+----------
+
+ - Added this NEWS file. :)
+ - Major types overhaul to make them more POSIXly correct:
+compatibility with skalibs-2.5.0.0.
+ - Fixed the "s6-tls[cd] does not die and the zombie application
+hangs around" bug. (It's really a workaround for a TCP bug.)
+ - s6-tls[cd] ported to bearssl-0.3. Client certificates still
+not supported with BearSSL because Thomas is slooooooow at
+implementing the high-level server functions I asked him for :P
+ - The meaning of the -Y option in s6-tlsd has changed: it now
+means "ask for an optional client certificate". Only valid with
+a LibreSSL backend for now.
+
