@@ -214,7 +214,11 @@ int stls_run (struct tls *ctx, int *fds, pid_t pid, unsigned int verbosity, uint
 
    /* Signal */
 
-    if (x[0].revents & IOPAUSE_READ) handle_signals(pid, &e) ;
+    if (x[0].revents & IOPAUSE_READ)
+    {
+      handle_signals(pid, &e) ;
+      if (e >= 0) break ;
+    }
 
 
    /* Flush to local */
