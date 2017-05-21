@@ -1,5 +1,11 @@
 Changelog for s6-networking.
 
+In 2.3.0.1
+----------
+
+ - Bugfix release.
+
+
 In 2.3.0.0
 ----------
 
@@ -14,4 +20,3 @@ implementing the high-level server functions I asked him for :P
  - The meaning of the -Y option in s6-tlsd has changed: it now
 means "ask for an optional client certificate". Only valid with
 a LibreSSL backend for now.
-

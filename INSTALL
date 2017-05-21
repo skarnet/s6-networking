@@ -6,13 +6,13 @@ Build Instructions
 
   - A POSIX-compliant C development environment
   - GNU make version 3.81 or later
-  - skalibs version 2.5.0.0 or later: http://skarnet.org/software/skalibs/
-  - execline version 2.3.0.0 or later: http://skarnet.org/software/execline/
-  - s6 version 2.5.0.0 or later: http://skarnet.org/software/s6/
+  - skalibs version 2.5.1.0 or later: http://skarnet.org/software/skalibs/
+  - execline version 2.3.0.1 or later: http://skarnet.org/software/execline/
+  - s6 version 2.5.1.0 or later: http://skarnet.org/software/s6/
   - s6-dns version 2.2.0.0 or later: http://skarnet.org/software/s6-dns/
   - Depending on whether you build the SSL tools,
-        libressl version 2.4.4 or later: http://libressl.org/
-     or bearssl version 0.2 or later: http://bearssl.org/
+        libressl version 2.4.5 or later: http://libressl.org/
+     or bearssl version 0.4 or later: http://bearssl.org/
     (BearSSL support is experimental for now, I encourage you to use it
     but be aware it's bleeding-edge and APIs may change.)
 
@@ -208,7 +208,7 @@ against it, you can override the CRYPTO_LIB make variable.
 By default, CRYPTO_LIB is "-lbearssl" when building against BearSSL,
 and "-ltls -lssl -lcrypto" when building against LibreSSL.
 
- As of 2016-12-02, please note that BearSSL is experimental and not
+ As of 2017-05-21, please note that BearSSL is experimental and not
 considered production-ready by its author yet. Nevertheless, it's an
 incredibly promising library with high-quality interfaces and likely
 high-quality implementation. When statically linked against BearSSL,
