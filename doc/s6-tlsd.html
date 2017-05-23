@@ -6,14 +6,14 @@
     <title>s6-networking: the s6-tlsd program</title>
     <meta name="Description" content="s6-networking: the s6-tlsd program" />
     <meta name="Keywords" content="s6-networking s6-tlsd tlsd tls ssl ucspi tcp inet network tcp/ip server" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6-networking</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-tlsd</tt> program </h1>
@@ -76,7 +76,7 @@ private key or server certificate files. </li>
 <p>
  If the TLS/SSL connection closes cleanly, <tt>s6-tlsd</tt>
 waits for <em>prog</em> to exit, then exits with an
-<a href="http://skarnet.org/software/execline/exitcodes.html">approximation</a>
+<a href="//skarnet.org/software/execline/exitcodes.html">approximation</a>
 of <em>prog</em>'s exit code.
 </p>
 
@@ -158,14 +158,14 @@ application run with different privileges.
 <p>
  Note that <em>prog...</em>
 should drop its own root privileges by its own means: the
-<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
+<a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
 program is a way of doing it. If the <tt>s6-tlsd</tt>
 invocation actually comes from a
 <a href="s6-tlsserver.html">s6-tlsserver</a> command line,
 and privilege-dropping options (<tt>-G</tt>, <tt>-g</tt>,
 <tt>-u</tt> or <tt>-U</tt>) have been given to
 <a href="s6-tlsserver.html">s6-tlsserver</a>, then
-<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
+<a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
 directly follows <tt>s6-tlsd</tt> on the command line, in order
 to also drop the child's privileges before executing the application.
 The point of that setup is:

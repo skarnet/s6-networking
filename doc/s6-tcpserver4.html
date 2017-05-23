@@ -6,14 +6,14 @@
     <title>s6-networking: the s6-tcpserver4 program</title>
     <meta name="Description" content="s6-networking: the s6-tcpserver4 program" />
     <meta name="Keywords" content="s6-networking s6-tcpserver4 tcpserver ucspi tcp server super-server ipv4" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6-networking</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-tcpserver4</tt> program </h1>
@@ -96,7 +96,7 @@ supplementary group list
 according to the values of the UID, GID and GIDLIST environment variables
 after binding the socket. This is only valid when run as root.
 This can be used with the
-<a href="http://skarnet.org/software/s6/s6-envuidgid.html">s6-envuidgid</a>
+<a href="//skarnet.org/software/s6/s6-envuidgid.html">s6-envuidgid</a>
 program to easily script a service that binds to a privileged socket
 then drops its privileges to those of a named non-root account. </li>
 </ul>
@@ -124,7 +124,7 @@ program. </li>
  <li> In previous releases of s6-networking, s6-tcpserver4 was
 monolithic: it did the work of
 <a href="s6-tcpserver4-socketbinder.html">s6-tcpserver4-socketbinder</a>,
-<a href="http://skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a> and
+<a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a> and
 <a href="s6-tcpserver4d.html">s6-tcpserver4d</a> itself. The functionality has now
 been split into several different programs because some service startup
 schemes require the daemon to get its socket from an external

@@ -6,14 +6,14 @@
     <title>s6-networking: the s6-tcpserver-access program</title>
     <meta name="Description" content="s6-networking: the s6-tcpserver-access program" />
     <meta name="Keywords" content="s6-networking s6-tcpserver-access tcp access control tcprules tcpwrappers libwrap" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">s6-networking</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>s6-tcpserver-access</tt> program </h1>
@@ -164,13 +164,13 @@ needed to perform searches in a CDB than in the filesystem. </li>
 
 <p>
  The exact format of the ruleset is described on the
-<a href="http://skarnet.org/software/s6/s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a> page.
+<a href="//skarnet.org/software/s6/s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a> page.
 </p>
 
 <p>
 s6-tcpserver-access first gets the remote address <em>ip</em> of the
 client and converts it to canonical form. Then it checks it with the
-<a href="http://skarnet.org/software/s6/libs6/accessrules.html#ip4">s6_accessrules_keycheck_ip46()</a>
+<a href="//skarnet.org/software/s6/libs6/accessrules.html#ip4">s6_accessrules_keycheck_ip46()</a>
 function. In other words, it tries to match broader and broader network
 prefixes of <em>ip</em>, from <tt>ip4/</tt><em>ip</em><tt>_32</tt> to
 <tt>ip4/0.0.0.0_0</tt> if <em>ip</em> is v4, or from
@@ -189,7 +189,7 @@ is v6. If the result is:
 is denied. But if s6-tcpserver-access is authorized to perform DNS lookups,
 then it gets the remote name of the client, <em>remotehost</em>, and
 checks it with the
-<a href="http://skarnet.org/software/s6/libs6/accessrules.html#reversedns">s6_accessrules_keycheck_reversedns()</a>
+<a href="//skarnet.org/software/s6/libs6/accessrules.html#reversedns">s6_accessrules_keycheck_reversedns()</a>
 function. In other words, it tries to match shorter and shorter suffixes
 of <em>remotehost</em>, from <tt>reversedns/</tt><em>remotehost</em> to
 <tt>reversedns/@</tt>.
@@ -209,19 +209,19 @@ query on <em>remotehost</em> does not match <em>ip</em>.
  s6-tcpserver-access interprets non-empty <tt>env</tt> subdirectories
 and <tt>exec</tt> files
 it finds in the matching rule of the ruleset, as explained
-in the <a href="http://skarnet.org/software/s6/s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
+in the <a href="//skarnet.org/software/s6/s6-accessrules-cdb-from-fs.html">s6-accessrules-cdb-from-fs</a>
 page.
 </p>
 
 <ul>
  <li> An <tt>env</tt> subdirectory is interpreted as if the
-<a href="http://skarnet.org/software/s6/s6-envdir.html">s6-envdir</a>
+<a href="//skarnet.org/software/s6/s6-envdir.html">s6-envdir</a>
 command had been called before executing <em>prog</em>: the environment
 is modified according to the contents of <tt>env</tt>. </li>
  <li> An <tt>exec</tt> file containing <em>newprog</em> completely
 bypasses the rest of s6-tcpserver-access' command line. After
 environment modifications, if any, s6-tcpserver-access execs into
-<tt><a href="http://skarnet.org/software/execline/execlineb.html">execlineb</a> -c <em>newprog</em></tt>. </li>
+<tt><a href="//skarnet.org/software/execline/execlineb.html">execlineb</a> -c <em>newprog</em></tt>. </li>
 </ul>
 
 <h2> Notes </h2>

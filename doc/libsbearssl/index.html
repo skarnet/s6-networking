@@ -6,14 +6,14 @@
     <title>s6-networking: the sbearssl library interface</title>
     <meta name="Description" content="s6-networking: the sbearssl interface" />
     <meta name="Keywords" content="s6-networking net sbearssl library TLS SSL BearSSL libbearssl" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="../">s6-networking</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>sbearssl</tt> library interface </h1>
@@ -65,7 +65,7 @@ address this.
 <p>
  When reading an object into memory, <tt>sbearssl</tt> stores all
 the bytes of the object in a
-<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>,
+<a href="//skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>,
 and the <tt>sbearssl_*</tt> structures contain indices of bytes in that
 stralloc. That allows the structures to remain valid even when the stralloc
 contents get reallocated and move to some other place in the heap. After
@@ -235,10 +235,10 @@ will perform the PEM decoding for you.
 
 <p>
  Decodes a PEM object, reading from the
-<a href="http://skarnet.org/software/skalibs/libstddjb/buffer.html">buffer</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/buffer.html">buffer</a>
 in *<em>b</em>. The decoded bytes are appended to *<em>sa</em>.
 <em>list</em> points to a
-<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
 containing objects of type <tt>sbearssl_pemobject</tt>.
 One <tt>sbearssl_pemobject</tt> is appended to the genalloc per PEM entity
 decoded from the byte stream read from the buffer.
@@ -258,7 +258,7 @@ obtained with the <tt>sbearssl_error_str()</tt> function.
  Decodes a PEM object from the <em>len</em> bytes pointed to by <em>s</em>.
 The decoded bytes are appended to *<em>sa</em>.
 <em>list</em> points to a
-<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
 containing objects of type <tt>sbearssl_pemobject</tt>.
 One <tt>sbearssl_pemobject</tt> is appended to the genalloc per PEM entity
 found in the bytes in <em>s</em>.
@@ -295,7 +295,7 @@ The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
 
 <p>
  Reads one or more certificates from the file named <em>fn</em> and appends
-them to the <a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+them to the <a href="//skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
 in *<em>list</em>, which is a dynamically growing list of
 <tt>sbearssl_cert</tt> structures. The bytes of the
 (maybe PEM-decoded, but still DER-encoded) certificate are
@@ -331,7 +331,7 @@ obtained with the <tt>sbearssl_error_str()</tt> function.
 <p>
  Reads one or more PEM-encoded certificates from the file named
 <em>fn</em> and appends them to the
-<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
 in *<em>list</em>, which is a dynamically growing list of
 <tt>sbearssl_cert</tt> structures. The bytes of the PEM-decoded (but
 still DER-encoded) certificates are appended to the stralloc
@@ -384,11 +384,11 @@ The indices in <em>l</em> must refer to data stored in the string <em>s</em>.
  Reads a set of trust anchors from a PEM file named <em>fn</em>
 which must contain a list of (intermediate or) root CA certificates.
 The trust anchors are appended to the
-<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
 in *<em>list</em>, which is a dynamically growing list of
 <tt>sbearssl_ta</tt> structures. The contents of the trust anchors
 are appended to *<em>sa</em>, which is a
-<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
 used for storage.
 </p>
 
@@ -407,11 +407,11 @@ obtained with the <tt>sbearssl_error_str()</tt> function.
 which must contain a list of (intermediate or) root CA certificates
 stored as individual DER- or PEM-encoded files.
 The trust anchors are appended to the
-<a href="http://skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/genalloc.html">genalloc</a>
 in *<em>list</em>, which is a dynamically growing list of
 <tt>sbearssl_ta</tt> structures. The contents of the trust anchors
 are appended to *<em>sa</em>, which is a
-<a href="http://skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
+<a href="//skarnet.org/software/skalibs/libstddjb/stralloc.html">stralloc</a>
 used for storage.
 </p>
 
@@ -457,7 +457,7 @@ looks like a DER-encoded object. Returns 1 if it does and 0 otherwise.
 <p>
  Sets the validation time for the X.509 context in *<em>ctx</em> to
 the absolute time contained in *<em>t</em>, which is a
-<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tai_t</a>.
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tai_t</a>.
 Returns 1 if it succeeds, or 0 if it fails - probably
 because *<em>t</em> does not represent a valid time.
 </p>
@@ -466,7 +466,7 @@ because *<em>t</em> does not represent a valid time.
 
 <p>
  Same as the above function, except the time is given as a
-<a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>,
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>,
 i.e. a <tt>tai_t</tt> plus nanoseconds (which are simply ignored).
 </p>
 
@@ -515,7 +515,7 @@ know in advance how many bytes it should get. Modern application
 protocols should all work with EOF. </li>
   </ul> </li>
  <li> <em>tto</em> is a pointer to a
-  <a href="http://skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>
+  <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>
 containing a relative time (i.e. a timeout) If *<em>tto</em> time elapses
 with no application data being exchanged, the engine will forcibly close the
 connection (with the method defined by <tt><em>options</em> &amp; 1</tt>).

@@ -6,15 +6,15 @@
     <title>s6-networking: the ident library interface</title>
     <meta name="Description" content="s6-networking: the ident library interface" />
     <meta name="Keywords" content="s6-networking net ident library libs6net ident RFC 1413" />
-    <!-- <link rel="stylesheet" type="text/css" href="http://skarnet.org/default.css" /> -->
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
 
 <p>
 <a href="index.html">libs6net</a><br />
 <a href="../">s6-networking</a><br />
-<a href="http://skarnet.org/software/">Software</a><br />
-<a href="http://skarnet.org/">skarnet.org</a>
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
 </p>
 
 <h1> The <tt>ident</tt> library interface </h1>
@@ -60,7 +60,7 @@ number of bytes in the answer.
 </p>
 
 <ul>
- <li> An <a href="http://skarnet.org/software/skalibs/libstddjb/ip46.html">ip46_t</a>
+ <li> An <a href="//skarnet.org/software/skalibs/libstddjb/ip46.html">ip46_t</a>
 is a structure holding either an IPv4 address or an IPv6 address. </li>
  <li> If an error occurs, the function returns -1 and sets errno to a
 suitable value. If no answer can be gotten from the server, the function
@@ -78,7 +78,7 @@ as <em>max</em>. </li>
    <li> extended error codes are reported as EEXIST </li>
   </ul> </li>
  <li> *<em>deadline</em> and *<em>stamp</em> are
-<a href="http://skarnet.org/software/skalibs/libstddjb/tai.h">absolute dates</a>:
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.h">absolute dates</a>:
 *<em>stamp</em> must be an accurate enough approximation of the current time, and
 is automatically updated when the function returns. If no answer has been gotten
 from the server by *<em>deadline</em>, then the call is aborted and returns
