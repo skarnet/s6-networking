@@ -52,7 +52,7 @@ int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const 
     x = env_get2(envp, "KEYFILE") ;
     if (!x) strerr_dienotset(100, "KEYFILE") ;
     if (tls_config_set_key_file(cfg, x) < 0)
-      diecfg(cfg, "tls_config_set_cert_file") ;
+      diecfg(cfg, "tls_config_set_key_file") ;
   }
 
   if (tls_config_set_ciphers(cfg, "secure") < 0)
