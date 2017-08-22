@@ -6,13 +6,13 @@ Build Instructions
 
   - A POSIX-compliant C development environment
   - GNU make version 3.81 or later
-  - skalibs version 2.5.1.0 or later: http://skarnet.org/software/skalibs/
-  - execline version 2.3.0.1 or later: http://skarnet.org/software/execline/
-  - s6 version 2.5.1.0 or later: http://skarnet.org/software/s6/
-  - s6-dns version 2.2.0.0 or later: http://skarnet.org/software/s6-dns/
+  - skalibs version 2.6.0.0 or later: http://skarnet.org/software/skalibs/
+  - execline version 2.3.0.2 or later: http://skarnet.org/software/execline/
+  - s6 version 2.6.1.0 or later: http://skarnet.org/software/s6/
+  - s6-dns version 2.2.0.1 or later: http://skarnet.org/software/s6-dns/
   - Depending on whether you build the SSL tools,
         libressl version 2.4.5 or later: http://libressl.org/
-     or bearssl version 0.4 or later: http://bearssl.org/
+     or bearssl version 0.5 or later: http://bearssl.org/
     (BearSSL support is experimental for now, I encourage you to use it
     but be aware it's bleeding-edge and APIs may change.)
 
@@ -29,6 +29,12 @@ POSIX.1-2008, available at:
  will work for most users.
  It will install the binaries in /bin and the static libraries in
 /usr/lib/s6-networking.
+
+ Please note that static libraries in /usr/lib/s6-networking *will not*
+be found by a default linker invocation: you need -L/usr/lib/s6-networking.
+Other skarnet.org software automatically handles that case if the
+default configuration is used, but if you change the configuration,
+remember to use the appropriate --with-lib configure option.
 
  You can strip the binaries and libraries of their extra symbols via
 "make strip" before the "make install" phase. It will shave a few bytes
@@ -208,10 +214,9 @@ against it, you can override the CRYPTO_LIB make variable.
 By default, CRYPTO_LIB is "-lbearssl" when building against BearSSL,
 and "-ltls -lssl -lcrypto" when building against LibreSSL.
 
- As of 2017-05-21, please note that BearSSL is experimental and not
-considered production-ready by its author yet. Nevertheless, it's an
-incredibly promising library with high-quality interfaces and likely
-high-quality implementation. When statically linked against BearSSL,
-the s6-tlsc and s6-tlsd binaries are 1/10th the size of what they are
-when statically linked against LibreSSL, with a smaller RAM footprint
-too.
+ As of 2017-08-22, please note that BearSSL is considered beta quality
+by its author, so use with caution. Nevertheless, it's an incredibly
+promising library with high-quality interfaces and implementation.
+When statically linked against BearSSL, the s6-tlsc and s6-tlsd binaries
+are 1/10th the size of what they are when statically linked against LibreSSL,
+with a smaller RAM footprint too.

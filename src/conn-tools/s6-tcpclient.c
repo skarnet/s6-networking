@@ -374,6 +374,5 @@ int main (int argc, char const *const *argv)
 
   if (fd_move(6, s) < 0) strerr_diefu2sys(111, "set up fd ", "6") ;
   if (fd_copy(7, 6) < 0) strerr_diefu2sys(111, "set up fd ", "7") ;
-  pathexec(argv+2) ;
-  strerr_dieexec(111, argv[2]) ;
+  xpathexec(argv+2) ;
 }

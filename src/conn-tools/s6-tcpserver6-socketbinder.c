@@ -48,6 +48,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (backlog && socket_listen(0, backlog) < 0)
     strerr_diefu5sys(111, "listen to ", argv[0], ":", argv[1], " ") ;
 
-  pathexec_run(argv[2], argv + 2, envp) ;
-  strerr_dieexec(111, argv[2]) ;
+  xpathexec_run(argv[2], argv + 2, envp) ;
 }
