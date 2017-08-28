@@ -112,11 +112,7 @@ int sbearssl_run (br_ssl_engine_context *ctx, int *fds, pid_t pid, unsigned int 
 
    /* Signal */
 
-    if (x[0].revents & IOPAUSE_READ)
-    {
-      handle_signals(pid, &e) ;
-      if (e >= 0) break ;
-    }
+    if (x[0].revents & IOPAUSE_READ) handle_signals(pid, &e) ;
 
 
    /* Flush to local */
