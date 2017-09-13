@@ -228,7 +228,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   }
   else
   {
-    static tain_t const infinite = TAIN_INFINITE ;
+    tain_t infinite ;
     s6dns_dpag_t data[2] = { S6DNS_DPAG_ZERO, S6DNS_DPAG_ZERO } ;
     s6dns_resolve_t blob[2] ;
     char remotebuf[256] ;
@@ -239,6 +239,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     memcpy(tcplocalhost + protolen, "LOCALHOST", 10) ;
     memcpy(tcpremotehost, proto, protolen) ;
     memcpy(tcpremotehost + protolen, "REMOTEHOST", 11) ;
+    tain_add_g(&infinite, &tain_infinite_relative) ;
 
     if (!s6dns_init())
     {
