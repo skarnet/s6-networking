@@ -432,7 +432,7 @@ if $shared ; then
 else
   echo "DO_SHARED :="
 fi
-if $ allpic ; then
+if $allpic ; then
   echo "STATIC_LIBS_ARE_PIC := 1"
 else
   echo "STATIC_LIBS_ARE_PIC :="
