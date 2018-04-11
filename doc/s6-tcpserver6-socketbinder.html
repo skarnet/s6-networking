@@ -26,7 +26,7 @@ socket to an IPv6 address and port, then executes a program.
 <h2> Interface </h2>
 
 <pre>
-     s6-tcpserver6-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] <em>ip</em> <em>port</em> <em>prog...</em>
+     s6-tcpserver6-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] [ -B ] <em>ip</em> <em>port</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -57,12 +57,13 @@ listening</strong>. </li>
 that by default UDP sockets are not connection-mode, and <tt>listen()</tt>
 will fail - so you should always give the <tt>-b0</tt> option to
 s6-tcpserver6-socketbinder along with <tt>-m</tt>. </li>
+ <li> <tt>-B</tt>&nbsp;: create a blocking socket. Default is non-blocking. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
- <li> The socket is provided <strong>non-blocking</strong>. </li>
+ <li> The socket is provided <strong>non-blocking by default</strong>. </li>
  <li> s6-tcpserver6-socketbinder is part of a set of basic blocks used to
 build a flexible TCP/IPv6 super-server. It normally should be given a
 command line crafted to make it execute into
