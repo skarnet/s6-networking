@@ -56,6 +56,7 @@ static tain_t deadline ;
 int main (int argc, char const *const *argv)
 {
   int s ;
+  int localip = 0;
   tflags flags = TFLAGS_DEFAULT ;
   uint16_t remoteport ;
   PROG = "s6-tcpclient" ;
@@ -97,7 +98,7 @@ int main (int argc, char const *const *argv)
           if (!uint0_scan(l.arg + n + 1, &flags.timeoutconn[1])) usage() ;
           break ;
         }
-        case 'i' : if (!ip46_scan(l.arg, &flags.localip)) usage() ; break ;
+        case 'i' : if (!ip46_scan(l.arg, &flags.localip)) usage() ; localip = 1 ; break ;
         case 'p' : if (!uint160_scan(l.arg, &flags.localport)) usage() ; break ;
         default : usage() ;
       }
@@ -222,7 +223,10 @@ int main (int argc, char const *const *argv)
       for (; i < n[j] ; i++)
       {
         tain_t localdeadline ;
-        s = socket_tcp46(ip46_is6(&flags.localip)) ;
+#ifdef SKALIBS_IPV6_ENABLED
+        if(!localip) flags.localip.is6 = ip46_is6(&ip[j][i]);
+#endif
+        s = socket_tcp46(ip46_is6(&flags.localip));
         if (s < 0) strerr_diefu1sys(111, "create socket") ;
         if (socket_bind46(s, &flags.localip, flags.localport) < 0)
           strerr_diefu1sys(111, "bind socket") ;
