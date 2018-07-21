@@ -48,16 +48,12 @@ int sbearssl_ta_readdir (char const *dirfn, genalloc *taga, stralloc *tasa)
   return 0 ;
 
  fail:
-  {
-    int e = errno ;
-    dir_close(dir) ;
-    genalloc_free(sbearssl_cert, &certga) ;
-    stralloc_free(&certsa) ;
-    if (tagawasnull) genalloc_free(sbearssl_ta, taga) ;
-    else genalloc_setlen(sbearssl_ta, taga, tagabase) ;
-    if (tasawasnull) stralloc_free(tasa) ;
-    else tasa->len = tasabase ;
-    errno = e ;
-  }
+  dir_close(dir) ;
+  genalloc_free(sbearssl_cert, &certga) ;
+  stralloc_free(&certsa) ;
+  if (tagawasnull) genalloc_free(sbearssl_ta, taga) ;
+  else genalloc_setlen(sbearssl_ta, taga, tagabase) ;
+  if (tasawasnull) stralloc_free(tasa) ;
+  else tasa->len = tasabase ;
   return -1 ;
 }

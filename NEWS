@@ -1,5 +1,11 @@
 Changelog for s6-networking.
 
+In 2.3.0.3
+----------
+
+ - Compatibility with skalibs-2.7.0.0.
+
+
 In 2.3.0.2
 ----------
 
