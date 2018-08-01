@@ -44,6 +44,7 @@ Optional features:
   --enable-slashpackage[=ROOT]  assume /package installation at ROOT [disabled]
   --enable-absolute-paths       do not rely on PATH to access this package's binaries,
                                   hardcode absolute BINDIR/foobar paths instead [disabled]
+  --enable-nsss                 use the nsss library for user information [disabled]
 
 SSL support:
   --enable-ssl=libressl|bearssl build SSL tools, w/ libtls or bearssl implementation [disabled]
@@ -150,6 +151,7 @@ static=true
 allpic=detect
 slashpackage=false
 abspath=false
+usensss=false
 sproot=
 home=
 exthome=
@@ -192,6 +194,8 @@ for arg ; do
     --disable-slashpackage) sproot= ; slashpackage=false ;;
     --enable-absolute-paths|--enable-absolute-paths=yes) abspath=true ;;
     --disable-absolute-paths|--enable-absolute-paths=no) abspath=false ;;
+    --enable-nsss|--enable-nsss=yes) usensss=true ;;
+    --disable-nsss|--enable-nsss=no) usensss=false ;;
     --enable-ssl=libressl) ssl=tls ;;
     --enable-ssl=bearssl) ssl=bearssl ;;
     --disable-ssl|--enable-ssl=none) ssl= ;;
@@ -436,6 +440,13 @@ if $allpic ; then
   echo "STATIC_LIBS_ARE_PIC := 1"
 else
   echo "STATIC_LIBS_ARE_PIC :="
+fi
+if $usensss ; then
+  echo "LIBNSSS := -lnsss"
+  echo "MAYBEPTHREAD_LIB := -lpthread"
+else
+  echo "LIBNSSS :="
+  echo "MAYBEPTHREAD_LIB :="
 fi
 if test -n $ssl ; then
   echo "SSL_IMPL := $ssl"

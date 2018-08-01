@@ -120,8 +120,8 @@ libs6net.a.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_re
 endif
 libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet
 libs6net.so.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
-minidentd: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
-minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o -lskarnet
+minidentd: EXTRA_LIBS := ${MAYBEPTHREAD_LIB} ${SOCKET_LIB} ${TAINNOW_LIB}
+minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o ${LIBNSSS} -lskarnet
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libsbearssl.a.xyzzy: src/sbearssl/sbearssl_append.o src/sbearssl/sbearssl_prep_spawn_drop.o src/sbearssl/sbearssl_cert_from.o src/sbearssl/sbearssl_cert_readbigpem.o src/sbearssl/sbearssl_cert_readfile.o src/sbearssl/sbearssl_cert_to.o src/sbearssl/sbearssl_ec_issuer_keytype.o src/sbearssl/sbearssl_ec_pkey_from.o src/sbearssl/sbearssl_ec_pkey_to.o src/sbearssl/sbearssl_ec_skey_from.o src/sbearssl/sbearssl_ec_skey_to.o src/sbearssl/sbearssl_error_str.o src/sbearssl/sbearssl_isder.o src/sbearssl/sbearssl_pem_decode_from_buffer.o src/sbearssl/sbearssl_pem_decode_from_string.o src/sbearssl/sbearssl_pem_push.o src/sbearssl/sbearssl_pkey_from.o src/sbearssl/sbearssl_pkey_to.o src/sbearssl/sbearssl_rsa_pkey_from.o src/sbearssl/sbearssl_rsa_pkey_to.o src/sbearssl/sbearssl_rsa_skey_from.o src/sbearssl/sbearssl_rsa_skey_to.o src/sbearssl/sbearssl_run.o src/sbearssl/sbearssl_skey_from.o src/sbearssl/sbearssl_skey_readfile.o src/sbearssl/sbearssl_skey_to.o src/sbearssl/sbearssl_ta_cert.o src/sbearssl/sbearssl_ta_certs.o src/sbearssl/sbearssl_ta_from.o src/sbearssl/sbearssl_ta_readdir.o src/sbearssl/sbearssl_ta_readfile.o src/sbearssl/sbearssl_ta_to.o src/sbearssl/sbearssl_x500_name_len.o src/sbearssl/sbearssl_x500_from_ta.o src/sbearssl/sbearssl_x509_minimal_set_tai.o src/sbearssl/sbearssl_s6tlsc.o src/sbearssl/sbearssl_s6tlsd.o
 else

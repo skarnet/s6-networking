@@ -1,4 +1,6 @@
 mgetuid.o
+${LIBNSSS}
 -lskarnet
+${MAYBEPTHREAD_LIB}
 ${SOCKET_LIB}
 ${TAINNOW_LIB}
