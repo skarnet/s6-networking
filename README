@@ -8,7 +8,7 @@ across UNIX domain sockets, IDENT protocol management,
 clock synchronization, and secure connections using the
 TLS protocol.
 
- See http://skarnet.org/software/s6-networking/ for details.
+ See https://skarnet.org/software/s6-networking/ for details.
 
 
 * Installation
