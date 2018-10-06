@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/allreadwrite.h>
+#include <skalibs/uint16.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
@@ -330,7 +331,17 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     if (flag1)
     {
-      fd_write(1, "\n", 1) ;
+      uint16_t port ;
+      uint16_t m = 0 ;
+      char ip[16] ;
+      char fmtport[UINT16_FMT] ;
+      if (socket_local6(0, ip, &port) == -1)
+      {
+        if (verbosity) strerr_warnwu1sys("socket_local6") ;
+      }
+      else m = uint16_fmt(fmtport, port) ;
+      fmtport[m++] = '\n' ;
+      allwrite(1, fmtport, m) ;
       fd_close(1) ;
     }
     fmtlocalmaxconn[1+uint_fmt(fmtlocalmaxconn+1, localmaxconn)] = 0 ;
