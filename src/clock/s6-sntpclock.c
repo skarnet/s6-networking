@@ -4,12 +4,12 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
-#include <skalibs/error.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/uint64.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/error.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbtime.h>

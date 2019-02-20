@@ -2,9 +2,11 @@
 
 #include <string.h>
 #include <errno.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/uint16.h>
 #include <skalibs/bytestr.h>
-#include <skalibs/error.h>
+
 #include <s6-networking/ident.h>
 
 static size_t skipspace (char const *s)

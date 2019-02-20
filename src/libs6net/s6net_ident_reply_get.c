@@ -1,13 +1,15 @@
 /* ISC license. */
 
 #include <errno.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/uint16.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/buffer.h>
-#include <skalibs/error.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/ip46.h>
 #include <skalibs/unix-timed.h>
+
 #include <s6-networking/ident.h>
 
 ssize_t s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16_t remoteport, ip46_t const *localip, uint16_t localport, tain_t const *deadline, tain_t *stamp)

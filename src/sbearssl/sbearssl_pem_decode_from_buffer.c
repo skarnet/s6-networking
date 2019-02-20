@@ -2,11 +2,14 @@
 
 #include <sys/uio.h>
 #include <errno.h>
+
 #include <bearssl.h>
-#include <skalibs/error.h>
+
+#include <skalibs/posixishard.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
+
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
