@@ -6,6 +6,7 @@ In 2.3.0.4
  - Compatibility with skalibs-2.8.0.0.
  - Conforming to the documentation, s6-tcpserver[46]d now prints
 its local port to stdout when it is ready, as a notification message.
+ - Everything builds as PIC by default.
 
 
 In 2.3.0.3
