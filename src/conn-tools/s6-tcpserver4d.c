@@ -355,12 +355,10 @@ int main (int argc, char const *const *argv, char const *const *envp)
     pidip = pidip_inyostack ; ipnum = ipnum_inyostack ;
     while (cont)
     {
-      int h = numconn < maxconn ;
-      if (iopause_g(x, 1 + h, 0) < 0) strerr_diefu1sys(111, "iopause") ;
-
+      if (iopause_g(x, 1 + (numconn < maxconn), 0) < 0) strerr_diefu1sys(111, "iopause") ;
       if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with selfpipe") ;
-      if (x[0].revents & IOPAUSE_READ) handle_signals() ;
-      if (h)
+      if (x[0].revents & IOPAUSE_READ)  { handle_signals() ; continue ; }
+      if (numconn < maxconn)
       {
         if (x[1].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with socket") ;
         if (x[1].revents & IOPAUSE_READ)
