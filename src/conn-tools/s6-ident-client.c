@@ -50,6 +50,7 @@ int main (int argc, char const *const *argv)
   if (ip46_is6(&ra) != ip46_is6(&la))
     strerr_dief1x(100, "address family mismatch") ;
 
+  tain_now_set_stopwatch() ;
   tain_now_g() ;
   tain_add_g(&deadline, &deadline) ;
 

@@ -46,7 +46,7 @@ int main (int argc, char const *const *argv)
     {
       tain_t now ;
       packet[0] = 's' ;
-      if (!tain_sysclock(&now)) strerr_diefu1sys(111, "tain_sysclock") ;
+      if (!tain_wallclock_read(&now)) strerr_diefu1sys(111, "tain_wallclock_read") ;
       tain_pack(packet + 4, &now) ;
       if (socket_send46(s, packet, r, &ip, port) < 0)
         strerr_warnwu1sys("socket_send") ;

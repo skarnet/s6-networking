@@ -133,6 +133,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (socket_tcpnodelay(1) < 0)
       if (verbosity) strerr_warnwu1sys("socket_tcpnodelay") ;
   }
+  tain_now_set_stopwatch() ;
   tain_now_g() ;
   tain_add_g(&deadline, &tto) ;
   if (!buffer_timed_flush_g(buffer_1small, &deadline))
