@@ -252,8 +252,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (!random_init())
     strerr_diefu1sys(111, "init random generator") ;
 
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
                                                                                     
   for (;;)
   {

@@ -111,8 +111,7 @@ int main (int argc, char const *const *argv)
 #endif
   if (!uint160_scan(argv[1], &remoteport))
     strerr_dief2x(100, "invalid port number: ", argv[1]) ;
-  tain_now_set_stopwatch() ;
-  tain_now_g() ;
+  tain_now_set_stopwatch_g() ;
   if (flags.timeout) tain_addsec_g(&deadline, flags.timeout) ;
   else tain_add_g(&deadline, &tain_infinite_relative) ;
   if (!s6dns_init()) strerr_diefu1sys(111, "init DNS") ; 

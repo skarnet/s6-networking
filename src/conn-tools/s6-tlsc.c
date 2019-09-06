@@ -93,6 +93,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (x && !gid0_scan(x, &gid)) strerr_dieinvalid(100, "TLS_GID") ;
   }
 
-  tain_now_set_stopwatch() ;
+  tain_now_set_stopwatch_g() ;
   return s6tlsc(argv, envp, &tto, preoptions, options, uid, gid, verbosity, servername, fds) ;
 }
