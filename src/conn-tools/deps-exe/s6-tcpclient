@@ -2,4 +2,4 @@ ${LIBS6NET}
 -ls6dns
 -lskarnet
 ${SOCKET_LIB}
-${TAINNOW_LIB}
+${SYSCLOCK_LIB}

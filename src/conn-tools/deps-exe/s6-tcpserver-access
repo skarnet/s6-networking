@@ -3,4 +3,4 @@ ${LIBS6NET}
 -ls6
 -lskarnet
 ${SOCKET_LIB}
-${TAINNOW_LIB}
+${SYSCLOCK_LIB}

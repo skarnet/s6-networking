@@ -77,21 +77,21 @@ s6-clockadd: EXTRA_LIBS := ${SYSCLOCK_LIB}
 s6-clockadd: src/clock/s6-clockadd.o -lskarnet
 s6-clockview: EXTRA_LIBS := ${SYSCLOCK_LIB}
 s6-clockview: src/clock/s6-clockview.o -lskarnet
-s6-sntpclock: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-sntpclock: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-sntpclock: src/clock/s6-sntpclock.o -lskarnet
-s6-taiclock: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-taiclock: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-taiclock: src/clock/s6-taiclock.o -lskarnet
 s6-taiclockd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-taiclockd: src/clock/s6-taiclockd.o -lskarnet
 s6-getservbyname: EXTRA_LIBS := ${SOCKET_LIB}
 s6-getservbyname: src/conn-tools/s6-getservbyname.o -lskarnet
-s6-ident-client: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-ident-client: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-ident-client: src/conn-tools/s6-ident-client.o ${LIBS6NET} -lskarnet
-s6-tcpclient: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tcpclient: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-tcpclient: src/conn-tools/s6-tcpclient.o ${LIBS6NET} -ls6dns -lskarnet
 s6-tcpserver: EXTRA_LIBS :=
 s6-tcpserver: src/conn-tools/s6-tcpserver.o -lskarnet
-s6-tcpserver-access: EXTRA_LIBS := ${SOCKET_LIB} ${TAINNOW_LIB}
+s6-tcpserver-access: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o ${LIBS6NET} -ls6dns -ls6 -lskarnet
 s6-tcpserver4: EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver4: src/conn-tools/s6-tcpserver4.o -lskarnet
@@ -105,11 +105,11 @@ s6-tcpserver6-socketbinder: EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o -lskarnet
 s6-tcpserver6d: EXTRA_LIBS := ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o -lskarnet
-s6-tlsc: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${SPAWN_LIB} ${TAINNOW_LIB}
+s6-tlsc: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${SPAWN_LIB} ${SYSCLOCK_LIB}
 s6-tlsc: src/conn-tools/s6-tlsc.o ${LIBCRYPTOSUPPORT} -lskarnet
 s6-tlsclient: EXTRA_LIBS :=
 s6-tlsclient: src/conn-tools/s6-tlsclient.o -lskarnet
-s6-tlsd: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${SPAWN_LIB} ${TAINNOW_LIB}
+s6-tlsd: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${SPAWN_LIB} ${SYSCLOCK_LIB}
 s6-tlsd: src/conn-tools/s6-tlsd.o ${LIBCRYPTOSUPPORT} -lskarnet
 s6-tlsserver: EXTRA_LIBS :=
 s6-tlsserver: src/conn-tools/s6-tlsserver.o -lskarnet
@@ -120,7 +120,7 @@ libs6net.a.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_re
 endif
 libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet
 libs6net.so.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
-minidentd: EXTRA_LIBS := ${MAYBEPTHREAD_LIB} ${SOCKET_LIB} ${TAINNOW_LIB}
+minidentd: EXTRA_LIBS := ${MAYBEPTHREAD_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
 minidentd: src/minidentd/minidentd.o src/minidentd/mgetuid.o ${LIBNSSS} -lskarnet
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libsbearssl.a.xyzzy: src/sbearssl/sbearssl_append.o src/sbearssl/sbearssl_prep_spawn_drop.o src/sbearssl/sbearssl_cert_from.o src/sbearssl/sbearssl_cert_readbigpem.o src/sbearssl/sbearssl_cert_readfile.o src/sbearssl/sbearssl_cert_to.o src/sbearssl/sbearssl_ec_issuer_keytype.o src/sbearssl/sbearssl_ec_pkey_from.o src/sbearssl/sbearssl_ec_pkey_to.o src/sbearssl/sbearssl_ec_skey_from.o src/sbearssl/sbearssl_ec_skey_to.o src/sbearssl/sbearssl_error_str.o src/sbearssl/sbearssl_isder.o src/sbearssl/sbearssl_pem_decode_from_buffer.o src/sbearssl/sbearssl_pem_decode_from_string.o src/sbearssl/sbearssl_pem_push.o src/sbearssl/sbearssl_pkey_from.o src/sbearssl/sbearssl_pkey_to.o src/sbearssl/sbearssl_rsa_pkey_from.o src/sbearssl/sbearssl_rsa_pkey_to.o src/sbearssl/sbearssl_rsa_skey_from.o src/sbearssl/sbearssl_rsa_skey_to.o src/sbearssl/sbearssl_run.o src/sbearssl/sbearssl_skey_from.o src/sbearssl/sbearssl_skey_readfile.o src/sbearssl/sbearssl_skey_to.o src/sbearssl/sbearssl_ta_cert.o src/sbearssl/sbearssl_ta_certs.o src/sbearssl/sbearssl_ta_from.o src/sbearssl/sbearssl_ta_readdir.o src/sbearssl/sbearssl_ta_readfile.o src/sbearssl/sbearssl_ta_to.o src/sbearssl/sbearssl_x500_name_len.o src/sbearssl/sbearssl_x500_from_ta.o src/sbearssl/sbearssl_x509_minimal_set_tai.o src/sbearssl/sbearssl_s6tlsc.o src/sbearssl/sbearssl_s6tlsd.o
