@@ -1,4 +1,4 @@
 package=s6-networking
-version=2.3.1.0
+version=2.3.1.1
 category=net
 package_macro_name=S6_NETWORKING
