@@ -9,7 +9,7 @@
 #include <s6/config.h>
 #include <s6-networking/config.h>
 
-#define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
+#define USAGE "s6-tlsserver [ -e ] [ options ] ip port prog...\n" \
 "s6-tcpserver options: [ -q | -Q | -v ] [ -4 | -6 ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
 "s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
 "s6-tlsd options: [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ]"
@@ -44,6 +44,7 @@ struct options_s
   unsigned int flagS : 1 ;
   unsigned int flagy : 1 ;
   unsigned int flagZ : 1 ;
+  unsigned int onlyvars : 1 ;
   unsigned int doaccess : 1 ;
   unsigned int doapply : 1 ;
 } ;
@@ -74,6 +75,7 @@ struct options_s
   .flagS = 0, \
   .flagy = 0, \
   .flagZ = 0, \
+  .onlyvars = 0, \
   .doaccess = 0, \
   .doapply = 0 \
 }
@@ -86,7 +88,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsYyK:Zz", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpleB:t:i:x:SsYyK:Zz", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -114,6 +116,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'P' : o.flagp = 0 ; break ;
         case 'p' : o.flagp = 1 ; o.doaccess = 1 ; break ;
         case 'l' : o.localname = l.arg ; o.doaccess = 1 ; break ;
+        case 'e' : o.onlyvars = 1 ; o.doaccess = 1 ; break ;
         case 'B' : o.banner = l.arg ; o.doaccess = 1 ; break ;
         case 't' : if (!uint0_scan(l.arg, &o.timeout)) dieusage() ; break ;
         case 'i' : o.rules = l.arg ; o.ruleswhat = 1 ; o.doaccess = 1 ; break ;
@@ -168,8 +171,13 @@ int main (int argc, char const *const *argv, char const *const *envp)
     if (o.doaccess)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-access" ;
-      if (o.verbosity != 1)
-        newargv[m++] = o.verbosity ? "-v2" : "-v0" ;
+      if (o.verbosity)
+      {
+        if (o.verbosity > 1 && (!o.onlyvars || o.ruleswhat))
+          newargv[m++] = "-v2" ;
+      }
+      else newargv[m++] = "-v0" ;
+
       if (o.flagw) newargv[m++] = "-w" ;
       if (o.flagD) newargv[m++] = "-D" ;
       if (o.flagH) newargv[m++] = "-H" ;

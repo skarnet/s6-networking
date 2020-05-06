@@ -148,6 +148,19 @@ generally work, but unless you're running a very public server
 certificates, you probably still want TCP access rules.
 </p>
 
+<h3> Options handled directly by s6-tlsserver </h3>
+
+<ul>
+ <li> <tt>-e</tt>:&nbsp;: indicates that
+<a href="s6-tcpserver-access.html">s6-tcpserver-access</a> should
+be invoked, even if no other option requires it, even in the absence
+of an access control ruleset. This ensures that <em>prog...</em>
+will always have access to environment variables such as TCPLOCALPORT.
+This option also ensures that the log does not get spammed with
+spurious "no ruleset" warnings if the <tt>-v</tt> option has been
+given but no <tt>-i</tt> or <tt>-x</tt> option. </li>
+</ul>
+
 <h3> Options passed as is to s6-tcpserver </h3>
 
 <ul>
@@ -191,7 +204,6 @@ certificates, you probably still want TCP access rules.
 </ul>
 
 <h2> Example </h2>
-
 
 <p>
  As root:
