@@ -33,7 +33,7 @@ socket to an IPv6 address and port, then executes a program.
  <li> s6-tcpserver6-socketbinder creates an TCP socket
 and binds it to IPv6 address <em>ip</em>, port <em>port</em>.
 It prepares the socket to accept connections by calling
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html">listen()</a>. </li>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html">listen()</a>. </li>
  <li> It then execs into <em>prog...</em> with the open socket
 as its standard input. </li>
 </ul>
@@ -43,7 +43,7 @@ as its standard input. </li>
 <ul>
  <li> <tt>-d</tt>&nbsp;: allow instant rebinding to the same IP and port
 even if it has been used not long ago - this is the SO_REUSEADDR flag to
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/setsockopt.html">setsockopt()</a>
 and is generally used with server programs. This is the default. </li>
  <li> <tt>-D</tt>&nbsp;: disallow instant rebinding to the same path. </li>
  <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of

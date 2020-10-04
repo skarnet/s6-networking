@@ -86,7 +86,7 @@ server is more than 34 years away from the time given by the system clock,
 then NTP just cannot compute. This is a problem for CMOS-less systems,
 where the system clock is initialized to the Unix Epoch. The solution
 is to first manually initialize the system clock with a program such as
-<a href="http://pubs.opengroup.org/onlinepubs/9699919799/utilities/date.html">date</a> or
+<a href="https://pubs.opengroup.org/onlinepubs/9699919799/utilities/date.html">date</a> or
 <a href="//skarnet.org/software/s6-portable-utils/s6-clock.html">s6-clock</a>
 to a closer time (such as 2013-01-01, which will be good up to 2047), then
 contact the NTP server. </li>
@@ -106,9 +106,9 @@ do so. </li>
 
 <p>
  From a Unix software engineering standpoint, the well-known
-<a href="http://doc.ntp.org/4.1.0/ntpd.htm">ntpd</a> program is an
+<a href="https://doc.ntp.org/4.1.0/ntpd.htm">ntpd</a> program is an
 eldritch abomination. The main reason for it is that, just like its
-lovely cousin <a href="http://www.isc.org/downloads/bind/">BIND</a>,
+lovely cousin <a href="https://www.isc.org/downloads/bind/">BIND</a>,
 ntpd performs a lot of different tasks in a unique process, instead
 of separating what could, and should, be separated. This is confusing
 for both the programmer <em>and</em> the software user.
@@ -133,7 +133,7 @@ is the regular setting of the system clock, which can be done with
 a loop over a simple program such as <a href="s6-clockadd.html">s6-clockadd</a>.
 There is also control of the clock skew, which s6-networking does not
 provide because there is no portable interface for that; there is such a tool
-in the <a href="http://cr.yp.to/clockspeed.html">clockspeed</a> package. </li>
+in the <a href="https://cr.yp.to/clockspeed.html">clockspeed</a> package. </li>
  <li> ntpd includes a complete cryptographic key management system for the
 crypto part of NTP. NTP is not the only protocol that uses cryptography
 and asymmetric keys; managing keys in a separate tool, not in the NTP
