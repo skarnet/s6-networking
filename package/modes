@@ -17,5 +17,8 @@ s6-taiclockd			0755
 minidentd			0755
 s6-tlsclient			0755
 s6-tlsc				0755
+s6-tlsc-io			0755
 s6-tlsserver			0755
 s6-tlsd				0755
+s6-tlsd-io			0755
+s6-ucspitlsd			0755

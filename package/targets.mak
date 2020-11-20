@@ -32,7 +32,8 @@ src/minidentd/mgetuid.c: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid-def
 
 ifneq ($(SSL_IMPL),)
 
-BIN_TARGETS += s6-tlsclient s6-tlsc s6-tlsserver s6-tlsd
+BIN_TARGETS += s6-tlsclient s6-tlsc s6-tlsc-io s6-tlsserver s6-tlsd s6-tlsd-io s6-ucspitlsd
+INTERNAL_LIBS += libs6tls.a.xyzzy
 
 ifeq ($(SSL_IMPL),tls)
 

@@ -1,6 +1,5 @@
-stls_prep_spawn_drop.o
 stls_run.o
-stls_s6tlsc.o
-stls_s6tlsd.o
--ltls
+stls_client_init_and_handshake.o
+stls_server_init_and_handshake.o
+${CRYPTO_LIB}
 -lskarnet

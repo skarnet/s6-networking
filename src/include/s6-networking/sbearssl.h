@@ -5,7 +5,10 @@
 
 #include <sys/types.h>
 #include <stdint.h>
+
 #include <bearssl.h>
+
+#include <skalibs/gccattributes.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
@@ -202,12 +205,21 @@ extern char const *sbearssl_error_str (int) ;
 
  /* Engine */
 
-extern int sbearssl_run (br_ssl_engine_context *, int *, pid_t, unsigned int, uint32_t, tain_t const *) ;
+typedef struct sbearssl_handshake_cb_context_s sbearssl_handshake_cb_context_t, *sbearssl_handshake_cb_context_t_ref ;
+struct sbearssl_handshake_cb_context_s
+{
+  unsigned int notif ;
+} ;
+
+typedef int sbearssl_handshake_cb_t (br_ssl_engine_context *, sbearssl_handshake_cb_context_t *) ;
+typedef sbearssl_handshake_cb_t *sbearssl_handshake_cb_t_ref ;
+
+extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32_t, unsigned int, sbearssl_handshake_cb_t_ref, sbearssl_handshake_cb_context_t *) gccattr_noreturn ;
 
 
- /* s6-tlsc and s6-tlsd implementations */
+ /* s6-tlsc-io and s6-tlsd-io implementations */
 
-extern int sbearssl_s6tlsc (char const *const *, char const *const *, tain_t const *, uint32_t, uint32_t, uid_t, gid_t, unsigned int, char const *, int *) ;
-extern int sbearssl_s6tlsd (char const *const *, char const *const *, tain_t const *, uint32_t, uint32_t, uid_t, gid_t, unsigned int) ;
+extern void sbearssl_client_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, char const *, sbearssl_handshake_cb_t_ref, unsigned int) gccattr_noreturn ;
+extern void sbearssl_server_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, sbearssl_handshake_cb_t_ref, unsigned int) gccattr_noreturn ;
 
 #endif

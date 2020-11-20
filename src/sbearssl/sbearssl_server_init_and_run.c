@@ -1,31 +1,30 @@
 /* ISC license. */
 
-#include <unistd.h>
-#include <errno.h>
+#include <stdint.h>
+#include <stdlib.h>
+
 #include <bearssl.h>
+
 #include <skalibs/strerr2.h>
-#include <skalibs/env.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
-#include <skalibs/djbunix.h>
 #include <skalibs/random.h>
+
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
-int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity)
+void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, unsigned int notif)
 {
-  int fds[5] = { 0, 1, 0, 1 } ;
   stralloc storage = STRALLOC_ZERO ;
   sbearssl_skey skey ;
   genalloc certs = GENALLOC_ZERO ;
   size_t chainlen ;
-  pid_t pid ;
 
   if (preoptions & 1)
     strerr_dief1x(100, "client certificates are not supported yet") ;
 
   {
-    char const *x = env_get2(envp, "KEYFILE") ;
+    char const *x = getenv("KEYFILE") ;
     int r ;
     if (!x) strerr_dienotset(100, "KEYFILE") ;
     r = sbearssl_skey_readfile(x, &skey, &storage) ;
@@ -34,7 +33,7 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
     else if (r)
       strerr_diefu4x(96, "decode private key in ", x, ": ", sbearssl_error_str(r)) ;
 
-    x = env_get2(envp, "CERTFILE") ;
+    x = getenv("CERTFILE") ;
     if (!x) strerr_dienotset(100, "CERTFILE") ;
     r = sbearssl_cert_readbigpem(x, &certs, &storage) ;
     if (r < 0)
@@ -46,17 +45,13 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
       strerr_diefu2x(96, "find a certificate in ", x) ;
   }
 
-  if (!random_init()) strerr_diefu1sys(111, "initialize random generator") ;
-
-  pid = sbearssl_prep_spawn_drop(argv, envp, fds, uid, gid, !!(preoptions & 2)) ;
-
   {
+    sbearssl_handshake_cb_context_t cbarg = { .notif = notif } ;
     unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
     br_ssl_server_context sc ;
     union br_skey_u key ;
     br_x509_certificate chain[chainlen] ;
     size_t i = chainlen ;
-    int wstat ;
 
     stralloc_shrink(&storage) ;
     while (i--)
@@ -93,20 +88,16 @@ int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t co
       if (preoptions & 1)
       {
         /* br_ssl_server_set_trust_anchor_names(&sc, x500names, x500n) ; */
-        if (!(preoptions & 4)) flags |= BR_OPT_TOLERATE_NO_CLIENT_AUTH ;
+        if (!(preoptions & 2)) flags |= BR_OPT_TOLERATE_NO_CLIENT_AUTH ;
       }
       br_ssl_engine_add_flags(&sc.eng, flags) ;
     }
 
     random_string((char *)buf, 32) ;
-    br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
     random_finish() ;
+    br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
     br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
     br_ssl_server_reset(&sc) ;
-    tain_now_g() ;
-
-    wstat = sbearssl_run(&sc.eng, fds, pid, verbosity, options, tto) ;
-    if (wstat < 0 && wait_pid(pid, &wstat) < 0) strerr_diefu1sys(111, "wait_pid") ;
-    return wait_estatus(wstat) ;
+    sbearssl_run(&sc.eng, fds, tto, options, verbosity, cb, &cbarg) ;
   }
 }

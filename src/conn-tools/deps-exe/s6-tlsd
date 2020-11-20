@@ -1,6 +1,2 @@
-${LIBCRYPTOSUPPORT}
+libs6tls.a.xyzzy
 -lskarnet
-${CRYPTO_LIB}
-${SOCKET_LIB}
-${SPAWN_LIB}
-${SYSCLOCK_LIB}

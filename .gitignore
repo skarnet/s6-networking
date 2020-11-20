@@ -8,6 +8,7 @@
 /libsbearssl.so.xyzzy
 /libstls.a.xyzzy
 /libstls.so.xyzzy
+/libs6tls.a.xyzzy
 /minidentd
 /s6-clockadd
 /s6-clockview
@@ -29,4 +30,7 @@
 /s6-tlsclient
 /s6-tlsd
 /s6-tlsserver
+/s6-tlsc-io
+/s6-tlsd-io
+/s6-ucspitlsd
 /src/minidentd/mgetuid.c
