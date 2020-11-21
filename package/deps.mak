@@ -20,18 +20,6 @@ src/conn-tools/s6-tcpserver4d.o src/conn-tools/s6-tcpserver4d.lo: src/conn-tools
 src/conn-tools/s6-tcpserver6-socketbinder.o src/conn-tools/s6-tcpserver6-socketbinder.lo: src/conn-tools/s6-tcpserver6-socketbinder.c
 src/conn-tools/s6-tcpserver6.o src/conn-tools/s6-tcpserver6.lo: src/conn-tools/s6-tcpserver6.c src/include/s6-networking/config.h
 src/conn-tools/s6-tcpserver6d.o src/conn-tools/s6-tcpserver6d.lo: src/conn-tools/s6-tcpserver6d.c
-src/conn-tools/s6-tlsc-io.o src/conn-tools/s6-tlsc-io.lo: src/conn-tools/s6-tlsc-io.c src/include/s6-networking/config.h src/include/s6-networking/sbearssl.h src/include/s6-networking/stls.h
-src/conn-tools/s6-tlsc.o src/conn-tools/s6-tlsc.lo: src/conn-tools/s6-tlsc.c src/conn-tools/s6tls-internal.h
-src/conn-tools/s6-tlsclient.o src/conn-tools/s6-tlsclient.lo: src/conn-tools/s6-tlsclient.c src/include/s6-networking/config.h
-src/conn-tools/s6-tlsd-io.o src/conn-tools/s6-tlsd-io.lo: src/conn-tools/s6-tlsd-io.c src/include/s6-networking/config.h src/include/s6-networking/sbearssl.h src/include/s6-networking/stls.h
-src/conn-tools/s6-tlsd.o src/conn-tools/s6-tlsd.lo: src/conn-tools/s6-tlsd.c src/conn-tools/s6tls-internal.h
-src/conn-tools/s6-tlsserver.o src/conn-tools/s6-tlsserver.lo: src/conn-tools/s6-tlsserver.c src/include/s6-networking/config.h
-src/conn-tools/s6-ucspitlsc.o src/conn-tools/s6-ucspitlsc.lo: src/conn-tools/s6-ucspitlsc.c src/include/s6-networking/config.h src/conn-tools/s6tls-internal.h
-src/conn-tools/s6-ucspitlsd.o src/conn-tools/s6-ucspitlsd.lo: src/conn-tools/s6-ucspitlsd.c src/include/s6-networking/config.h src/conn-tools/s6tls-internal.h
-src/conn-tools/s6tls_exec_tlscio.o src/conn-tools/s6tls_exec_tlscio.lo: src/conn-tools/s6tls_exec_tlscio.c src/include/s6-networking/config.h src/conn-tools/s6tls-internal.h
-src/conn-tools/s6tls_exec_tlsdio.o src/conn-tools/s6tls_exec_tlsdio.lo: src/conn-tools/s6tls_exec_tlsdio.c src/include/s6-networking/config.h src/conn-tools/s6tls-internal.h
-src/conn-tools/s6tls_sync_and_exec_app.o src/conn-tools/s6tls_sync_and_exec_app.lo: src/conn-tools/s6tls_sync_and_exec_app.c src/conn-tools/s6tls-internal.h
-src/conn-tools/s6tls_ucspi_exec_app.o src/conn-tools/s6tls_ucspi_exec_app.lo: src/conn-tools/s6tls_ucspi_exec_app.c src/conn-tools/s6tls-internal.h
 src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_client.lo: src/libs6net/s6net_ident_client.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_error.o src/libs6net/s6net_ident_error.lo: src/libs6net/s6net_ident_error.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_get.lo: src/libs6net/s6net_ident_reply_get.c src/include/s6-networking/ident.h
@@ -80,6 +68,18 @@ src/stls/stls_client_init_and_handshake.o src/stls/stls_client_init_and_handshak
 src/stls/stls_drop.o src/stls/stls_drop.lo: src/stls/stls_drop.c src/stls/stls-internal.h
 src/stls/stls_run.o src/stls/stls_run.lo: src/stls/stls_run.c src/include/s6-networking/stls.h
 src/stls/stls_server_init_and_handshake.o src/stls/stls_server_init_and_handshake.lo: src/stls/stls_server_init_and_handshake.c src/include/s6-networking/stls.h src/stls/stls-internal.h
+src/tls/s6-tlsc-io.o src/tls/s6-tlsc-io.lo: src/tls/s6-tlsc-io.c src/include/s6-networking/config.h src/include/s6-networking/sbearssl.h src/include/s6-networking/stls.h
+src/tls/s6-tlsc.o src/tls/s6-tlsc.lo: src/tls/s6-tlsc.c src/tls/s6tls-internal.h
+src/tls/s6-tlsclient.o src/tls/s6-tlsclient.lo: src/tls/s6-tlsclient.c src/include/s6-networking/config.h
+src/tls/s6-tlsd-io.o src/tls/s6-tlsd-io.lo: src/tls/s6-tlsd-io.c src/include/s6-networking/config.h src/include/s6-networking/sbearssl.h src/include/s6-networking/stls.h
+src/tls/s6-tlsd.o src/tls/s6-tlsd.lo: src/tls/s6-tlsd.c src/tls/s6tls-internal.h
+src/tls/s6-tlsserver.o src/tls/s6-tlsserver.lo: src/tls/s6-tlsserver.c src/include/s6-networking/config.h
+src/tls/s6-ucspitlsc.o src/tls/s6-ucspitlsc.lo: src/tls/s6-ucspitlsc.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
+src/tls/s6-ucspitlsd.o src/tls/s6-ucspitlsd.lo: src/tls/s6-ucspitlsd.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
+src/tls/s6tls_exec_tlscio.o src/tls/s6tls_exec_tlscio.lo: src/tls/s6tls_exec_tlscio.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
+src/tls/s6tls_exec_tlsdio.o src/tls/s6tls_exec_tlsdio.lo: src/tls/s6tls_exec_tlsdio.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
+src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_sync_and_exec_app.lo: src/tls/s6tls_sync_and_exec_app.c src/tls/s6tls-internal.h
+src/tls/s6tls_ucspi_exec_app.o src/tls/s6tls_ucspi_exec_app.lo: src/tls/s6tls_ucspi_exec_app.c src/tls/s6tls-internal.h
 
 s6-clockadd: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
 s6-clockadd: src/clock/s6-clockadd.o
@@ -91,13 +91,6 @@ s6-taiclock: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-taiclock: src/clock/s6-taiclock.o
 s6-taiclockd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-taiclockd: src/clock/s6-taiclockd.o
-ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
-libs6tls.a.xyzzy: src/conn-tools/s6tls_exec_tlscio.o src/conn-tools/s6tls_exec_tlsdio.o src/conn-tools/s6tls_sync_and_exec_app.o src/conn-tools/s6tls_ucspi_exec_app.o
-else
-libs6tls.a.xyzzy: src/conn-tools/s6tls_exec_tlscio.lo src/conn-tools/s6tls_exec_tlsdio.lo src/conn-tools/s6tls_sync_and_exec_app.lo src/conn-tools/s6tls_ucspi_exec_app.lo
-endif
-libs6tls.so.xyzzy: EXTRA_LIBS :=
-libs6tls.so.xyzzy: src/conn-tools/s6tls_exec_tlscio.lo src/conn-tools/s6tls_exec_tlsdio.lo src/conn-tools/s6tls_sync_and_exec_app.lo src/conn-tools/s6tls_ucspi_exec_app.lo
 s6-getservbyname: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-getservbyname: src/conn-tools/s6-getservbyname.o
 s6-ident-client: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
@@ -120,22 +113,6 @@ s6-tcpserver6-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o
 s6-tcpserver6d: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o
-s6-tlsc: EXTRA_LIBS := -lskarnet
-s6-tlsc: src/conn-tools/s6-tlsc.o libs6tls.a.xyzzy
-s6-tlsc-io: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-tlsc-io: src/conn-tools/s6-tlsc-io.o ${LIBCRYPTOSUPPORT}
-s6-tlsclient: EXTRA_LIBS := -lskarnet
-s6-tlsclient: src/conn-tools/s6-tlsclient.o
-s6-tlsd: EXTRA_LIBS := -lskarnet
-s6-tlsd: src/conn-tools/s6-tlsd.o libs6tls.a.xyzzy
-s6-tlsd-io: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-tlsd-io: src/conn-tools/s6-tlsd-io.o ${LIBCRYPTOSUPPORT}
-s6-tlsserver: EXTRA_LIBS := -lskarnet
-s6-tlsserver: src/conn-tools/s6-tlsserver.o
-s6-ucspitlsc: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-ucspitlsc: src/conn-tools/s6-ucspitlsc.o libs6tls.a.xyzzy
-s6-ucspitlsd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-ucspitlsd: src/conn-tools/s6-ucspitlsd.o libs6tls.a.xyzzy
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
 else
@@ -159,3 +136,26 @@ libstls.a.xyzzy: src/stls/stls_drop.lo src/stls/stls_run.lo src/stls/stls_client
 endif
 libstls.so.xyzzy: EXTRA_LIBS := ${CRYPTO_LIB} -lskarnet
 libstls.so.xyzzy: src/stls/stls_drop.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo
+ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
+libs6tls.a.xyzzy: src/tls/s6tls_exec_tlscio.o src/tls/s6tls_exec_tlsdio.o src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_ucspi_exec_app.o
+else
+libs6tls.a.xyzzy: src/tls/s6tls_exec_tlscio.lo src/tls/s6tls_exec_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
+endif
+libs6tls.so.xyzzy: EXTRA_LIBS :=
+libs6tls.so.xyzzy: src/tls/s6tls_exec_tlscio.lo src/tls/s6tls_exec_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
+s6-tlsc: EXTRA_LIBS := -lskarnet
+s6-tlsc: src/tls/s6-tlsc.o libs6tls.a.xyzzy
+s6-tlsc-io: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-tlsc-io: src/tls/s6-tlsc-io.o ${LIBCRYPTOSUPPORT}
+s6-tlsclient: EXTRA_LIBS := -lskarnet
+s6-tlsclient: src/tls/s6-tlsclient.o
+s6-tlsd: EXTRA_LIBS := -lskarnet
+s6-tlsd: src/tls/s6-tlsd.o libs6tls.a.xyzzy
+s6-tlsd-io: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-tlsd-io: src/tls/s6-tlsd-io.o ${LIBCRYPTOSUPPORT}
+s6-tlsserver: EXTRA_LIBS := -lskarnet
+s6-tlsserver: src/tls/s6-tlsserver.o
+s6-ucspitlsc: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-ucspitlsc: src/tls/s6-ucspitlsc.o libs6tls.a.xyzzy
+s6-ucspitlsd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-ucspitlsd: src/tls/s6-ucspitlsd.o libs6tls.a.xyzzy
