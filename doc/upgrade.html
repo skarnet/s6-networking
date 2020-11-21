@@ -18,6 +18,29 @@
 
 <h1> What has changed in s6-networking </h1>
 
+<h2> in 2.4.0.0 </h2>
+
+<ul>
+ <li> <a href="//skarnet.org/software/skalibs/">skalibs</a>
+dependency bumped to 2.9.4.0. </li>
+ <li> <a href="//skarnet.org/software/execline/">execline</a>
+has been made optional. It's still enabled by default; disabling
+it with the <tt>--disable-execline</tt> configure option disables
+<tt>exec</tt> file support in
+<a href="s6-tcpserver-access.html">s6-tcpserver-access</a>. </li>
+ <li> New binaries:
+<a href="s6-tlsc-io.html">s6-tlsc-io</a> and
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> (which are now the
+only binaries to perform actual cryptography);
+<a href="s6-ucspitlsc.html">s6-ucspitlsc</a>, and
+<a href="s6-ucspitlsd.html">s6-ucspitlsd</a> (for delayed
+encryption). </li>
+ <li> <a href="s6-tlsc.html">s6-tlsc</a> and
+<a href="s6-tlsd.html">s6-tlsd</a> have been rewritten as
+wrappers around <a href="s6-tlsc-io.html">s6-tlsc-io</a> and
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> respectively. </li>
+</ul>
+
 <h2> in 2.3.2.0 </h2>
 
 <ul>

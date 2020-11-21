@@ -1,5 +1,16 @@
 Changelog for s6-networking.
 
+In 2.4.0.0
+----------
+
+ - execline is now optional.
+ - s6-tlsc and s6-tlsd rewrite. They're now wrappers around new
+binaries: s6-tlsc-io and s6-tlsd-io, which establish and run a
+TLS tunnel over already existing fds.
+ - New functionality: s6-ucspitlsc and s6-ucspitlsd, for an
+implementation of delayed encryption.
+
+
 In 2.3.2.0
 ----------
 

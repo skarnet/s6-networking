@@ -46,6 +46,7 @@ Optional features:
   --enable-absolute-paths       do not rely on PATH to access this package's binaries,
                                   hardcode absolute BINDIR/foobar paths instead [disabled]
   --enable-nsss                 use the nsss library for user information [disabled]
+  --disable-execline            don't use the execline library [enabled]
 
 SSL support:
   --enable-ssl=libressl|bearssl build SSL tools, w/ libtls or bearssl implementation [disabled]
@@ -153,6 +154,7 @@ allpic=true
 slashpackage=false
 abspath=false
 usensss=false
+useexecline=true
 sproot=
 home=
 exthome=
@@ -197,6 +199,8 @@ for arg ; do
     --disable-absolute-paths|--enable-absolute-paths=no) abspath=false ;;
     --enable-nsss|--enable-nsss=yes) usensss=true ;;
     --disable-nsss|--enable-nsss=no) usensss=false ;;
+    --enable-execline|--enable-execline=yes) useexecline=true ;;
+    --disable-execline|--enable-execline=no) useexecline=false ;;
     --enable-ssl=libressl) ssl=tls ;;
     --enable-ssl=bearssl) ssl=bearssl ;;
     --disable-ssl|--enable-ssl=none) ssl= ;;
@@ -458,6 +462,11 @@ else
   echo "LIBNSSS :="
   echo "MAYBEPTHREAD_LIB :="
 fi
+if $useexecline ; then
+  echo "EXECLINE_LIB := -lexecline"
+else
+  echo "EXECLINE_LIB :="
+fi
 if test -n $ssl ; then
   echo "SSL_IMPL := $ssl"
 else
@@ -491,15 +500,16 @@ else
   echo "#define ${package_macro_name}_EXTBINPREFIX \"\""
 fi
 echo "#define ${package_macro_name}_LIBEXECPREFIX \"$libexecdir/\""
+echo "#undef ${package_macro_name}_USE_EXECLINE"
+if $useexecline ; then
+  echo "#define ${package_macro_name}_USE_EXECLINE"
+fi
+echo "#undef ${package_macro_name}_USE_TLS"
+echo "#undef ${package_macro_name}_USE_BEARSSL"
 if test "tls" = "$ssl" ; then
   echo "#define ${package_macro_name}_USE_TLS"
-else
-  echo "#undef ${package_macro_name}_USE_TLS"
-fi
-if test "bearssl" = "$ssl" ; then
+elif test "bearssl" = "$ssl" ; then
   echo "#define ${package_macro_name}_USE_BEARSSL"
-else
-  echo "#undef ${package_macro_name}_USE_BEARSSL"
 fi
 
 echo

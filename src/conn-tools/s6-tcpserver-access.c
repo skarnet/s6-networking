@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <unistd.h>
 #include <errno.h>
+
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
 #include <skalibs/strerr2.h>
@@ -18,10 +19,16 @@
 #include <skalibs/socket.h>
 #include <skalibs/ip46.h>
 #include <skalibs/unix-timed.h>
-#include <execline/config.h>
+
 #include <s6/accessrules.h>
 #include <s6-dns/s6dns.h>
+
+#include <s6-networking/config.h>
 #include <s6-networking/ident.h>
+
+#ifdef S6_NETWORKING_USE_EXECLINE
+#include <execline/config.h>
+#endif
 
 #define USAGE "s6-tcpserver-access [ -v verbosity ] [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -378,10 +385,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
   stralloc_free(&modifs) ;
   if (verbosity) log_accept(getpid(), &remoteip) ;
   if (params.exec.len)
+#ifdef S6_NETWORKING_USE_EXECLINE
   {
     char *specialargv[4] = { EXECLINE_EXTBINPREFIX "execlineb", "-c", params.exec.s, 0 } ;
     xpathexec_r((char const *const *)specialargv, envp, env_len(envp), params.env.s, params.env.len) ;
   }
+#else
+  strerr_warnw1x("exec file found but ignored because s6-networking was compiled without execline support!") ;
+#endif
 
   xpathexec_r(argv, envp, env_len(envp), params.env.s, params.env.len) ;
 

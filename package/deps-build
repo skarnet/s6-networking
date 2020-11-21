@@ -1,5 +1,5 @@
 /package/prog/skalibs
 /package/admin/nsss $usensss
-/package/admin/execline
+/package/admin/execline $useexecline
 /package/admin/s6
 /package/web/s6-dns
