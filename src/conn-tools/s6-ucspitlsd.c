@@ -29,7 +29,6 @@ static inline void child (int p[3][2], uint32_t options, unsigned int verbosity,
   close(p[2][0]) ;
   close(p[0][1]) ;
   close(p[1][0]) ;
-  s6tls_drop() ;
   r = read(p[2][1], &c, 1) ;
   if (r < 0) strerr_diefu1sys(111, "read from control socket") ;
   if (!r) _exit(0) ;

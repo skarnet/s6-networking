@@ -52,6 +52,8 @@ struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions,
       diecfg(cfg, "tls_config_set_key_file") ;
   }
 
+  stls_drop() ;
+
   if (tls_config_set_ciphers(cfg, "secure") < 0)
     diecfg(cfg, "tls_config_set_ciphers") ;
 

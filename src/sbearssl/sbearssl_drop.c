@@ -6,9 +6,9 @@
 #include <skalibs/strerr2.h>
 #include <skalibs/types.h>
 
-#include "s6tls-internal.h"
+#include "sbearssl-internal.h"
 
-void s6tls_drop (void)
+void sbearssl_drop (void)
 {
   if (!getuid())
   {

@@ -21,7 +21,6 @@ static void child (int const p[3][2], int fdr, int fdw, uint32_t options, unsign
 {
   int fds[3] = { p[0][0], p[1][1], p[2][1] } ;
   PROG = "s6-tlsc (child)" ;
-  s6tls_drop() ;
   close(p[2][0]) ;
   close(p[0][1]) ;
   close(p[1][0]) ;

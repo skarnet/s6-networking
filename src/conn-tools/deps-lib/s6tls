@@ -1,4 +1,3 @@
-s6tls_drop.o
 s6tls_exec_tlscio.o
 s6tls_exec_tlsdio.o
 s6tls_wait_and_exec_app.o

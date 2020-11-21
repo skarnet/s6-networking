@@ -23,7 +23,6 @@ static void child (int const p[3][2], uint32_t options, unsigned int verbosity, 
   close(p[2][0]) ;
   close(p[0][1]) ;
   close(p[1][0]) ;
-  s6tls_drop() ;
   s6tls_exec_tlsdio(fds, options, verbosity, kimeout) ;
 }
 

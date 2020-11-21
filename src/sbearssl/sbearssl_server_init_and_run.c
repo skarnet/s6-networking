@@ -45,6 +45,8 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
       strerr_diefu2x(96, "find a certificate in ", x) ;
   }
 
+  sbearssl_drop() ;
+
   {
     sbearssl_handshake_cb_context_t cbarg = { .notif = notif } ;
     unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
