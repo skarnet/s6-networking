@@ -21,4 +21,5 @@ s6-tlsc-io			0755
 s6-tlsserver			0755
 s6-tlsd				0755
 s6-tlsd-io			0755
+s6-ucspitlsc			0755
 s6-ucspitlsd			0755

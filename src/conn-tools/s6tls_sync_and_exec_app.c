@@ -12,7 +12,7 @@
 
 #define MAXENVSIZE 2048
 
-void s6tls_wait_and_exec_app (char const *const *argv, int const p[3][2], pid_t pid, int fdr, int fdw, uint32_t options)
+void s6tls_sync_and_exec_app (char const *const *argv, int const p[4][2], pid_t pid, uint32_t options)
 {
   char buf[sizeof(s6tls_envvars) + MAXENVSIZE] ;
   size_t m = 0 ;
@@ -20,7 +20,7 @@ void s6tls_wait_and_exec_app (char const *const *argv, int const p[3][2], pid_t 
   close(p[2][1]) ;
   close(p[1][1]) ;
   close(p[0][0]) ;
-  if (fd_move(fdr, p[1][0]) < 0 || fd_move(fdw, p[0][1]) < 0)
+  if (fd_move(p[3][0], p[1][0]) < 0 || fd_move(p[3][1], p[0][1]) < 0)
     strerr_diefu1sys(111, "move file descriptors") ;
   if (options & 1)
   {

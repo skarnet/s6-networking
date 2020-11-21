@@ -1,0 +1,3 @@
+libs6tls.a.xyzzy
+-lskarnet
+${SOCKET_LIB}
