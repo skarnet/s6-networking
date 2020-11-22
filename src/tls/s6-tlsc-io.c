@@ -1,22 +1,20 @@
 /* ISC license. */
 
 #include <stdint.h>
-#include <unistd.h>
 #include <signal.h>
 
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/allreadwrite.h>
 #include <skalibs/tai.h>
-#include <skalibs/env.h>
 #include <skalibs/sig.h>
 #include <skalibs/djbunix.h>
 
 #include <s6-networking/config.h>
 
-#define HANDSHAKE_BANNER "SSL_PROTOCOL=TLSv1\0"
+#define USAGE "s6-tlsc-io [ -v verbosity ] [ -d notif ] [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -k servername ] fdr fdw"
+#define dieusage() strerr_dieusage(100, USAGE)
 
 static inline void doit (int *, tain_t const *tto, uint32_t, uint32_t, unsigned int, char const *, unsigned int) gccattr_noreturn ;
 
@@ -29,7 +27,7 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
   struct tls *ctx = stls_client_init_and_handshake(fds + 2, preoptions, servername) ;
   if (notif)
   {
-    if (allwrite(notif, HANDSHAKE_BANNER, sizeof(HANDSHAKE_BANNER)) < sizeof(HANDSHAKE_BANNER))
+    if (!stls_send_environment(ctx, notif))
       strerr_diefu1sys(111, "write post-handshake data") ;
     fd_close(notif) ;
   }
@@ -39,22 +37,19 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
 #else
 #ifdef S6_NETWORKING_USE_BEARSSL
 
+#include <bearssl.h>
+
 #include <skalibs/random.h>
 
 #include <s6-networking/sbearssl.h>
 
-static int handshake_cb_nop (br_ssl_engine_context *ctx, sbearssl_handshake_cb_context_t *cbarg)
+static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cb_context_t *cbarg)
 {
-  (void)ctx ;
-  (void)cbarg ;
-  return 1 ;
-}
-
-static int handshake_cb_sendvars (br_ssl_engine_context *ctx, sbearssl_handshake_cb_context_t *cbarg)
-{
-  if (allwrite(cbarg->notif, HANDSHAKE_BANNER, sizeof(HANDSHAKE_BANNER)) < sizeof(HANDSHAKE_BANNER))
-    return 0 ;
-  fd_close(cbarg->notif) ;
+  if (cbarg->notif)
+  {
+    if (!sbearssl_send_environment(ctx, cbarg->notif)) return 0 ;
+    fd_close(cbarg->notif) ;
+  }
   return 1 ;
 }
 
@@ -63,7 +58,7 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
   if (ndelay_on(fds[0]) < 0 || ndelay_on(fds[1]) < 0)
     strerr_diefu1sys(111, "set local fds non-blocking") ;
   if (!random_init()) strerr_diefu1sys(111, "initialize random device") ;
-  sbearssl_client_init_and_run(fds, tto, preoptions, options, verbosity, servername, notif ? &handshake_cb_sendvars : &handshake_cb_nop, notif) ;
+  sbearssl_client_init_and_run(fds, tto, preoptions, options, verbosity, servername, &handshake_cb, notif) ;
 }
 
 #else
@@ -72,10 +67,6 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
 
 #endif
 #endif
-
-
-#define USAGE "s6-tlsc-io [ -v verbosity ] [ -d notif ] [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -k servername ] fdr fdw"
-#define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv, char const *const *envp)
 {

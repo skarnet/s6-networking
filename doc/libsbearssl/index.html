@@ -482,6 +482,18 @@ contain something else than numerical uid/gids, the process exits 111 with
 an error message.
 </p>
 
+<h4> <code> int sbearssl_send_environment (br_ssl_engine_context *ctx, int fd) </code> </h4>
+
+<p>
+ Writes a series of null-terminated strings of the form <tt>key=value</tt>
+to file descriptor <em>fd</em>; the series is terminated with an additional
+null character. The strings represent information about the TLS connection
+represented by context <em>ctx</em>; it is only valid to call this function
+after the handshake has completed. The exact keys used will change over time,
+but at least <tt>SSL_PROTOCOL=value</tt> and <tt>SSL_CIPHER=value</tt> are
+transmitted. The function returns 1 if it succeeds and 0 if it fails.
+</p>
+
 <h3> Running the TLS/SSL engine (internal function for both clients and servers) </h3>
 
 <h4> <code> void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, sbearssl_handshake_cb_context_t *cbarg) </code> </h4>

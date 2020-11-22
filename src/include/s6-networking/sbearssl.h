@@ -34,6 +34,12 @@ extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai_t const
 #define sbearssl_x509_minimal_set_tain(ctx, a) sbearssl_x509_minimal_set_tai(ctx, tain_secp(a))
 
 
+ /* Cipher suites */
+
+extern char const *sbearssl_suite_name (br_ssl_session_parameters const *) ;
+extern uint16_t bearssl_suite_bits (br_ssl_session_parameters const *) ;
+
+
  /* Certificates (x509-encoded) */
 
 typedef struct sbearssl_cert_s sbearssl_cert, *sbearssl_cert_ref ;
@@ -214,6 +220,7 @@ struct sbearssl_handshake_cb_context_s
 typedef int sbearssl_handshake_cb_t (br_ssl_engine_context *, sbearssl_handshake_cb_context_t *) ;
 typedef sbearssl_handshake_cb_t *sbearssl_handshake_cb_t_ref ;
 
+extern int sbearssl_send_environment (br_ssl_engine_context *, int) ;
 extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32_t, unsigned int, sbearssl_handshake_cb_t_ref, sbearssl_handshake_cb_context_t *) gccattr_noreturn ;
 
 

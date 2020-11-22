@@ -15,6 +15,7 @@
 
  /* Engine */
 
+extern int stls_send_environment (struct tls *, int) ;
 extern void stls_run (struct tls *, int *, tain_t const *, uint32_t, unsigned int) gccattr_noreturn ;
 
 

@@ -66,6 +66,18 @@ contain something else than numerical uid/gids, the process exits 111 with
 an error message.
 </p>
 
+<h4> <code> int stls_send_environment (struct tls *ctx, int fd) </code> </h4>
+
+<p>
+ Writes a series of null-terminated strings of the form <tt>key=value</tt>
+to file descriptor <em>fd</em>; the series is terminated with an additional
+null character. The strings represent information about the TLS connection
+represented by context <em>ctx</em>; it is only valid to call this function
+after the handshake has completed. The exact keys used will change over time,
+but at least <tt>SSL_PROTOCOL=value</tt> and <tt>SSL_CIPHER=value</tt> are
+transmitted. The function returns 1 if it succeeds and 0 if it fails.
+</p>
+
 <h3> Initializing the TLS engine </h3>
 
 <h4> <code> struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions, char const *servername) </code> </h4>
@@ -95,10 +107,8 @@ exits 100 with an error message.
 </p>
 
 <ul>
-  <li> <tt>fds</tt>&nbsp;: an array of 4 file descriptors, that are in this
-order: the fd reading from the application (cleartext), the fd writing to the
-application (cleartext), the fd reading from the network, the fd writing to
-the network. </li>
+  <li> <tt>fds</tt>&nbsp;: an array of 2 file descriptors, that are in this
+order: the fd reading from the network, the fd writing to the network. </li>
  <li> <tt>preoptions&nbsp;: a bitfield.
   <ul>
    <li> Bit 0: if clear, no client authentication is performed. If set,

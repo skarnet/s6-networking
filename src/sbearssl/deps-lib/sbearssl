@@ -3,6 +3,7 @@ sbearssl_cert_from.o
 sbearssl_cert_readbigpem.o
 sbearssl_cert_readfile.o
 sbearssl_cert_to.o
+sbearssl_client_init_and_run.o
 sbearssl_drop.o
 sbearssl_ec_issuer_keytype.o
 sbearssl_ec_pkey_from.o
@@ -21,9 +22,14 @@ sbearssl_rsa_pkey_to.o
 sbearssl_rsa_skey_from.o
 sbearssl_rsa_skey_to.o
 sbearssl_run.o
+sbearssl_send_environment.o
+sbearssl_server_init_and_run.o
 sbearssl_skey_from.o
 sbearssl_skey_readfile.o
 sbearssl_skey_to.o
+sbearssl_suite_bits.o
+sbearssl_suite_list.o
+sbearssl_suite_name.o
 sbearssl_ta_cert.o
 sbearssl_ta_certs.o
 sbearssl_ta_from.o
@@ -33,7 +39,5 @@ sbearssl_ta_to.o
 sbearssl_x500_name_len.o
 sbearssl_x500_from_ta.o
 sbearssl_x509_minimal_set_tai.o
-sbearssl_client_init_and_run.o
-sbearssl_server_init_and_run.o
 -lbearssl
 -lskarnet
