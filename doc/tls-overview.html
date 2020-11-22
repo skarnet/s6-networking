@@ -1,0 +1,142 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: an overview of the tls-related programs</title>
+    <meta name="Description" content="s6-networking: an overview of the tls-related programs" />
+    <meta name="Keywords" content="s6-networking s6-tlsc s6-tlsd tlsc tlsd tlsc-io ucspi-tls ucspi-ssl tlsd-io ssl ucspi tcp inet network tcp/ip client" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> An overview of the tls-related programs </h1>
+
+<p>
+ The <tt>s6-*tls*</tt> programs are organized in a way that minimizes
+the amount of code, and in particular that keeps the crypto code as
+encapsulated as possible.
+</p>
+
+<p>
+ They are divided in two sets: client programs, which have <tt>client</tt>
+or <tt>c</tt> in their name, and server programs, which have <tt>server</tt>
+or <tt>d</tt> in their name. The sets are symmetrical: the same
+functionality is available whether you're interested in using a
+client or a server.
+</p>
+
+<p>
+ Of course, they do not have to be used together. You can run a
+TLS-enabled super-server via <a href="s6-tlsserver.html">s6-tlsserver</a>
+and it will work with any client speaking the correct TLS-enabled
+protocol, not only <a href="s6-tlsclient.html">s6-tlsclient</a>.
+</p>
+
+<h2> The core TLS engine: s6-tlsc-io and s6-tlsd-io </h2>
+
+<ul>
+ <li> <a href="s6-tlsc-io.html">s6-tlsc-io</a> and
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> are the only programs
+that actually perform TLS operations; the only ones that are linked
+against the BearSSL or LibreSSL libraries. </li>
+ <li> They read TLS-related
+information (where to find my trust anchor list? where to find my
+server certificate and private key?) from their environment. </li>
+ <li> They assume that their stdin/stdout is talking to the network; they
+also take two other fds on the command line that they assume are
+open and talking to the local application - one for reading, one for
+writing. </li>
+ <li> They establish a TLS tunnel over the network. </li>
+ <li> They maintain full-duplex communication: what they read
+from the local application is sent to stdout as ciphertext; what
+they read from stdin is sent to the local application as cleartext. </li>
+ <li> They exit when they cannot transmit any more data. </li>
+</ul>
+
+<p>
+ Other programs in the s6-tls set perform various operations such as
+Unix file descriptor plumbing in order to provide a specific interface,
+but they always end up spawning a
+<a href="s6-tlsc-io.html">s6-tlsc-io</a> or
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> child that will handle the
+actual TLS management for them.
+</p>
+
+<h2> Regular TLSification of a service: s6-tlsc and s6-tlsd </h2>
+
+<ul>
+ <li> The <a href="s6-tlsc.html">s6-tlsc</a> and
+<a href="s6-tlsd.html">s6-tlsd</a> programs are "immediate encryption"-type
+programs. They assume that the rest of their command line is a
+UCSPI client or server application, i.e. reads from the network on
+fd (6 for clients, 0 for servers) and writes to the network on fd
+(7 for clients, 1 for servers); their goal is to provide this
+application with transparent encryption. </li>
+ <li> They first spawn a <a href="s6-tlsc-io.html">s6-tlsc-io</a> or
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> child to initialize the TLS
+connection. </li>
+ <li> When the TLS handshake has completed, they exec into the
+rest of their command line, interposing the s6-tls[cd]-io program
+in between this application and the network. </li>
+ <li> The application still communicates via cleartext, but the
+data is transparently encrypted before it goes to the network. </li>
+ <li> The application is <em>only</em> started after the handshake
+succeeds; the TLS tunnel stays up for the whole lifetime of the
+application, or until the application closes the fds it uses to
+communicate with (what it thinks is) the network. </li>
+</ul>
+
+<h2> Opportunistic TLS: s6-ucspitlsc and s6-ucspitlsd </h2>
+
+<ul>
+ <li> The <a href="s6-ucspitlsc.html">s6-ucspitlsc</a> and
+<a href="s6-ucspitlsd.html">s6-ucspitlsd</a> programs are
+"delayed encryption"-type programs. They assume that the rest
+of their command line is an application that follows the
+<a href="https://web.archive.org/web/20150311223933/http://www.suspectclass.com/sgifford/ucspi-tls/ucspi-tls.txt">UCSPI-TLS</a>
+protocol. This is a bit of a misnomer: the aim of this protocol is
+just to provide an application with a means to ask for TLS
+encryption at any time. </li>
+ <li> They prepare the necessary communication channels, then
+fork. The parent execs into the rest of its command line, with
+the appropriate ucspi-tls environment variables set. The child
+stays and waits for a command. </li>
+ <li> When the application sends a command to start TLS, the
+child execs into <a href="s6-tlsc-io.html">s6-tlsc-io</a> or
+<a href="s6-tlsd-io.html">s6-tlsd-io</a>, which initializes
+a TLS connection and performs a handshake. </li>
+ <li> The application then communicates via the fds that have
+been provided to it via the ucspi-tls protocol. Those fds go
+through the TLS engine. </li>
+</ul>
+
+<h2> High-level client connections and super-servers: s6-tlsclient and s6-tlsserver </h2>
+
+<ul>
+ <li> The <a href="s6-tlsclient.html">s6-tlsclient</a> and
+<a href="s6-tlsserver.html">s6-tlsserver</a> programs are high-level
+wrappers around TCP client and server functionality, followed by the
+establishment of a TLS tunnel, followed by the execution of an
+application. They're meant to provide simpler interfaces over
+long, complex command lines. </li>
+ <li> <a href="s6-tlsclient.html">s6-tlsclient</a> rewrites itself
+into a command line involving
+<a href="s6-tcpclient.html">s6-tcpclient</a> and
+<a href="s6-tlsc.html">s6-tlsc</a>. </li>
+ <li> <a href="s6-tlsserver.html">s6-tlsserver</a> rewrites itself
+into a command line involving (depending on the given options)
+<a href="s6-tcpserver.html">s6-tcpserver</a>,
+<a href="s6-tcpserver.html">s6-tcpserver-access</a>,
+<a href="s6-tlsd.html">s6-tlsd</a>, and
+<a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>. </li>
+</ul>
+
+</body>
+</html>

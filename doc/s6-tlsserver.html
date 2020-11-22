@@ -21,7 +21,7 @@
 <p>
 <tt>s6-tlsserver</tt> is an
 <a href="https://cr.yp.to/proto/ucspi.txt">UCSPI server tool</a> for
-TLS/SSL connections over INET domain sockets. It acts as a TCP superserver
+TLS/SSL connections over INET domain sockets. It acts as a TCP super-server
 that listens to connections, accepts them, and for each connection,
 establishes a TLS transport over it, then executes into a program.
 </p>
@@ -49,12 +49,13 @@ than what you originally wrote. This is normal and healthy. </li>
 which performs TCP access control and various operations on the
 TCP connection. </li>
    <li> <a href="s6-tlsd.html">s6-tlsd</a>, which establishes
-a TLS transport (server-side) over a connection. </li>
+a TLS transport (server-side) over a connection, via a
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> child process. </li>
    <li> (if applicable)
 <a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>,
 which drops root privileges. </li>
-   <li> <em>prog...</em>, your client program, which is run as a
-child of <a href="s6-tlsd.html">s6-tlsd</a>. </li>
+   <li> <em>prog...</em>, your client program, which is run with the
+same pid as <a href="s6-tlsd.html">s6-tlsd</a>. </li>
   </ul> </li>
  <li> It runs until it is killed by a signal. </li>
 </ul>
@@ -62,7 +63,7 @@ child of <a href="s6-tlsd.html">s6-tlsd</a>. </li>
 <p>
  <em>prog</em> is expected to read from its peer on its
 standard input and write to its peer on its standard output.
-Since there will be a <a href="s6-tlsd.html">s6-tlsd</a>
+Since there will be a <a href="s6-tlsd-io.html">s6-tlsd-io</a>
 program between <em>prog</em> and the network to perform
 the SSL encryption/decryption, those descriptors will not
 be a network socket - they will be pipes.

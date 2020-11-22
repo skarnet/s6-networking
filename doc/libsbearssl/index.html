@@ -470,33 +470,44 @@ because *<em>t</em> does not represent a valid time.
 i.e. a <tt>tai_t</tt> plus nanoseconds (which are simply ignored).
 </p>
 
+<h4> <code> void sbearssl_drop () </code> </h4>
 
-<h3> Running the TLS/SSL engine (both clients and servers) </h3>
+<p>
+ If the process is running as root, then this function drops its privileges
+(else it does nothing).
+The gid to drop to is read from the TLS_GID environment variable; the uid to
+drop to is read from the TLS_UID environment variable. If those variables
+are not given, then the uid, or gid, or both, are not changed. If they
+contain something else than numerical uid/gids, the process exits 111 with
+an error message.
+</p>
 
-<h4> <code> int sbearssl_run (br_ssl_engine_context *ctx, int *fds, pid_t pid, unsigned int verbosity, uint32_t options, tain_t const *tto) </code> </h4>
+<h3> Running the TLS/SSL engine (internal function for both clients and servers) </h3>
+
+<h4> <code> void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, sbearssl_handshake_cb_context_t *cbarg) </code> </h4>
 
 <p>
  This function runs a full-duplex TLS/SSL engine, reading/writing
 clear text from/to two file descriptors, and writing/reading
 ciphertext to/from two other file descriptors, until the
 connection is closed both ways (either with a SSL close, or
-with EOF) or a given subprocess dies.
+with EOF). It does not return.
 </p>
 
 <ul>
  <li> <em>ctx</em> is a pointer to a fully initialized context,
 connected to <em>fds</em>[2] and <em>fds</em>[3]. The
 TLS/SSL handshake does not have to be completed. </li>
- <li> <em>fds</em> is an array of 5 file descriptors, in this
+ <li> <em>fds</em> is an array of 4 file descriptors, in this
 order: fd reading clear text, fd writing clear text, fd reading
-ciphertext, fd writing ciphertext, selfpipe. </li>
- <li> <em>pid</em> is the pid of the application subprocess.
-When a SIGCHLD is detected on the selfpipe, the newly deceased
-process is reaped, and if it was <em>pid</em>, then the function
-returns as soon as it doesn't have anything left to write to
-the network peer. </li>
- <li> <em>verbosity</em> defines the engine's verbosity: the
-higher the more verbose. This parameter is currently ignored. </li>
+ciphertext, fd writing ciphertext. </li>
+ <li> <em>tto</em> is a pointer to a
+  <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>
+containing a relative time (i.e. a timeout) If *<em>tto</em> time elapses
+with no application data being exchanged, the engine will forcibly close the
+connection (with the method defined by <tt><em>options</em> &amp; 1</tt>).
+ You can use <tt>&amp;tain_infinite_relative</tt> as a value for <em>tto</em>
+if you don't want the engine to ever timeout. </li>
  <li> <em>options</em> is a bitfield.
   <ul>
    <li> bit 0 tells the engine how to behave when
@@ -514,40 +525,94 @@ very end, but is insecure if the application protocol does not
 know in advance how many bytes it should get. Modern application
 protocols should all work with EOF. </li>
   </ul> </li>
- <li> <em>tto</em> is a pointer to a
-  <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>
-containing a relative time (i.e. a timeout) If *<em>tto</em> time elapses
-with no application data being exchanged, the engine will forcibly close the
-connection (with the method defined by <tt><em>options</em> &amp; 1</tt>).
- You can use <tt>&amp;tain_infinite_relative</tt> as a value for <em>tto</em>
-if you don't want the engine to ever timeout. </li>
+ <li> <em>verbosity</em> defines the engine's verbosity: the
+higher the more verbose. This parameter is currently ignored. </li>
+ <li> <em>cb</em> is a pointer to a callback function that will be called
+once after the TLS handshake is performed. This function is called with
+two arguments: <em>ctx</em> (a pointer to the current bearssl context),
+and <em>cbarg</em> (a pointer to a caller-provided structure). </li>
+ <li> <em>cbarg</em> is a pointer to a structure provided by the caller.
+It will be passed as a second argument to <em>cb</em> when the TLS
+handshake has successfully completed. </li>
 </ul>
 
 <p>
  <tt>sbearssl_run</tt> will make the process die with an appropriate error
 message if it encounters an unrecoverable error. If there were no problems and the
-SSL/TLS connection closed cleanly, it returns -1. If the application
-subprocess dies early, <tt>sbearssl_run</tt> returns the <em>wstat</em>
-for that subprocess, i.e. the integer containing the information about
-its exit code or crash signal. No matter how <tt>sbearssl_run</tt> returns,
-the first four descriptors in <em>fds</em> are closed, but the
-selfpipe is untouched and the caller should free <em>ctx</em> itself.
+SSL/TLS connection closed cleanly, the process exits 0.
 </p>
 
-<h4> <code> int sbearssl_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd) </code> </h4>
+<h3> Initializing and running the engine </h3>
+
+<h4> <code> void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cb_t_ref cb, unsigned int notif) </code> </h4>
 
 <p>
- This function implements <a href="../s6-tlsc.html">s6-tlsc</a> on top of BearSSL.
-It has no other practical purpose; you're better off directly invoking
-<a href="../s6-tlsc.html">s6-tlsc</a>.
+ This function initializes a TLS context for a client-side connection,
+then runs the TLS engine via a call to <tt>sbearssl_run()</tt>. The
+function does not return.
+If the context cannot be initialized, the process exits 96 with an
+appropriate error message.
 </p>
 
-<h4> <code> int sbearssl_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity) </code> </h4>
+<p>
+ If the <tt>CADIR</tt> environment variable is set, then it must contain
+the path of a directory containing the hashed names of the public
+certificates identifying the trust anchors. Else, if the <tt>CAFILE</tt>
+environment variable is set, then it must contain the path to a PEM file
+containing all the certificates for the trust anchors. Else, the process
+exits 100 with an error message.
+</p>
 
 <p>
- This function implements <a href="../s6-tlsd.html">s6-tlsd</a> on top of BearSSL.
-It has no other practical purpose; you're better off directly invoking
-<a href="../s6-tlsd.html">s6-tlsd</a>.
+ The arguments are as follows:
+</p>
+
+<ul>
+  <li> <tt>fds</tt>&nbsp;: an array of 4 file descriptors, that are in this
+order: the fd reading from the application (cleartext), the fd writing to the
+application (cleartext), the fd reading from the network, the fd writing to
+the network. </li>
+ <li> <tt>preoptions&nbsp;: a bitfield.
+  <ul>
+   <li> Bit 0: if clear, no client authentication is performed. If set,
+the <tt>CERTFILE</tt> and <tt>KEYFILE</tt> environment variables are read,
+they must contain the path to a valid client certificate and private key
+(else the process exits 96); this certificate is then provided to the
+server for client authentication. <strong>This feature is currently
+unsupported and will not work; leave that bit clear for now.</strong> </li>
+  </ul> </li>
+ <li> <tt>options&nbsp;: a bitfield, which will be passed to
+<tt>sbearssl_run()</tt>.
+  <ul>
+   <li> Bit 0: if clear, no close_notify is performed and the engine
+will transmit EOF as received. If set, close_notify will be performed to
+end the TLS connection. </li>
+  </ul> </li>
+ <li> <em>verbosity</em> defines the engine's verbosity: the
+higher the more verbose. This parameter is currently ignored. </li>
+ <li> <tt>servername</tt>&nbsp;: the server name used for SNI. If NULL, then
+no SNI is performed, which may be a security risk. </li>
+ <li> <tt>cb</tt>&nbsp;: a pointer to a callback function, that will be
+passed as is to <tt>sbearssl_run()</tt>. </li>
+ <li> <tt>notif</tt>&nbsp;: an unsigned integer that will be embedded into
+the <em>cbarg</em> structure that will be passed to <tt>sbearssl_run()</tt>.
+It is used by <a href="../s6-tlsc-io.html">s6-tlsc-io</a> to identify a
+valid fd on which to write SSL data information once the handshake has
+completed. </li>
+</ul>
+
+<h4> <code> void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, unsigned int notif) </code> </h4>
+
+<p>
+ Same as the previous function, but on the server side. No <em>servername</em>
+argument is required. The <tt>CERTFILE</tt> and <tt>KEYFILE</tt> environment
+variables are mandatory, they point to the server's certificate and private
+key. It is only necessary to set <tt>CADIR</tt> or <tt>CAFILE</tt> when bit
+0 of <em>preoptions</em> is set <strong>(this functionality <em>is</em> supported server-side)</strong>,
+in which case client authentication will be
+requested, and a list of trust anchors (read from either the directory
+in <tt>CADIR</tt> or the PEM file in <tt>CAFILE</tt>) will be used to verify
+the client certificate.
 </p>
 
 </body>

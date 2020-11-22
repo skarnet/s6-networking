@@ -1,0 +1,168 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-ucspitlsd program</title>
+    <meta name="Description" content="s6-networking: the s6-ucspitlsd program" />
+    <meta name="Keywords" content="s6-networking s6-ucspitlsd tlsd tls ssl ucspi ucspi-tls delayed encryption opportunistic tls tcp inet network tcp/ip client" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-ucspitlsd</tt> program </h1>
+
+<p>
+<tt>s6-ucspitlsd</tt> is a server-side program that establishes
+communication channels according to the UCSPI-TLS protocol,
+then execs into an application. Later, if the application sends
+a command, a TLS tunnel will be started and the application will
+be able to use it instead of communicating with the network via
+cleartext.
+</p>
+
+<p>
+ The point of this protocol, and this program, is to make it easy
+to implement commands like SMTP's STARTTLS without embedding a
+TLS stack in the server itself.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-ucspitlsd [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -- ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> s6-ucspitlsd expects to have an open TCP connection it
+can talk to on its stdin and stdout. </li>
+ <li> It forks and establishes communication channels between
+the parent and the child. The parent executes into
+<em>prog...</em>; the child remains and waits for a
+command. </li>
+ <li> At any time, <em>prog...</em> can send a command to its
+control socket provided by s6-ucspitlsd, following the
+<a href="https://web.archive.org/web/20150311223933/http://www.suspectclass.com/sgifford/ucspi-tls/ucspi-tls.txt">UCSPI-TLS</a>
+protocol. Then the s6-ucspitlsd child will exec into a
+<a href="s6-tlsd-io.html">s6-tlsd-io</a>
+process that will initialize the TLS connection, perform the
+handshake (expecting a TLS client on the other side of the
+network) and maintain a TLS tunnel. <em>prog</em> can
+use that TLS tunnel instead of talking directly to the
+network. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed. </li>
+</ul>
+
+<p>
+ Normally the parent s6-ucspitlsd process execs into <em>prog...</em>
+and the child process execs into <a href="s6-tlsd-io.html">s6-tlsd-io</a>.
+If the parent dies or closes its control socket before sending a
+command to start TLS, the child exits 0.
+</p>
+
+<h2> Environment variables </h2>
+
+<h3> Read </h3>
+
+<p>
+ s6-ucspitlsd does not expect to have any particular
+environment variables, but it spawns a
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> program that does.
+So it should pay attention to the following variables:
+</p>
+
+<ul>
+ <li> <tt>CERTFILE</tt> and <tt>KEYFILE</tt> </li>
+ <li> (if the <tt>-Y</tt> or <tt>-y</tt> option has been given) <tt>CADIR</tt> or <tt>CAFILE</tt> </li>
+ <li> <tt>TLS_UID</tt> and <tt>TLS_GID</tt>
+</ul>
+
+<h3> Written </h3>
+
+<p>
+ By default, <em>prog...</em> is run with all these
+variables <em>unset</em>: CADIR, CAFILE,
+KEYFILE, CERTFILE, TLS_UID and TLS_GID. They're passed to
+the <a href="s6-tlsd-io.html">s6-tlsd-io</a> child but
+not to <em>prog...</em>.
+The <tt>-Z</tt> option prevents that behaviour.
+</p>
+
+<p>
+ However, <em>prog...</em> is run with the following additional
+environment variables, following the UCSPI-TLS protocol:
+</p>
+
+<ul>
+ <li> <tt>SSLCTLFD</tt> contains the file descriptor number of
+the control socket. </li>
+ <li> <tt>SSLREADFD</tt> contains the file descriptor number of
+the pipe used to read data from the TLS tunnel after it
+has been activated. </li>
+ <li> <tt>SSLWRITEFD</tt> contains the file descriptor number of
+the pipe used to write data to the TLS tunnel after it
+has been activated. </li>
+</ul>
+
+<p>
+ Since <em>prog</em> is exec'ed before the TLS handshake takes
+place, it cannot get information about the TLS connection via
+environment variables. However, if it starts the TLS connection
+via a <tt>Y</tt> command (as opposed to a <tt>y</tt> command),
+it will receive this information as a string sent over the
+control socket.
+</p>
+
+<h2> Options </h2>
+
+<ul>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: Be more or less
+verbose. Default for <em>verbosity</em> is 1. 0 is quiet, 2 is
+verbose, more than 2 is debug output. This option currently has
+no effect. </li>
+ <li> <tt>-Z</tt>&nbsp;: do not clean the environment of
+the variables used by <a href="s6-tlsc-io.html">s6-tlsc-io</a>
+before execing <em>prog...</em>. </li>
+ <li> <tt>-z</tt>&nbsp;: clean the environment of
+the variables used by <a href="s6-tlsd-io.html">s6-tlsd-io</a>
+before execing <em>prog...</em>. This is the default. </li>
+ <li> <tt>-S</tt>&nbsp;: send a <tt>close_notify</tt> alert
+and break the connection when <em>prog</em> sends EOF. </li>
+ <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
+connection without using <tt>close_notify</tt>. This is the default. </li>
+ <li> <tt>-Y</tt>&nbsp;: Require an optional client certificate. </li>
+ <li> <tt>-y</tt>&nbsp;: Require a mandatory client certificate.
+The default, with neither the <tt>-Y</tt> nor the <tt>-y</tt> option,
+is not to require a client certificate at all. </li>
+ <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: close the connection
+if <em>kimeout</em> milliseconds elapse without any data being
+received from either side. The default is 0, which means
+infinite timeout (never kill the connection). </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> It only makes sense to run s6-ucspitlsd if its application
+program <em>prog</em> knows and understands the
+<a href="https://web.archive.org/web/20150311223933/http://www.suspectclass.com/sgifford/ucspi-tls/ucspi-tls.txt">UCSPI-TLS</a>
+protocol for opportunistic TLS. If it does not, you will not
+be able to secure your connection, and what you need is a regular
+immediate TLS program instead, which means
+<a href="s6-tlsd.html">s6-tlsd</a>. </li>
+</ul>
+
+</body>
+</html>

@@ -52,30 +52,97 @@ sysdeps directory. </li>
 
 <h2> Programming </h2>
 
-<h3> Running the TLS/SSL engine </h3>
+<h3> Utilities </h3>
 
-<h4> <code> int stls_run (struct tls *ctx, int *fds, pid_t pid, unsigned int verbosity, uint32_t options, tain_t const *tto) </code> </h4>
+<h4> <code> void stls_drop () </code> </h4>
+
+<p>
+ If the process is running as root, then this function drops its privileges
+(else it does nothing).
+The gid to drop to is read from the TLS_GID environment variable; the uid to
+drop to is read from the TLS_UID environment variable. If those variables
+are not given, then the uid, or gid, or both, are not changed. If they
+contain something else than numerical uid/gids, the process exits 111 with
+an error message.
+</p>
+
+<h3> Initializing the TLS engine </h3>
+
+<h4> <code> struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions, char const *servername) </code> </h4>
+
+<p>
+ This function initializes a TLS context for a client-side connection,
+then performs a TLS handshake.
+It then returns a non-null pointer to a <tt>struct tls</tt> context for the
+application to pass to the <tt>stls_run</tt> function when it wants to
+run the engine.
+If the context cannot be initialized or the handshake cannot be performed,
+the process exits (96 for configuration issues, 97 for context and handshake
+issues) with an appropriate error message.
+</p>
+
+<p>
+ If the <tt>CADIR</tt> environment variable is set, then it must contain
+the path of a directory containing the hashed names of the public
+certificates identifying the trust anchors. Else, if the <tt>CAFILE</tt>
+environment variable is set, then it must contain the path to a PEM file
+containing all the certificates for the trust anchors. Else, the process
+exits 100 with an error message.
+</p>
+
+<p>
+ The arguments are as follows:
+</p>
+
+<ul>
+  <li> <tt>fds</tt>&nbsp;: an array of 4 file descriptors, that are in this
+order: the fd reading from the application (cleartext), the fd writing to the
+application (cleartext), the fd reading from the network, the fd writing to
+the network. </li>
+ <li> <tt>preoptions&nbsp;: a bitfield.
+  <ul>
+   <li> Bit 0: if clear, no client authentication is performed. If set,
+the <tt>CERTFILE</tt> and <tt>KEYFILE</tt> environment variables are read,
+they must contain the path to a valid client certificate and private key
+(else the process exits 96); this certificate is then provided to the
+server for client authentication. </li>
+  </ul> </li>
+ <li> <tt>servername</tt>&nbsp;: the server name used for SNI. If NULL, then
+no SNI is performed, which may be a security risk. </li>
+</ul>
+
+<h4> <code> struct tls *stls_server_init_and_handshake (int const *fds, uint32_t preoptions) </code> </h4>
+
+<p>
+ Same as the previous function, but on the server side. No <em>servername</em>
+argument is required. The <tt>CERTFILE</tt> and <tt>KEYFILE</tt> environment
+variables are mandatory, they point to the server's certificate and private
+key. It is only necessary to set <tt>CADIR</tt> or <tt>CAFILE</tt> when bit
+0 of <em>preoptions</em> is set, in which case client authentication will be
+requested, and a list of trust anchors (read from either the directory
+in <tt>CADIR</tt> or the PEM file in <tt>CAFILE</tt>) will be used to verify
+the client certificate.
+</p>
+
+<h3> Running the TLS engine </h3>
+
+<h4> <code> void stls_run (struct tls *ctx, int *fds, unsigned int verbosity, uint32_t options, tain_t const *tto) </code> </h4>
 
 <p>
  This function runs a full-duplex TLS/SSL engine, reading/writing
 clear text from/to two file descriptors, and writing/reading
 ciphertext to/from two other file descriptors, until the
 connection is closed both ways (either with a SSL close, or
-with EOF) or a given subprocess dies.
+with EOF). It does not return.
 </p>
 
 <ul>
  <li> <em>ctx</em> is a pointer to a fully initialized context,
 connected to <em>fds</em>[2] and <em>fds</em>[3]. The TLS
 handshake must already be completed. </li>
- <li> <em>fds</em> is an array of 5 file descriptors, in this
+ <li> <em>fds</em> is an array of 4 file descriptors, in this
 order: fd reading clear text, fd writing clear text, fd reading
-ciphertext, fd writing ciphertext, selfpipe. </li>
- <li> <em>pid</em> is the pid of the application subprocess.
-When a SIGCHLD is detected on the selfpipe, the newly deceased
-process is reaped, and if it was <em>pid</em>, then the function
-returns as soon as it doesn't have anything left to write to
-the network peer. </li>
+ciphertext, fd writing ciphertext. </li>
  <li> <em>verbosity</em> defines the engine's verbosity: the
 higher the more verbose. This parameter is currently ignored. </li>
  <li> <em>options</em> is a bitfield.
@@ -106,29 +173,8 @@ if you don't want the engine to ever timeout. </li>
 
 <p>
  <tt>stls_run</tt> will make the process die with an appropriate error
-message if it encounters an unrecoverable error. If there were no problems and the
-SSL/TLS connection closed cleanly, it returns -1. If the application
-subprocess dies early, <tt>stls_run</tt> returns the <em>wstat</em>
-for that subprocess, i.e. the integer containing the information about
-its exit code or crash signal. No matter how <tt>stls_run</tt> returns,
-the first four descriptors in <em>fds</em> are closed, but the
-selfpipe is untouched and the caller should free <em>ctx</em> itself.
-</p>
-
-<h4> <code> int stls_s6tlsc (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity, char const *servername, int *sfd) </code> </h4>
-
-<p>
- This function implements <a href="../s6-tlsc.html">s6-tlsc</a> on top of LibreSSL.
-It has no other practical purpose; you're better off directly invoking
-<a href="../s6-tlsc.html">s6-tlsc</a>.
-</p>
-
-<h4> <code> int stls_s6tlsd (char const *const *argv, char const *const *envp, tain_t const *tto, uint32_t preoptions, uint32_t options, uid_t uid, gid_t gid, unsigned int verbosity) </code> </h4>
-
-<p>
- This function implements <a href="../s6-tlsd.html">s6-tlsd</a> on top of LibreSSL.
-It has no other practical purpose; you're better off directly invoking
-<a href="../s6-tlsd.html">s6-tlsd</a>.
+message and exit code if it encounters an unrecoverable error. If there were
+no problems and the SSL/TLS connection closed cleanly, the process exits 0.
 </p>
 
 </body>

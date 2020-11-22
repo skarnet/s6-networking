@@ -12,8 +12,8 @@ void sbearssl_drop (void)
 {
   if (!getuid())
   {
-    uid_t uid ;
-    gid_t gid ;
+    uid_t uid = 0 ;
+    gid_t gid = 0 ;
     char const *x = getenv("TLS_UID") ;
     if (x && !uid0_scan(x, &uid)) strerr_dieinvalid(100, "TLS_UID") ;
     x = getenv("TLS_GID") ;

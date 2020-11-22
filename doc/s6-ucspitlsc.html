@@ -3,9 +3,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>s6-networking: the s6-tlsc program</title>
-    <meta name="Description" content="s6-networking: the s6-tlsc program" />
-    <meta name="Keywords" content="s6-networking s6-tlsc tlsc tls ssl ucspi tcp inet network tcp/ip client" />
+    <title>s6-networking: the s6-ucspitlsc program</title>
+    <meta name="Description" content="s6-networking: the s6-ucspitlsc program" />
+    <meta name="Keywords" content="s6-networking s6-ucspitlsc tlsc tls ssl ucspi ucspi-tls delayed encryption opportunistic tls tcp inet network tcp/ip client" />
     <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
@@ -16,33 +16,47 @@
 <a href="//skarnet.org/">skarnet.org</a>
 </p>
 
-<h1> The <tt>s6-tlsc</tt> program </h1>
+<h1> The <tt>s6-ucspitlsc</tt> program </h1>
 
 <p>
-<tt>s6-tlsc</tt> is a program that establishes a TLS or SSL
-client connection over an existing TCP connection, then execs
-into an application. It is meant to make network communications
-secure even for applications that do not natively support
-TLS/SSL.
+<tt>s6-ucspitlsc</tt> is a client-side program that establishes
+communication channels according to the UCSPI-TLS protocol,
+then execs into an application. Later, if the application sends
+a command, a TLS tunnel will be started and the application will
+be able to use it instead of communicating with the network via
+cleartext.
+</p>
+
+<p>
+ The point of this protocol, and this program, is to make it easy
+to implement commands like SMTP's STARTTLS without embedding a
+TLS stack in the client itself.
 </p>
 
 <h2> Interface </h2>
 
 <pre>
-     s6-tlsc [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k <em>servername</em> ] [ -6 <em>rfd</em> ] [ -7 <em>wfd</em> ] [ -- ] <em>prog...</em>
+     s6-ucspitlsc [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k <em>servername</em> ] [ -6 <em>rfd</em> ] [ -7 <em>wfd</em> ] [ -- ] <em>prog...</em>
 </pre>
 
 <ul>
- <li> s6-tlsc expects to have an open TCP connection it
+ <li> s6-ucspitlsc expects to have an open TCP connection it
 can talk to on its (by default) descriptors 6 (for reading)
 and 7 (for writing). </li>
- <li> It spawns a <a href="s6-tlsc-io.html">s6-tlsc-io</a>
-child process that will initiate the TLS connection, perform the
+ <li> It forks and establishes communication channels between
+the parent and the child. The parent executes into
+<em>prog...</em>; the child remains and waits for a
+command. </li>
+ <li> At any time, <em>prog...</em> can send a command to its
+control socket provided by s6-ucspitlsc, following the
+<a href="https://web.archive.org/web/20150311223933/http://www.suspectclass.com/sgifford/ucspi-tls/ucspi-tls.txt">UCSPI-TLS</a>
+protocol. Then the s6-ucspitlsc child will exec into a
+<a href="s6-tlsc-io.html">s6-tlsc-io</a>
+process that will initiate the TLS connection, perform the
 handshake (expecting a TLS server on the other side of the
-network) and maintain the TLS tunnel. </li>
- <li> When notified by <a href="s6-tlsc-io.html">s6-tlsc-io</a>
-that the handshake has completed, s6-tlsc execs into
-<em>prog...</em>. </li>
+network) and maintain a TLS tunnel. <em>prog</em> can
+use that TLS tunnel instead of talking directly to the
+network. </li>
 </ul>
 
 <h2> Exit codes </h2>
@@ -53,8 +67,10 @@ that the handshake has completed, s6-tlsc execs into
 </ul>
 
 <p>
- If everything goes smoothly, s6-tlsc does not exit, but execs
-into <em>prog...</em> instead.
+ Normally the parent s6-ucspitlsc process execs into <em>prog...</em>
+and the child process execs into <a href="s6-tlsc-io.html">s6-tlsc-io</a>.
+If the parent dies or closes its control socket before sending a
+command to start TLS, the child exits 0.
 </p>
 
 <h2> Environment variables </h2>
@@ -62,7 +78,7 @@ into <em>prog...</em> instead.
 <h3> Read </h3>
 
 <p>
- s6-tlsc does not expect to have any particular
+ s6-ucspitlsc does not expect to have any particular
 environment variables, but it spawns a
 <a href="s6-tlsc-io.html">s6-tlsc-io</a> program that does.
 So it should pay attention to the following variables:
@@ -87,17 +103,28 @@ The <tt>-Z</tt> option prevents that behaviour.
 
 <p>
  However, <em>prog...</em> is run with the following additional
-environment variables:
+environment variables, following the UCSPI-TLS protocol:
 </p>
 
 <ul>
- <li> <tt>SSL_PROTOCOL</tt> contains the protocol version:
-TLSv1, TLSv1.1, TLSv1.2... </li>
- <li> <tt>SSL_CIPHER</tt> contains the name of the cipher
-used. </li>
- <li> More similar environment variables containing information
-about the connection may be added in the future. </li>
+ <li> <tt>SSLCTLFD</tt> contains the file descriptor number of
+the control socket. </li>
+ <li> <tt>SSLREADFD</tt> contains the file descriptor number of
+the pipe used to read data from the TLS tunnel after it
+has been activated. </li>
+ <li> <tt>SSLWRITEFD</tt> contains the file descriptor number of
+the pipe used to write data to the TLS tunnel after it
+has been activated. </li>
 </ul>
+
+<p>
+ Since <em>prog</em> is exec'ed before the TLS handshake takes
+place, it cannot get information about the TLS connection via
+environment variables. However, if it starts the TLS connection
+via a <tt>Y</tt> command (as opposed to a <tt>y</tt> command),
+it will receive this information as a string sent over the
+control socket.
+</p>
 
 <h2> Options </h2>
 
@@ -138,17 +165,13 @@ its own fd <em>fdw</em>. Default is 7. </li>
 <h2> Notes </h2>
 
 <ul>
- <li> The goal of the s6-tlsc interface (and its
-server-side companion <a href="s6-tlsd.html">s6-tlsd</a>) is to
-make it so that if you have a client, run by the command line
-<tt>client...</tt> that speaks a cleartext protocol to a server
-run by the command line <tt>server...</tt>, then if the server
-has the proper private key and certificate, and the client has
-the proper list of trust anchors, you can just change the
-client command line to <tt>s6-tlsc client...</tt> and the
-server command line to <tt>s6-tlsd server...</tt>
-without changing the client or the server themselves, and the
-communication between them will be secure. </li>
+ <li> It only makes sense to run s6-ucspitlsc if its application
+program <em>prog</em> knows and understands the
+<a href="https://web.archive.org/web/20150311223933/http://www.suspectclass.com/sgifford/ucspi-tls/ucspi-tls.txt">UCSPI-TLS</a>
+protocol for opportunistic TLS. If it does not, you will not
+be able to secure your connection, and what you need is a regular
+immediate TLS program instead, which means
+<a href="s6-tlsc.html">s6-tlsc</a>. </li>
 </ul>
 
 </body>

@@ -20,8 +20,8 @@
 
 <p>
 <tt>s6-tlsd</tt> is a program that performs the server side of
-a TLS or SSL connection over an existing TCP connection, then spawns
-an application. It is meant to make network communications
+a TLS or SSL connection over an existing TCP connection, then execs
+into an application. It is meant to make network communications
 secure even for applications that do not natively support
 TLS/SSL.
 </p>
@@ -45,69 +45,25 @@ the options given when configuring <tt>s6-networking</tt>.
  <li> s6-tlsd expects to have an open TCP connection it
 can talk to on its stdin (for reading) and stdout
 (for writing). </li>
- <li> It spawns <em>prog...</em> as a child process,
-interposing itself between it and the network.
-In other words: <em>prog</em> still reads cleartext
-on its stdin and writes cleartext on its stdout, but
-those will actually be pipes to <tt>s6-tlsd</tt>, which
-will read ciphertext from its own stdin (the network)
-and write ciphertext to its own stdout (the network). </li>
- <li> It initiates the server side of a TLS/SSL handshake
-over the network connection, expecting a TLS/SSL client on
-the other side. </li>
- <li> It manages the encryption/decryption of all the
-messages between <em>prog</em> and the client.
-<em>prog</em> speaks plaintext, but only ciphertext is sent
-on the network. </li>
- <li> When <em>prog</em> exits, <tt>s6-tlsd</tt> exits.
+ <li> It spawns a <a href="s6-tlsd-io.html">s6-tlsd-io</a>
+child process that will be the server-side of a TLS connection,
+perform the handshake (expecting a TLS client on the other side
+of the network) and maintain the TLS tunnel. </li>
+ <li> When notified by <a href="s6-tlsd-io.html">s6-tlsd-io</a>
+that the handshake has completed, s6-tlsd execs into
+<em>prog...</em>. </li>
 </ul>
 
 <h2> Exit codes </h2>
 
 <ul>
- <li> 96: error while configuring the TLS/SSL context - for instance, invalid
-private key or server certificate files. </li>
- <li> 97: error while setting up the TLS/SSL client engine. </li>
- <li> 98: TLS/SSL error while running the engine. </li>
  <li> 100: wrong usage. </li>
  <li> 111: system call failed. </li>
 </ul>
 
 <p>
- If the TLS/SSL connection closes cleanly, <tt>s6-tlsd</tt>
-waits for <em>prog</em> to exit, then exits with an
-<a href="//skarnet.org/software/execline/exitcodes.html">approximation</a>
-of <em>prog</em>'s exit code.
-</p>
-
-<h2> Protocol version and parameters </h2>
-
-<p>
- During the TLS/SSL handshake, <tt>s6-tlsd</tt> tries the
-versions of the protocol that is supported by default by the
-backend, with the default algorithms and cipher suites;
-the backend normally ensures that the most secure combination
-is tried first, with slow degradation until the client and
-the server agree.
-</p>
-
-<ul>
- <li> For BearSSL, this means use of the
-<a href="https://bearssl.org/apidoc/bearssl__ssl_8h.html#a76293c81c4624c58254a62be7b2d5e79">br_ssl_server_init_full_rsa()</a> or
-<a href="https://bearssl.org/apidoc/bearssl__ssl_8h.html#a592b2af27b2f6b9389aac854fb0b783a">br_ssl_server_init_full_ec()</a>
-function. The supported protocol versions are described
-<a href="https://bearssl.org/support.html#supported-versions">here</a>. </li>
- <li> For LibreSSL, this means use of the
-<a href="https://man.openbsd.org/OpenBSD-current/man3/tls_config_set_protocols.3">tls_config_set_protocols(TLS_PROTOCOLS_DEFAULT)</a>
-call. </li>
-</ul>
-
-<p>
- As a server, <tt>s6-tlsd</tt> can be conservative in its
-choice of protocols. It is currently not very conservative
-when using the BearSSL backend; it could become more so in
-the future, by defining a custom server profile that supports
-only TLS-1.2 but with several algorithms and cipher suites.
+ If everything goes smoothly, s6-tlsd does not exit, but execs
+into <em>prog...</em> instead.
 </p>
 
 <h2> Environment variables </h2>
@@ -115,120 +71,44 @@ only TLS-1.2 but with several algorithms and cipher suites.
 <h3> Read </h3>
 
 <p>
- <tt>s6-tlsd</tt> expects to have the following
-environment variables set:
+ s6-tlsd does not expect to have any particular
+environment variables, but it spawns a
+<a href="s6-tlsd-io.html">s6-tlsd-io</a> program that does.
+So it should pay attention to the following variables:
 </p>
 
 <ul>
- <li> <tt>KEYFILE</tt>: a path to the file
-containing the server's private key, DER- or PEM-encoded. </li>
- <li> <tt>CERTFILE</tt>: a path to the file
-containing the server's certificate, DER- or PEM-encoded.
-If PEM-encoded, the file can actually contain a chain
-of certificates. </li>
-</ul>
-
-<p>
- If one of those variables is unset, <tt>s6-tlsd</tt>
-will refuse to run.
-</p>
-
-<p>
- If you are using client certificats, <tt>s6-tlsd</tt>
-also requires either one of the following variables to be set:
-</p>
-
-<ul>
- <li> <tt>CADIR</tt>: a directory where trust anchors
-(i.e. root or intermediate CA certificates) can be found,
-one per file, DER- or PEM-encoded. </li>
- <li> <tt>CAFILE</tt>: a file containing the whole set
-of trust anchors, PEM-encoded. </li>
-</ul>
-
-<p>
- If <tt>s6-tlsd</tt> is run as root, it can also read two
-more environment variables, <tt>TLS_UID</tt> and <tt>TLS_GID</tt>,
-which contain a numeric uid and a numeric gid; <tt>s6-tlsd</tt>
-then drops its root privileges to this uid/gid after spawning
-<em>prog...</em>. This ensures that the TLS/engine and the
-application run with different privileges.
-</p>
-
-<p>
- Note that <em>prog...</em>
-should drop its own root privileges by its own means: the
-<a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
-program is a way of doing it. If the <tt>s6-tlsd</tt>
-invocation actually comes from a
-<a href="s6-tlsserver.html">s6-tlsserver</a> command line,
-and privilege-dropping options (<tt>-G</tt>, <tt>-g</tt>,
-<tt>-u</tt> or <tt>-U</tt>) have been given to
-<a href="s6-tlsserver.html">s6-tlsserver</a>, then
-<a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
-directly follows <tt>s6-tlsd</tt> on the command line, in order
-to also drop the child's privileges before executing the application.
-The point of that setup is:
-</p>
-
-<ul>
- <li> To read the private key file as root </li>
- <li> To run the application as a non-root user </li>
- <li> To run <tt>s6-tlsd</tt> as a <em>different</em> non-root user </li>
- <li> That way, even if <tt>s6-tlsd</tt>, the application, or both,
-get compromised, the private key is still secure. </li>
+ <li> <tt>KEYFILE</tt> and <tt>CERTFILE</tt> </li>
+ <li> (if the -y or -Y option has been given) <tt>CADIR</tt> or <tt>CAFILE</tt> </li>
+ <li> <tt>TLS_UID</tt> and <tt>TLS_GID</tt>
 </ul>
 
 <h3> Written </h3>
 
 <p>
- Unless the <tt>-Z</tt> option has been given to
-<tt>s6-tlsd</tt>, <em>prog...</em> is run with all the
-TLS/SSL variables <em>unset</em>: CADIR, CAFILE,
-KEYFILE, CERTFILE, TLS_UID and TLS_GID. The goal is
-for <tt>s6-tlsd</tt> to be, by default, as invisible
-as possible.
+ By default, <em>prog...</em> is run with all these
+variables <em>unset</em>: CADIR, CAFILE,
+KEYFILE, CERTFILE, TLS_UID and TLS_GID. They're passed to
+the <a href="s6-tlsd-io.html">s6-tlsd-io</a> child but
+not to <em>prog...</em>.
+The <tt>-Z</tt> option prevents that behaviour.
 </p>
 
-<h2> SSL close handling </h2>
-
 <p>
- If <em>prog</em> initiates the end of the session by sending
-EOF, there are two ways for the TLS/SSL layer to handle it.
+ However, <em>prog...</em> is run with the following additional
+environment variables:
 </p>
 
 <ul>
- <li> It can send a <tt>close_notify</tt> alert, and wait for
-an acknowledgement from the peer, at which point the connection
-is closed. The advantage of this setup is that it is secure
-even when the application protocol is not auto-terminated, i.e.
-when it does not know when its data stops. Old protocols such
-as HTTP-0.9 are in this case. The drawback of this setup is
-that it breaks full-duplex: once a peer has sent the
-<tt>close_notify</tt>, it must discard all the incoming
-records that are not a <tt>close_notify</tt> from the
-other peer. So if a client sends EOF while it is still
-receiving data from the server, the connection closes
-immediately and the data can be truncated. </li>
- <li> It can simply transmit the EOF, shutting down
-half the TCP connection, and wait for the EOF back.
-The advantage of this setup is that it maintains
-full-duplex: a client can send EOF after its initial
-request, and still receive a complete answer from the
-server. The drawback is that it is insecure when the application
-protocol is not auto-terminated. </li>
+ <li> <tt>SSL_PROTOCOL</tt> contains the protocol version:
+TLSv1, TLSv1.1, TLSv1.2... </li>
+ <li> <tt>SSL_CIPHER</tt> contains the name of the cipher
+used. </li>
+ <li> More similar environment variables containing information
+about the connection may be added in the future. </li>
 </ul>
 
-<p>
- Nowadays (2017), most protocols are auto-terminated, so
-it is not dangerous anymore to use EOF tranmission, and that
-is the default for <tt>s6-tlsd</tt>. Nevertheless, by
-using the <tt>-S</tt> option, you can
-force it to use the <tt>close_notify</tt> method if your
-application requires it to be secure.
-</p>
-
-<h2> <tt>s6-tlsd</tt> options </h2>
+<h2> Options </h2>
 
 <ul>
  <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: Be more or less
@@ -236,10 +116,11 @@ verbose. Default for <em>verbosity</em> is 1. 0 is quiet, 2 is
 verbose, more than 2 is debug output. This option currently has
 no effect. </li>
  <li> <tt>-Z</tt>&nbsp;: do not clean the environment of
-<tt>s6-tlsd</tt>-related variables before spawning <em>prog...</em>. </li>
+the variables used by <a href="s6-tlsd-io.html">s6-tlsd-io</a>
+before execing <em>prog...</em>. </li>
  <li> <tt>-z</tt>&nbsp;: clean the environment of
-<tt>s6-tlsd</tt>-related variables before spawning <em>prog...</em>.
-This is the default. </li>
+the variables used by <a href="s6-tlsd-io.html">s6-tlsd-io</a>
+before execing <em>prog...</em>. This is the default. </li>
  <li> <tt>-S</tt>&nbsp;: send a <tt>close_notify</tt> alert
 and break the connection when <em>prog</em> sends EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP

@@ -1,0 +1,217 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the s6-tlsc-io program</title>
+    <meta name="Description" content="s6-networking: the s6-tlsc-io program" />
+    <meta name="Keywords" content="s6-networking s6-tlsc-io tlsc tls ssl ucspi tcp inet network tcp/ip client" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>s6-tlsc-io</tt> program </h1>
+
+<p>
+<tt>s6-tlsc-io</tt> is a program that establishes a TLS or SSL
+client connection over an existing TCP connection, then
+communicates with an existing local program over already
+established pipes. It is the only client-side program in
+s6-networking that performs cryptography.
+</p>
+
+<p>
+ <a href="index.html">s6-networking</a> does not include
+cryptographic software. All the crypto used in <tt>s6-tlsc-io</tt>
+is provided by the chosen SSL backend:
+<a href="https://bearssl.org/">BearSSL</a> or
+<a href="https://www.libressl.org/">LibreSSL</a>, depending on
+the options given when configuring s6-networking.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     s6-tlsc-io [ -S | -s ] [ -Y | -y ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k <em>servername</em> ] [ -d notif ] [ -- ] <em>fdr</em> <em>fdw</em>
+</pre>
+
+<ul>
+ <li> s6-tlsc-io expects to have an open connection it
+can talk to on its standard input and output. It also expects to read
+cleartext data from file descriptor <em>fdr</em> and write cleartext
+data to file descriptor <em>fdw</em>. </li>
+ <li> It initiates a TLS handshake over the network connection,
+expecting a TLS server on the other side. </li>
+ <li> Then it acts as a full duplex tunnel, decrypting and transmitting
+data from stdin to <em>fdw</em>, and encrypting and transmitting data
+from <em>fdr</em> to stdout. </li>
+ <li> When it cannot transmit any more data from/to the local application
+because connections have closed, <tt>s6-tlsc-io</tt> exits. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<ul>
+ <li> 0: the connection terminated normally.
+ <li> 96: error while configuring the TLS context - for instance, invalid trust anchor set. </li>
+ <li> 97: error while setting up the TLS client engine. </li>
+ <li> 98: TLS error while running the engine. </li>
+ <li> 100: wrong usage. </li>
+ <li> 111: system call failed. </li>
+</ul>
+
+<h2> Protocol version and parameters </h2>
+
+<p>
+ During the TLS handshake, <tt>s6-tlsc-io</tt> tries
+every version of the protocol that is supported by the
+backend, with all supported algorithms and cipher suites;
+the backend normally ensures that the most secure combination
+is tried first, with slow degradation until the client and
+the server agree.
+</p>
+
+<ul>
+ <li> For BearSSL, this means use of the
+<a href="https://bearssl.org/apidoc/bearssl__ssl_8h.html#aa386dd0b03a0123760bf63df5a41c1e0">br_ssl_client_init_full()</a>
+function. The supported protocol versions are described
+<a href="https://bearssl.org/support.html#supported-versions">here</a>. </li>
+ <li> For LibreSSL, this means use of the
+<a href="https://man.openbsd.org/OpenBSD-current/man3/tls_config_set_protocols.3">tls_config_set_protocols(TLS_PROTOCOLS_ALL)</a>
+call. </li>
+</ul>
+
+<p>
+ As a client, it is better for <tt>s6-tlsc-io</tt> to adapt to as many servers
+as possible, that's why it adopts a liberal approach to protocol
+versions.
+</p>
+
+<h2> Environment variables </h2>
+
+<p>
+ <tt>s6-tlsc-io</tt> expects to have one of the
+<tt>CADIR</tt> or <tt>CAFILE</tt> environment variables set.
+It will refuse to run if both are unset. If both are set,
+<tt>CADIR</tt> has priority. The value of that variable is:
+</p>
+
+<ul>
+ <li> for <tt>CADIR</tt>: a directory where trust anchors
+(i.e. root or intermediate CA certificates) can be found,
+one per file, DER- or PEM-encoded. </li>
+ <li> for <tt>CAFILE</tt>: a file containing the whole set
+of trust anchors, PEM-encoded. </li>
+</ul>
+
+<p>
+ If you are using client certificates, s6-tlsc-io also reads
+two more environment variables: <tt>KEYFILE</tt> contains
+the path to a file containing the private key, DER- or
+PEM-encoded; and <tt>CERTFILE</tt> contains the path to
+a file containing the client certificate, DER- or
+PEM-encoded.
+</p>
+
+<p>
+ If <tt>s6-tlsc-io</tt> is run as root, it can also read two
+other environment variables, <tt>TLS_UID</tt> and <tt>TLS_GID</tt>,
+which contain a numeric uid and a numeric gid; <tt>s6-tlsc-io</tt>
+then drops its root privileges to this uid/gid after spawning
+<em>prog...</em>. This ensures that the TLS/engine and the
+application run with different privileges. Note that <em>prog...</em>
+should drop its own root privileges by its own means: the
+<a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
+program is a chainloading way of doing it.
+</p>
+
+<h2> Server name determination for SNI </h2>
+
+<p>
+ The <tt>-k <em>servername</em></tt> option is important to
+<tt>s6-tlsc-io</tt>: it tells it to send <em>servername</em>
+as the name to require a certificate for.
+Not setting this option allows <tt>s6-tlsc-io</tt> to
+proceed without SNI, <strong>which may be a security risk.</strong>
+</p>
+
+<h2> SSL close handling </h2>
+
+<p>
+ If the local application initiates the end of the session by sending
+EOF to <em>fdr</em>, there are two ways for the TLS layer to handle it.
+</p>
+
+<ul>
+ <li> It can send a <tt>close_notify</tt> alert, and wait for
+an acknowledgement from the peer, at which point the connection
+is closed. The advantage of this setup is that it is secure
+even when the application protocol is not auto-terminated, i.e.
+when it does not know when its data stops. Old protocols such
+as HTTP-0.9 are in this case. The drawback of this setup is
+that it breaks full-duplex: once a peer has sent the
+<tt>close_notify</tt>, it must discard all the incoming
+records that are not a <tt>close_notify</tt> from the
+other peer. So if a client sends EOF while it is still
+receiving data from the server, the connection closes
+immediately and the data can be truncated. </li>
+ <li> It can simply transmit the EOF, shutting down
+half the TCP connection, and wait for the EOF back.
+The advantage of this setup is that it maintains
+full-duplex: a client can send EOF after its initial
+request, and still receive a complete answer from the
+server. The drawback is that it is insecure when the application
+protocol is not auto-terminated. </li>
+</ul>
+
+<p>
+ Nowadays (2020), most protocols are auto-terminated, so
+it is not dangerous anymore to use EOF tranmission, and that
+is the default for <tt>s6-tlsc-io</tt>. Nevertheless, by
+using the <tt>-S</tt> option, you can
+force it to use the <tt>close_notify</tt> method if your
+application requires it to be secure.
+</p>
+
+<h2> <tt>s6-tlsc-io</tt> options </h2>
+
+<ul>
+ <li> <tt>-v&nbsp;<em>verbosity</em></tt>&nbsp;: Be more or less
+verbose. Default for <em>verbosity</em> is 1. 0 is quiet, 2 is
+verbose, more than 2 is debug output. This option currently has
+no effect. </li>
+ <li> <tt>-S</tt>&nbsp;: send a <tt>close_notify</tt> alert
+and break the connection when receiving a local EOF. </li>
+ <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
+connection without using <tt>close_notify</tt>. This is the default. </li>
+ <li> <tt>-Y</tt>&nbsp;: Do not send a client certificate. This is the default. </li>
+ <li> <tt>-y</tt>&nbsp;: Send a client certificate. </li>
+ <li> <tt>-k&nbsp;<em>servername</em></tt>&nbsp;: use Server Name
+Indication, and send <em>servername</em>. The default is not to
+use SNI, which may be a security risk. </li>
+ <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: close the connection
+if <em>kimeout</em> milliseconds elapse without any data being
+received from either side. The default is 0, which means
+infinite timeout (never kill the connection). </li>
+ <li> <tt>-d&nbsp;<em>notif</em></tt>&nbsp;: handshake notification.
+<em>notif</em> must be a file descriptor open for writing. When the
+TLS handshake has completed, some data (terminated by two null
+characters) will be sent to file descriptor <em>notif</em>. The
+data contains information about the TLS parameters of the connection;
+its exact contents are left unspecified, but there's at least
+a <tt>SSL_PROTOCOL=<em>protocol</em></tt> string
+and a <tt>SSL_CIPHER=<em>cipher</em></tt> string, both null-terminated.
+Sending this data serves a dual purpose: telling the <em>notif</em>
+reader that the handshake has completed, and providing it with some
+basic information about the connection. If this option is not given,
+no such notification is performed. </li>
+</ul>
+
+</body>
+</html>

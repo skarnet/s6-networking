@@ -40,22 +40,20 @@ involving:
 establishes a TCP connection to host <em>host</em> port <em>port</em>. </li>
    <li> <a href="s6-tlsc.html">s6-tlsc</a>, which establishes
 a TLS transport (client-side) over that connection. </li>
-   <li> <em>prog...</em>, your client program, which is run as a
-child of <a href="s6-tlsc.html">s6-tlsc</a>. </li>
+   <li> <em>prog...</em>, your client program, which is executed into by
+<a href="s6-tlsc.html">s6-tlsc</a> once the
+<a href="s6-tlsc-io.html">s6-tlsc-io</a> child it has spawned has
+set up the TLS connection and performed the handshake. </li>
   </ul> </li>
- <li> It runs until the connection closes. </li>
- <li> It exits either with a <a href="s6-tlsc.html">s6-tlsc</a>
-error code (and error message), or with an
-<a href="https://skarnet.org/software/execline/exitcodes.html">approximation</a>
-of <em>prog</em>'s exit code. </li>
+ <li> <em>prog...</em> is run with the same pid as s6-tlsclient. </li>
 </ul>
 
 <p>
  <em>prog</em> is expected to read from its peer on
 descriptor 6 and write to its peer on descriptor 7.
-Since there will be a <a href="s6-tlsc.html">s6-tlsc</a>
+Since there will be a <a href="s6-tlsc-io.html">s6-tlsc-io</a>
 program between <em>prog</em> and the network to perform
-the SSL encryption/decryption, those descriptors will not
+the TLS encryption/decryption, those descriptors will not
 be a network socket - they will be pipes.
 </p>
 
@@ -79,7 +77,7 @@ used, which may be a security risk.</strong>
 <p>
  The following variables should be set before invoking
 <tt>s6-tlsclient</tt>, because they will be used by
-<a href="s6-tlsc.html">s6-tlsc</a>:
+<a href="s6-tlsc-io.html">s6-tlsc-io</a>:
 </p>
 
 <ul>
