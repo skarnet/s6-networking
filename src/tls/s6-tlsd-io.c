@@ -53,8 +53,6 @@ static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cb_conte
 
 static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, unsigned int notif)
 {
-  if (ndelay_on(fds[0]) < 0 || ndelay_on(fds[1]) < 0)
-    strerr_diefu1sys(111, "set local fds non-blocking") ;
   if (!random_init()) strerr_diefu1sys(111, "initialize random device") ;
   sbearssl_server_init_and_run(fds, tto, preoptions, options, verbosity, &handshake_cb, notif) ;
 }
@@ -107,8 +105,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     fds[1] = u ;
   }
 
-  if (ndelay_on(0) < 0 || ndelay_on(1) < 0)
-    strerr_diefu1sys(111, "set stdin/stdout non-blocking") ;
   if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
   tain_now_set_stopwatch_g() ;
   doit(fds, &tto, preoptions, options, verbosity, notif) ;

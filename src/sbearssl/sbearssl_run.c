@@ -19,7 +19,13 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
   iopause_fd x[4] ;
   unsigned int xindex[4] ;
   int markedforflush = 0 ;
-  int handshake_done = 0 ;
+  int handshake_notdone = 1 ;
+
+  if (ndelay_on(fds[0]) < 0
+   || ndelay_on(fds[1]) < 0
+   || ndelay_on(fds[2]) < 0
+   || ndelay_on(fds[3]) < 0)
+    strerr_diefu1sys(111, "set fds non-blocking") ;
 
   for (;;)
   {
@@ -35,24 +41,17 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
       break ;
     }
 
-    if (!handshake_done)
-    {
-      size_t dummy ;
-      if (br_ssl_engine_recvapp_buf(ctx, &dummy))
-      {
-        if (!(*cb)(ctx, cbarg))
-          strerr_diefu1sys(111, "post-handshake callback failed") ;
-        handshake_done = 1 ;
-      }
-    }
-
-    tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && state & (BR_SSL_SENDAPP | BR_SSL_RECVREC) ? tto : &tain_infinite_relative) ;
-
     if (fds[0] >= 0 && state & BR_SSL_SENDAPP)
     {
       x[j].fd = fds[0] ;
       x[j].events = IOPAUSE_READ ;
       xindex[0] = j++ ;
+      if (handshake_notdone)
+      {
+        if (!(*cb)(ctx, cbarg))
+          strerr_diefu1sys(111, "post-handshake callback failed") ;
+        handshake_notdone = 0 ;
+      }
     }
     else xindex[0] = 4 ;
     if (fds[1] >= 0 && state & BR_SSL_RECVAPP)
@@ -77,7 +76,8 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
     }
     else xindex[3] = 4 ;
 
-    if (xindex[0] == 4 && xindex[1] == 4 && xindex[3] == 4) break ;
+    if (!j) break ;
+    tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && state & (BR_SSL_SENDAPP | BR_SSL_RECVREC) ? tto : &tain_infinite_relative) ;
     r = iopause_g(x, j, &deadline) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
     else if (!r) break ;

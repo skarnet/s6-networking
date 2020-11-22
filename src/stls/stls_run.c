@@ -118,6 +118,12 @@ void stls_run (struct tls *ctx, int *fds, tain_t const *tto, uint32_t options, u
   iopause_fd x[4] ;
   unsigned int xindex[4] ;
 
+  if (ndelay_on(fds[0]) < 0
+   || ndelay_on(fds[1]) < 0
+   || ndelay_on(fds[2]) < 0
+   || ndelay_on(fds[3]) < 0)
+    strerr_diefu1sys(111, "set fds non-blocking") ;
+
   buffer_init(&b[0].b, &buffer_read, fds[0], b[0].buf, STLS_BUFSIZE) ;
   buffer_init(&b[1].b, &buffer_write, fds[1], b[1].buf, STLS_BUFSIZE) ;
 

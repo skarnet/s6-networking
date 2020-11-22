@@ -77,7 +77,9 @@ struct tls *stls_server_init_and_handshake (int const *fds, uint32_t preoptions)
   if (tls_accept_fds(ctx, &cctx, fds[0], fds[1]) < 0)
     diectx(97, ctx, "tls_accept_fds") ;
   tls_free(ctx) ;
+  strerr_warni1x("before handshake") ;
   if (tls_handshake(cctx) < 0)
     diectx(97, cctx, "perform SSL handshake") ;
+  strerr_warni1x("after handshake") ;
   return cctx ;
 }
