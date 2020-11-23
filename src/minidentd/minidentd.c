@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <pwd.h>
+
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/bytestr.h>
@@ -18,6 +19,7 @@
 #include <skalibs/tai.h>
 #include <skalibs/random.h>
 #include <skalibs/unix-timed.h>
+
 #include "mgetuid.h"
 
 #define USAGE "minidentd [ -v ] [ -n | -i | -r ] [ -y file ] [ -t timeout ]"
@@ -262,7 +264,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     r = timed_getln_g(buffer_0small, &line, '\n', &deadline) ;
     if (r == -1)
     {
-      if (errno == ETIMEDOUT) return 1 ;
+      if (errno == ETIMEDOUT || errno == ECONNRESET) return 1 ;
       else strerr_diefu1sys(111, "read from stdin") ;
     }
     if (!r) break ;
