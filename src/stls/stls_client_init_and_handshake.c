@@ -22,23 +22,6 @@ struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions,
   cfg = tls_config_new() ;
   if (!cfg) strerr_diefu1sys(111, "tls_config_new") ;
 
-  x = getenv("CADIR") ;
-  if (x)
-  {
-    if (tls_config_set_ca_path(cfg, x) < 0)
-      diecfg(cfg, "tls_config_set_ca_path") ;
-  }
-  else
-  {
-    x = getenv("CAFILE") ;
-    if (x)
-    {
-      if (tls_config_set_ca_file(cfg, x) < 0)
-        diecfg(cfg, "tls_config_set_ca_file") ;
-    }
-    else strerr_dief1x(100, "no trust anchor found - please set CADIR or CAFILE") ;
-  }
-
   if (preoptions & 1)
   {
     x = getenv("CERTFILE") ;
@@ -53,6 +36,23 @@ struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions,
   }
 
   stls_drop() ;
+
+  x = getenv("CADIR") ;
+  if (x)
+  {
+    if (tls_config_set_ca_path(cfg, x) < 0)
+      diecfg(cfg, "tls_config_set_ca_path") ;
+  }
+  else
+  {
+    x = getenv("CAFILE") ;
+    if (x)
+    {
+      if (tls_config_set_ca_file(cfg, x) < 0)
+        diecfg(cfg, "tls_config_set_ca_file") ;
+    }
+    else strerr_diefu1x(100, "get trust anchor list: neither CADIR nor CAFILE is set") ;
+  }
 
   if (tls_config_set_ciphers(cfg, "secure") < 0)
     diecfg(cfg, "tls_config_set_ciphers") ;
@@ -75,8 +75,6 @@ struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions,
   if (tls_connect_fds(ctx, fds[0], fds[1], servername) < 0)
     diectx(97, ctx, "tls_connect_fds") ;
   tls_config_free(cfg) ;
-  strerr_warn1x("before handshake") ;
-  if (tls_handshake(ctx) < 0) diectx(97, ctx, "perform SSL handshake") ;
-  strerr_warn1x("after handshake") ;
+  if (tls_handshake(ctx) < 0) diectx(97, ctx, "tls_handshake") ;
   return ctx ;
 }

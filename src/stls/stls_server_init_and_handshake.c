@@ -14,8 +14,8 @@
 
 struct tls *stls_server_init_and_handshake (int const *fds, uint32_t preoptions)
 {
-  struct tls *cctx ;
-  struct tls *ctx ;
+  struct tls *ctx = 0 ;
+  struct tls *sctx ;
   struct tls_config *cfg ;
   char const *x ;
 
@@ -70,16 +70,13 @@ struct tls *stls_server_init_and_handshake (int const *fds, uint32_t preoptions)
   tls_config_set_protocols(cfg, TLS_PROTOCOLS_DEFAULT) ;
   tls_config_prefer_ciphers_server(cfg) ;
 
-  ctx = tls_server() ;
-  if (!ctx) strerr_diefu1sys(111, "tls_server") ;
-  if (tls_configure(ctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
+  sctx = tls_server() ;
+  if (!sctx) strerr_diefu1sys(111, "tls_server") ;
+  if (tls_configure(sctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
   tls_config_free(cfg) ;
-  if (tls_accept_fds(ctx, &cctx, fds[0], fds[1]) < 0)
-    diectx(97, ctx, "tls_accept_fds") ;
-  tls_free(ctx) ;
-  strerr_warni1x("before handshake") ;
-  if (tls_handshake(cctx) < 0)
-    diectx(97, cctx, "perform SSL handshake") ;
-  strerr_warni1x("after handshake") ;
-  return cctx ;
+  if (tls_accept_fds(sctx, &ctx, fds[0], fds[1]) < 0)
+    diectx(97, sctx, "tls_accept_fds") ;
+  tls_free(sctx) ;
+  if (tls_handshake(ctx) < 0) diectx(97, ctx, "tls_handshake") ;
+  return ctx ;
 }

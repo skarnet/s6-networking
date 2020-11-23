@@ -59,6 +59,7 @@ void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
       sbearssl_ta_to(genalloc_s(sbearssl_ta, &tas) + i, btas + i, storage.s) ;
     genalloc_free(sbearssl_ta, &tas) ;
     br_ssl_client_init_full(&cc, &xc, btas, talen) ;
+    br_ssl_engine_add_flags(&cc.eng, BR_OPT_NO_RENEGOTIATION) ;
     random_string((char *)buf, 32) ;
     random_finish() ;
     br_ssl_engine_inject_entropy(&cc.eng, buf, 32) ;
