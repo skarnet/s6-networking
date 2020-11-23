@@ -37,19 +37,20 @@ struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions,
 
   stls_drop() ;
 
-  x = getenv("CADIR") ;
+  x = getenv("CAFILE") ;
   if (x)
   {
-    if (tls_config_set_ca_path(cfg, x) < 0)
-      diecfg(cfg, "tls_config_set_ca_path") ;
+    if (tls_config_set_ca_file(cfg, x) < 0)
+      diecfg(cfg, "tls_config_set_ca_file") ;
   }
   else
   {
-    x = getenv("CAFILE") ;
+    x = getenv("CADIR") ;
     if (x)
     {
-      if (tls_config_set_ca_file(cfg, x) < 0)
-        diecfg(cfg, "tls_config_set_ca_file") ;
+      if (tls_config_set_ca_path(cfg, x) < 0)
+        diecfg(cfg, "tls_config_set_ca_path") ;
+      strerr_warnw1x("some versions of libtls do not work with CADIR, try using CAFILE instead") ;
     }
     else strerr_diefu1x(100, "get trust anchor list: neither CADIR nor CAFILE is set") ;
   }
