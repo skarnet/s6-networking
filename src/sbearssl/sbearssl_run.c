@@ -76,7 +76,7 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
     }
     else xindex[3] = 4 ;
 
-    if (xindex[0] == 4 && xindex[1] == 4 && xindex[3] == 4 && handshake_done) break ;
+    if (xindex[0] == 4 && xindex[1] == 4 && xindex[3] == 4 && handshake_done || !j) break ;
 
     tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && state & (BR_SSL_SENDAPP | BR_SSL_RECVREC) ? tto : &tain_infinite_relative) ;
     r = iopause_g(x, j, &deadline) ;
