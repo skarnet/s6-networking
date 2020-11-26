@@ -32,5 +32,6 @@
 /s6-tlsserver
 /s6-tlsc-io
 /s6-tlsd-io
+/s6-ucspitlsc
 /s6-ucspitlsd
 /src/minidentd/mgetuid.c
