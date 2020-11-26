@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <errno.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/fmtscan.h>
@@ -14,7 +15,10 @@
 #include <skalibs/skamisc.h>
 #include <skalibs/socket.h>
 #include <skalibs/ip46.h>
+#include <skalibs/exec.h>
+
 #include <s6-dns/s6dns.h>
+
 #include <s6-networking/ident.h>
 
 #ifdef SKALIBS_IPV6_ENABLED
@@ -267,18 +271,18 @@ int main (int argc, char const *const *argv)
     fmtport[uint16_fmt(fmtport, remoteport)] = 0 ;
     if (flags.verbosity >= 2)
       strerr_warni4x("connected to ", fmtip, " port ", fmtport) ;
-    if (!pathexec_env("PROTO", "TCP")
-     || !pathexec_env("TCPREMOTEIP", fmtip)
-     || !pathexec_env("TCPREMOTEPORT", fmtport)) dienomem() ;
+    if (!env_mexec("PROTO", "TCP")
+     || !env_mexec("TCPREMOTEIP", fmtip)
+     || !env_mexec("TCPREMOTEPORT", fmtport)) dienomem() ;
 
     fmtip[ip46_fmt(fmtip, &flags.localip)] = 0 ;
     fmtport[uint16_fmt(fmtport, flags.localport)] = 0 ;
-    if (!pathexec_env("TCPLOCALIP", fmtip)
-     || !pathexec_env("TCPLOCALPORT", fmtport)) dienomem() ;
+    if (!env_mexec("TCPLOCALIP", fmtip)
+     || !env_mexec("TCPLOCALPORT", fmtport)) dienomem() ;
 
     if (flags.localname)
     {
-      if (!pathexec_env("TCPLOCALHOST", flags.localname)) dienomem() ;
+      if (!env_mexec("TCPLOCALHOST", flags.localname)) dienomem() ;
     }
 
  /* DNS resolution for TCPLOCALHOST and TCPREMOTEHOST */
@@ -318,7 +322,7 @@ int main (int argc, char const *const *argv)
       {
         if (blob[0].status)
         {
-          if (!pathexec_env("TCPLOCALHOST", 0)) dienomem() ;
+          if (!env_mexec("TCPLOCALHOST", 0)) dienomem() ;
         }
         else
         {
@@ -328,14 +332,14 @@ int main (int argc, char const *const *argv)
            len = s6dns_domain_tostring(s, 255, genalloc_s(s6dns_domain_t, &data[0].ds)) ;
           genalloc_free(s6dns_domain_t, &data[0].ds) ;
           s[len] = 0 ;
-          if (!pathexec_env("TCPLOCALHOST", s)) dienomem() ;
+          if (!env_mexec("TCPLOCALHOST", s)) dienomem() ;
         }
       }
       if (flags.remotehost)
       {
         if (blob[1].status)
         {
-          if (!pathexec_env("TCPREMOTEHOST", 0)) dienomem() ;
+          if (!env_mexec("TCPREMOTEHOST", 0)) dienomem() ;
         }
         else
         {
@@ -345,7 +349,7 @@ int main (int argc, char const *const *argv)
            len = s6dns_domain_tostring(s, 255, genalloc_s(s6dns_domain_t, &data[1].ds)) ;
           genalloc_free(s6dns_domain_t, &data[1].ds) ;
           s[len] = 0 ;
-          if (!pathexec_env("TCPREMOTEHOST", s)) dienomem() ;
+          if (!env_mexec("TCPREMOTEHOST", s)) dienomem() ;
         }
       }
     }
@@ -369,14 +373,14 @@ int main (int argc, char const *const *argv)
             if (r < 0) strerr_warnwu1sys("s6net_ident_client") ;
             else strerr_warnw2x("ident server replied: ", s6net_ident_error_str(errno)) ;
           }
-          if (!pathexec_env("TCPREMOTEINFO", "")) dienomem() ;
+          if (!env_mexec("TCPREMOTEINFO", "")) dienomem() ;
         }
-        else if (!pathexec_env("TCPREMOTEINFO", idbuf)) dienomem() ;
+        else if (!env_mexec("TCPREMOTEINFO", idbuf)) dienomem() ;
       }
     }
   }
 
   if (fd_move(6, s) < 0) strerr_diefu2sys(111, "set up fd ", "6") ;
   if (fd_copy(7, 6) < 0) strerr_diefu2sys(111, "set up fd ", "7") ;
-  xpathexec(argv+2) ;
+  xmexec(argv+2) ;
 }

@@ -2,17 +2,20 @@
 
 #include <sys/types.h>
 #include <limits.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
+
 #include <s6/config.h>
+
 #include <s6-networking/config.h>
 
 #define USAGE "s6-tcpserver6 [ -v verbosity ] [ -d | -D ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gid,gid,... ] [ -g gid ] [ -u uid ] [ -U ] ip port prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned int verbosity = 1 ;
   int flag1 = 0 ;
@@ -123,6 +126,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     newargv[m++] = "--" ;
     while (*argv) newargv[m++] = *argv++ ;
     newargv[m++] = 0 ;
-    xpathexec_run(newargv[0], newargv, envp) ;
+    xexec(newargv) ;
   }
 }

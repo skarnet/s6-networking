@@ -4,10 +4,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <skalibs/posixplz.h>
 #include <skalibs/types.h>
-#include <skalibs/env.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #include "s6tls-internal.h"
 
@@ -32,5 +30,5 @@ void s6tls_ucspi_exec_app (char const *const *argv, int const p[4][2], uint32_t 
   memcpy(modif + m, "SSLWRITEFD=", 11) ; m += 11 ;
   m += uint_fmt(modif + m, p[0][1]) ;
   modif[m++] = 0 ;
-  xpathexec_r(argv, (char const *const *)environ, env_len((char const* const *)environ), modif, m) ;
+  xmexec_m(argv, modif, m) ;
 }

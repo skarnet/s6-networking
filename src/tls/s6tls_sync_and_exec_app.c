@@ -1,12 +1,12 @@
 /* ISC license. */
 
 #include <stdint.h>
+#include <string.h>
 #include <unistd.h>
 
-#include <skalibs/posixplz.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #include "s6tls-internal.h"
 
@@ -39,5 +39,5 @@ void s6tls_sync_and_exec_app (char const *const *argv, int const p[4][2], pid_t 
   if (r >= MAXENVSIZE)
     strerr_dief1x(100, "SSL data too large") ;
   m += r - 1 ;
-  xpathexec_r(argv, (char const *const *)environ, env_len((char const *const *)environ), buf, m) ;
+  xmexec_m(argv, buf, m) ;
 }

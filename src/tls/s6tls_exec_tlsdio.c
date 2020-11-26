@@ -1,8 +1,7 @@
 /* ISC license. */
 
-#include <skalibs/posixplz.h>
 #include <skalibs/types.h>
-#include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #include <s6-networking/config.h>
 #include "s6tls-internal.h"
@@ -45,5 +44,5 @@ void s6tls_exec_tlsdio (int const *fds, uint32_t options, unsigned int verbosity
   newargv[m++] = fmtw ;
   fmtw[uint_fmt(fmtw, fds[1])] = 0 ;
   newargv[m++] = 0 ;
-  xpathexec_run(newargv[0], newargv, (char const *const *)environ) ;
+  xexec(newargv) ;
 }

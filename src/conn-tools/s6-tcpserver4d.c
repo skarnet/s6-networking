@@ -8,9 +8,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
+
 #include <skalibs/gccattributes.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/uint16.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
@@ -22,6 +22,7 @@
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
 #include <skalibs/socket.h>
+#include <skalibs/exec.h>
 
 #define ABSOLUTE_MAXCONN 1000
 
@@ -79,7 +80,7 @@ static inline unsigned int lookup_ip (uint32_t ip)
 
  /* Logging */
 
-static void log_start (void)
+static inline void log_start (void)
 {
   strerr_warni1x("starting") ;
 }
@@ -96,7 +97,7 @@ static void log_status (void)
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
 
-static void log_deny (uint32_t ip, uint16_t port, unsigned int num)
+static inline void log_deny (uint32_t ip, uint16_t port, unsigned int num)
 {
   char fmtip[UINT32_FMT] ;
   char fmtport[UINT16_FMT] ;
@@ -107,7 +108,7 @@ static void log_deny (uint32_t ip, uint16_t port, unsigned int num)
   strerr_warni7sys("deny ", fmtip, ":", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_accept (pid_t pid, uint32_t ip, uint16_t port, unsigned int num)
+static inline void log_accept (pid_t pid, uint32_t ip, uint16_t port, unsigned int num)
 {
   char fmtipport[IP4_FMT + UINT16_FMT + 1] ;
   char fmtpid[PID_FMT] ;
@@ -122,7 +123,7 @@ static void log_accept (pid_t pid, uint32_t ip, uint16_t port, unsigned int num)
   strerr_warni7x("allow ", fmtipport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static void log_close (pid_t pid, uint32_t ip, int w)
+static inline void log_close (pid_t pid, uint32_t ip, int w)
 {
   char fmtpid[PID_FMT] ;
   char fmtip[IP4_FMT] = "?" ;
@@ -142,7 +143,7 @@ static void killthem (int sig)
   for (; i < numconn ; i++) kill(pidip[i].left, sig) ;
 }
 
-static void wait_children (void)
+static inline void wait_children (void)
 {
   for (;;)
   {
@@ -170,7 +171,7 @@ static void wait_children (void)
   }
 }
 
-static void handle_signals (void)
+static inline void handle_signals (void)
 {
   for (;;) switch (selfpipe_read())
   {
@@ -216,8 +217,8 @@ static void handle_signals (void)
 
  /* New connection handling */
 
-static void run_child (int, uint32_t, uint16_t, unsigned int, char const *const *, char const *const *) gccattr_noreturn ;
-static void run_child (int s, uint32_t ip, uint16_t port, unsigned int num, char const *const *argv, char const *const *envp)
+static inline void run_child (int, uint32_t, uint16_t, unsigned int, char const *const *) gccattr_noreturn ;
+static inline void run_child (int s, uint32_t ip, uint16_t port, unsigned int num, char const *const *argv)
 {
   char fmt[74] ;
   size_t n = 0 ;
@@ -230,11 +231,10 @@ static void run_child (int s, uint32_t ip, uint16_t port, unsigned int num, char
   n += uint16_fmt(fmt+n, port) ; fmt[n++] = 0 ;
   memcpy(fmt+n, "TCPCONNNUM=", 11) ; n += 11 ;
   n += uint_fmt(fmt+n, num) ; fmt[n++] = 0 ;
-  pathexec_r(argv, envp, env_len(envp), fmt, n) ;
-  strerr_dieexec(111, argv[0]) ;
+  xmexec_n(argv, fmt, n, 4) ;
 }
 
-static void new_connection (int s, uint32_t ip, uint16_t port, char const *const *argv, char const *const *envp)
+static inline void new_connection (int s, uint32_t ip, uint16_t port, char const *const *argv)
 {
   unsigned int i = lookup_ip(ip) ;
   unsigned int num = (i < iplen) ? ipnum[i].right : 0 ;
@@ -253,7 +253,7 @@ static void new_connection (int s, uint32_t ip, uint16_t port, char const *const
   else if (!pid)
   {
     selfpipe_finish() ;
-    run_child(s, ip, port, num+1, argv, envp) ;
+    run_child(s, ip, port, num+1, argv) ;
   }
 
   if (i < iplen) ipnum[i].right = num + 1 ;
@@ -274,7 +274,7 @@ static void new_connection (int s, uint32_t ip, uint16_t port, char const *const
 
  /* And the main */
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ | IOPAUSE_EXCEPT } } ;
   PROG = "s6-tcpserver4d" ;
@@ -374,7 +374,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
           {
             uint32_t ip ;
             uint32_unpack_big(packedip, &ip) ;
-            new_connection(fd, ip, port, argv, envp) ;
+            new_connection(fd, ip, port, argv) ;
             fd_close(fd) ;
           }
         }

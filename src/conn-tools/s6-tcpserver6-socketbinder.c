@@ -1,19 +1,22 @@
 /* ISC license. */
 
+#include <skalibs/nonposix.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <sys/socket.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/fmtscan.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/socket.h>
+#include <skalibs/exec.h>
 
 #define USAGE "s6-tcpserver6-socketbinder [ -d | -D ] [ -b backlog ] [ -M | -m ] [ -B ] ip6 port prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned int backlog = SOMAXCONN ;
   int flagreuse = 1 ;
@@ -51,5 +54,5 @@ int main (int argc, char const *const *argv, char const *const *envp)
   if (backlog && socket_listen(0, backlog) < 0)
     strerr_diefu5sys(111, "listen to ", argv[0], ":", argv[1], " ") ;
 
-  xpathexec_run(argv[2], argv + 2, envp) ;
+  xexec(argv+2) ;
 }

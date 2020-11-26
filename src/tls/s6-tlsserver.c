@@ -2,11 +2,14 @@
 
 #include <sys/types.h>
 #include <limits.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
+
 #include <s6/config.h>
+
 #include <s6-networking/config.h>
 
 #define USAGE "s6-tlsserver [ -e ] [ options ] ip port prog...\n" \
@@ -80,7 +83,7 @@ struct options_s
   .doapply = 0 \
 }
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   options_t o = OPTIONS_ZERO ;
   PROG = "s6-tlsserver" ;
@@ -250,6 +253,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     }
     while (*argv) newargv[m++] = *argv++ ;
     newargv[m++] = 0 ;
-    xpathexec_run(newargv[0], newargv, envp) ;
+    xexec(newargv) ;
   }
 }

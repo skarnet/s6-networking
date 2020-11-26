@@ -1,12 +1,14 @@
 /* ISC license. */
 
-#include <string.h>
 #include <stdint.h>
+#include <string.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
 #include <skalibs/ip46.h>
+#include <skalibs/exec.h>
+
 #include <s6-networking/config.h>
 
 #define USAGE "s6-tlsclient [ options ] host port prog...\n" \
@@ -24,8 +26,8 @@ struct options_s
   unsigned int ximeout ;
   unsigned int yimeout ;
   unsigned int kimeout ;
-  uint16_t localport ;
   ip46full_t localip ;
+  uint16_t localport ;
   unsigned int verbosity : 2 ;
   unsigned int flag4 : 1 ;
   unsigned int flag6 : 1 ;
@@ -62,7 +64,7 @@ struct options_s
   .doxy = 0 \
 }
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   options_t o = OPTIONS_ZERO ;
   PROG = "s6-tlsclient" ;
@@ -197,6 +199,6 @@ int main (int argc, char const *const *argv, char const *const *envp)
     newargv[m++] = "--" ;
     while (*argv) newargv[m++] = *argv++ ;
     newargv[m++] = 0 ;
-    xpathexec_run(newargv[0], newargv, envp) ;
+    xexec(newargv) ;
   }
 }
