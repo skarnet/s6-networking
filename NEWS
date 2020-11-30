@@ -3,6 +3,7 @@ Changelog for s6-networking.
 In 2.4.0.0
 ----------
 
+ - Can be built against OpenSSL + libretls.
  - execline is now optional.
  - s6-tlsc and s6-tlsd rewrite. They're now wrappers around new
 binaries: s6-tlsc-io and s6-tlsd-io, which establish and run a

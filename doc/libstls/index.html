@@ -24,8 +24,11 @@
  <tt>libstls</tt> is a small support library for the
 <a href="../s6-tlsc.html">s6-tlsc</a> and
 <a href="../s6-tlsd.html">s6-tlsd</a> executables when they're built
-against the <a href="https://www.libressl.org/">LibreSSL</a>
-backend. You can use it in your own programs, but since
+against the <em>libtls</em> API, whether that API is implemented via
+<a href="https://libressl.org/">LibreSSL</a> or via
+<a href="https://.openssl.org/">OpenSSL</a> with the addition of
+<a href="https://git.causal.agency/libretls/about/">LibreTLS</a>.
+You can use it in your own programs, but since
 <a href="https://man.openbsd.org/OpenBSD-current/man3/tls_init.3">libtls</a>
 is already relatively high-level, it's probably not very useful.
 </p>
@@ -42,7 +45,8 @@ and the <tt>tls.h</tt> header, are visible in your header search path. </li>
 
 <ul>
  <li> Make sure the s6-networking libraries, as well as the skalibs
-libraries, and the LibreSSL libraries, are visible in your library search path. </li>
+libraries, and the libraries needed by libtls, are visible in your
+library search path. </li>
  <li> Link against <tt>-lstls</tt>, <tt>-lskarnet</tt>, <tt>-ltls</tt>,
 <tt>-lssl</tt>, <tt>-lcrypto</tt>,
 <tt>`cat $sysdeps/socket.lib`</tt>, <tt>`cat $sysdeps/spawn.lib`</tt>, and
