@@ -9,7 +9,6 @@
 #include <skalibs/error.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/tai.h>
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
 
@@ -112,7 +111,7 @@ static void closeit (struct tls *ctx, int *fds, int brutal)
   fd_close(fds[3]) ; fds[3] = -1 ;
 }
 
-void stls_run (struct tls *ctx, int *fds, tain_t const *tto, uint32_t options, unsigned int verbosity)
+void stls_run (struct tls *ctx, int *fds, uint32_t options, unsigned int verbosity)
 {
   tlsbuf_t b[2] = { { .blockedonother = 0 }, { .blockedonother = 0 } } ;
   iopause_fd x[4] ;
@@ -129,11 +128,8 @@ void stls_run (struct tls *ctx, int *fds, tain_t const *tto, uint32_t options, u
 
   for (;;)
   {
-    tain_t deadline ;
     unsigned int j = 0 ;
     int r ;
-
-    tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && buffer_isempty(&b[0].b) && buffer_isempty(&b[1].b) ? tto : &tain_infinite_relative) ;
 
 
    /* poll() preparation */
@@ -175,7 +171,7 @@ void stls_run (struct tls *ctx, int *fds, tain_t const *tto, uint32_t options, u
 
    /* poll() */
 
-    r = iopause_g(x, j, &deadline) ;
+    r = iopause_g(x, j, 0) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
     else if (!r) break ;
 

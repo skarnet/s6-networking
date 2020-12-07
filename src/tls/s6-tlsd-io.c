@@ -31,7 +31,8 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
       strerr_diefu1sys(111, "write post-handshake data") ;
     fd_close(notif) ;
   }
-  stls_run(ctx, fds, tto, options, verbosity) ;
+  (void)tto ;
+  stls_run(ctx, fds, options, verbosity) ;
 }
 
 #else

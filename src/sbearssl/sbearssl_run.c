@@ -29,7 +29,7 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
 
   for (;;)
   {
-    tain_t deadline ;
+    tain_t deadline = tain_infinite_relative ;
     unsigned int j = 0 ;
     unsigned int state = br_ssl_engine_current_state(ctx) ;
     int r ;
@@ -76,9 +76,13 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
     }
     else xindex[3] = 4 ;
 
-    if ((xindex[0] == 4 && xindex[1] == 4 && xindex[3] == 4 && handshake_done) || !j) break ;
+    if (xindex[0] == 4 && xindex[1] == 4 && xindex[3] == 4)
+    {
+      if (!j || handshake_done) break ;
+      deadline = *tto ;
+    }
 
-    tain_add_g(&deadline, fds[0] >= 0 && fds[2] >= 0 && state & (BR_SSL_SENDAPP | BR_SSL_RECVREC) ? tto : &tain_infinite_relative) ;
+    tain_add_g(&deadline, &deadline) ;
     r = iopause_g(x, j, &deadline) ;
     if (r < 0) strerr_diefu1sys(111, "iopause") ;
     else if (!r) break ;
