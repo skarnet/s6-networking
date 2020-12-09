@@ -3,13 +3,13 @@
 #include <skalibs/nonposix.h>
 #include <stdint.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/fmtscan.h>
 #include <skalibs/strerr2.h>
-#include <skalibs/djbunix.h>
 #include <skalibs/socket.h>
 #include <skalibs/exec.h>
 
@@ -21,7 +21,7 @@ int main (int argc, char const *const *argv)
   unsigned int backlog = SOMAXCONN ;
   int flagreuse = 1 ;
   int flagudp = 0 ;
-  int flagblocking = 0 ;
+  unsigned int flags = O_NONBLOCK ;
   char ip[16] ;
   uint16_t port ;
   PROG = "s6-tcpserver6-socketbinder" ;
@@ -37,7 +37,7 @@ int main (int argc, char const *const *argv)
         case 'd' : flagreuse = 1 ; break ;
         case 'M' : flagudp = 0 ; break ;
         case 'm' : flagudp = 1 ; break ;
-        case 'B' : flagblocking = 1 ; break ;
+        case 'B' : flags = 0 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &backlog)) dieusage() ; break ;
         default : dieusage() ;
       }
@@ -47,7 +47,7 @@ int main (int argc, char const *const *argv)
   if (argc < 3) dieusage() ;
   if (!ip6_scan(argv[0], ip) || !uint160_scan(argv[1], &port)) dieusage() ;
   close(0) ;
-  if (flagudp ? socket_udp6_internal(flagblocking ? 0 : DJBUNIX_FLAG_NB) : socket_tcp6_internal(flagblocking ? 0 : DJBUNIX_FLAG_NB))
+  if (flagudp ? socket_udp6_internal(flags) : socket_tcp6_internal(flags))
     strerr_diefu1sys(111, "create socket") ;
   if ((flagreuse ? socket_bind6_reuse(0, ip, port) : socket_bind6(0, ip, port)) < 0)
     strerr_diefu5sys(111, "bind to ", argv[0], ":", argv[1], " ") ;

@@ -8,7 +8,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/djbunix.h>
-#include <skalibs/webipc.h>
+#include <skalibs/socket.h>
 
 #include <s6-networking/config.h>
 #include "s6tls-internal.h"
