@@ -70,6 +70,7 @@ src/sbearssl/sbearssl_x500_name_len.o src/sbearssl/sbearssl_x500_name_len.lo: sr
 src/sbearssl/sbearssl_x509_minimal_set_tai.o src/sbearssl/sbearssl_x509_minimal_set_tai.lo: src/sbearssl/sbearssl_x509_minimal_set_tai.c src/include/s6-networking/sbearssl.h
 src/stls/stls_client_init_and_handshake.o src/stls/stls_client_init_and_handshake.lo: src/stls/stls_client_init_and_handshake.c src/include/s6-networking/stls.h src/stls/stls-internal.h
 src/stls/stls_drop.o src/stls/stls_drop.lo: src/stls/stls_drop.c src/stls/stls-internal.h
+src/stls/stls_handshake.o src/stls/stls_handshake.lo: src/stls/stls_handshake.c src/stls/stls-internal.h
 src/stls/stls_run.o src/stls/stls_run.lo: src/stls/stls_run.c src/include/s6-networking/stls.h
 src/stls/stls_send_environment.o src/stls/stls_send_environment.lo: src/stls/stls_send_environment.c src/include/s6-networking/stls.h
 src/stls/stls_server_init_and_handshake.o src/stls/stls_server_init_and_handshake.lo: src/stls/stls_server_init_and_handshake.c src/include/s6-networking/stls.h src/stls/stls-internal.h
@@ -135,12 +136,12 @@ endif
 libsbearssl.so.xyzzy: EXTRA_LIBS := -lbearssl -lskarnet
 libsbearssl.so.xyzzy: src/sbearssl/sbearssl_append.lo src/sbearssl/sbearssl_cert_from.lo src/sbearssl/sbearssl_cert_readbigpem.lo src/sbearssl/sbearssl_cert_readfile.lo src/sbearssl/sbearssl_cert_to.lo src/sbearssl/sbearssl_client_init_and_run.lo src/sbearssl/sbearssl_drop.lo src/sbearssl/sbearssl_ec_issuer_keytype.lo src/sbearssl/sbearssl_ec_pkey_from.lo src/sbearssl/sbearssl_ec_pkey_to.lo src/sbearssl/sbearssl_ec_skey_from.lo src/sbearssl/sbearssl_ec_skey_to.lo src/sbearssl/sbearssl_error_str.lo src/sbearssl/sbearssl_isder.lo src/sbearssl/sbearssl_pem_decode_from_buffer.lo src/sbearssl/sbearssl_pem_decode_from_string.lo src/sbearssl/sbearssl_pem_push.lo src/sbearssl/sbearssl_pkey_from.lo src/sbearssl/sbearssl_pkey_to.lo src/sbearssl/sbearssl_rsa_pkey_from.lo src/sbearssl/sbearssl_rsa_pkey_to.lo src/sbearssl/sbearssl_rsa_skey_from.lo src/sbearssl/sbearssl_rsa_skey_to.lo src/sbearssl/sbearssl_run.lo src/sbearssl/sbearssl_send_environment.lo src/sbearssl/sbearssl_server_init_and_run.lo src/sbearssl/sbearssl_skey_from.lo src/sbearssl/sbearssl_skey_readfile.lo src/sbearssl/sbearssl_skey_to.lo src/sbearssl/sbearssl_suite_bits.lo src/sbearssl/sbearssl_suite_list.lo src/sbearssl/sbearssl_suite_name.lo src/sbearssl/sbearssl_ta_cert.lo src/sbearssl/sbearssl_ta_certs.lo src/sbearssl/sbearssl_ta_from.lo src/sbearssl/sbearssl_ta_readdir.lo src/sbearssl/sbearssl_ta_readfile.lo src/sbearssl/sbearssl_ta_to.lo src/sbearssl/sbearssl_x500_name_len.lo src/sbearssl/sbearssl_x500_from_ta.lo src/sbearssl/sbearssl_x509_minimal_set_tai.lo
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
-libstls.a.xyzzy: src/stls/stls_drop.o src/stls/stls_run.o src/stls/stls_client_init_and_handshake.o src/stls/stls_server_init_and_handshake.o src/stls/stls_send_environment.o
+libstls.a.xyzzy: src/stls/stls_drop.o src/stls/stls_handshake.o src/stls/stls_run.o src/stls/stls_client_init_and_handshake.o src/stls/stls_server_init_and_handshake.o src/stls/stls_send_environment.o
 else
-libstls.a.xyzzy: src/stls/stls_drop.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
+libstls.a.xyzzy: src/stls/stls_drop.lo src/stls/stls_handshake.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
 endif
-libstls.so.xyzzy: EXTRA_LIBS := ${CRYPTO_LIB} -lskarnet
-libstls.so.xyzzy: src/stls/stls_drop.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
+libstls.so.xyzzy: EXTRA_LIBS := ${CRYPTO_LIB} -lskarnet ${TIMER_LIB}
+libstls.so.xyzzy: src/stls/stls_drop.lo src/stls/stls_handshake.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6tls.a.xyzzy: src/tls/s6tls_exec_tlscio.o src/tls/s6tls_exec_tlsdio.o src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_ucspi_exec_app.o
 else

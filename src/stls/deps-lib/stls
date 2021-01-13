@@ -1,7 +1,9 @@
 stls_drop.o
+stls_handshake.o
 stls_run.o
 stls_client_init_and_handshake.o
 stls_server_init_and_handshake.o
 stls_send_environment.o
 ${CRYPTO_LIB}
 -lskarnet
+${TIMER_LIB}

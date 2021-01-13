@@ -24,14 +24,13 @@ static inline void doit (int *, tain_t const *tto, uint32_t, uint32_t, unsigned 
 
 static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, unsigned int notif)
 {
-  struct tls *ctx = stls_client_init_and_handshake(fds + 2, preoptions, servername) ;
+  struct tls *ctx = stls_client_init_and_handshake(fds + 2, tto, preoptions, servername) ;
   if (notif)
   {
     if (!stls_send_environment(ctx, notif))
       strerr_diefu1sys(111, "write post-handshake data") ;
     fd_close(notif) ;
   }
-  (void)tto ;
   stls_run(ctx, fds, options, verbosity) ;
 }
 

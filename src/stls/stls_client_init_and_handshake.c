@@ -12,7 +12,7 @@
 #define diecfg(cfg, s) strerr_diefu3x(96, (s), ": ", tls_config_error(cfg))
 #define diectx(e, ctx, s) strerr_diefu3x(e, (s), ": ", tls_error(ctx))
 
-struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions, char const *servername)
+struct tls *stls_client_init_and_handshake (int const *fds, tain_t const *tto, uint32_t preoptions, char const *servername)
 {
   struct tls *ctx ;
   struct tls_config *cfg ;
@@ -76,6 +76,6 @@ struct tls *stls_client_init_and_handshake (int const *fds, uint32_t preoptions,
   if (tls_connect_fds(ctx, fds[0], fds[1], servername) < 0)
     diectx(97, ctx, "tls_connect_fds") ;
   tls_config_free(cfg) ;
-  if (tls_handshake(ctx) < 0) diectx(97, ctx, "tls_handshake") ;
+  stls_handshake(ctx, tto) ;
   return ctx ;
 }
