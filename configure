@@ -49,7 +49,7 @@ Optional features:
   --disable-execline            don't use the execline library [enabled]
 
 SSL support:
-  --enable-ssl=libressl|bearssl build SSL tools, w/ libtls or bearssl implementation [disabled]
+  --enable-ssl=libtls|bearssl build SSL tools, w/ libtls or bearssl implementation [disabled]
   --with-ssl-path=DIR           search for SSL headers/libs in DIR/include and DIR/lib [/usr]
 
 EOF
@@ -201,7 +201,7 @@ for arg ; do
     --disable-nsss|--enable-nsss=no) usensss=false ;;
     --enable-execline|--enable-execline=yes) useexecline=true ;;
     --disable-execline|--enable-execline=no) useexecline=false ;;
-    --enable-ssl=libressl) ssl=tls ;;
+    --enable-ssl=libressl|--enable-ssl=libtls) ssl=tls ;;
     --enable-ssl=bearssl) ssl=bearssl ;;
     --disable-ssl|--enable-ssl=none) ssl= ;;
     --with-ssl-path=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var/include" ; addlibspath="$addlibspath -L$var/lib" ; vpaths="$vpaths $var/lib" ; addlibdpath="$addlibdpath -L$var/lib" ; vpathd="$vpathd $var/lib" ;;
