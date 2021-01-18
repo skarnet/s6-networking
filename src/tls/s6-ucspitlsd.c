@@ -34,6 +34,7 @@ static inline void child (int p[4][2], uint32_t options, unsigned int verbosity,
     case 'y' :
       close(p[2][1]) ;
       p[2][1] = 0 ; /* we know 0 is open so it's a correct invalid value */
+      break ;
     case 'Y' :
       fd_shutdown(p[2][1], 0) ;
       break ;

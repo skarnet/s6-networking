@@ -146,10 +146,10 @@ connection without using <tt>close_notify</tt>. This is the default. </li>
  <li> <tt>-y</tt>&nbsp;: Require a mandatory client certificate.
 The default, with neither the <tt>-Y</tt> nor the <tt>-y</tt> option,
 is not to require a client certificate at all. </li>
- <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: close the connection
-if <em>kimeout</em> milliseconds elapse without any data being
-received from either side. The default is 0, which means
-infinite timeout (never kill the connection). </li>
+ <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: close the connection if
+the handshake takes more than <em>kimeout</em> milliseconds to complete.
+The default is 0, which means infinite timeout: let the handshake complete
+at its own pace, no matter how slow. </li>
 </ul>
 
 <h2> Notes </h2>
