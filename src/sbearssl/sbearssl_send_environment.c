@@ -25,6 +25,9 @@ int sbearssl_send_environment (br_ssl_engine_context *ctx, int fd)
    || buffer_put(&b, "", 1) < 0
    || buffer_puts(&b, "SSL_CIPHER=") < 0
    || buffer_puts(&b, suite) < 0
+   || buffer_put(&b, "", 1) < 0
+   || buffer_puts(&b, "SSL_TLS_SNI_SERVERNAME=") < 0
+   || buffer_puts(&b, br_ssl_engine_get_server_name(ctx)) < 0
    || buffer_putflush(&b, "\0", 2) < 0)
     return 0 ;
   return 1 ;

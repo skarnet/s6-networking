@@ -1,5 +1,14 @@
 Changelog for s6-networking.
 
+In 2.4.1.0
+----------
+
+ - Bugfixes.
+ - Handshake timeout now also works with the libtls backend.
+ - The SNI server name is now exported after the handshake in
+the SSL_TLS_SNI_SERVERNAME variable.
+
+
 In 2.4.0.0
 ----------
 
