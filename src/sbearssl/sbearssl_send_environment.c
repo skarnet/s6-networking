@@ -12,6 +12,7 @@ int sbearssl_send_environment (br_ssl_engine_context *ctx, int fd)
   char buf[4096] ;
   buffer b = BUFFER_INIT(&buffer_write, fd, buf, 4096) ;
   unsigned int v = br_ssl_engine_get_version(ctx) ;
+  char const *name = br_ssl_engine_get_server_name(ctx) ;
   char const *suite ;
   br_ssl_session_parameters params ;
 
@@ -26,9 +27,15 @@ int sbearssl_send_environment (br_ssl_engine_context *ctx, int fd)
    || buffer_puts(&b, "SSL_CIPHER=") < 0
    || buffer_puts(&b, suite) < 0
    || buffer_put(&b, "", 1) < 0
-   || buffer_puts(&b, "SSL_TLS_SNI_SERVERNAME=") < 0
-   || buffer_puts(&b, br_ssl_engine_get_server_name(ctx)) < 0
-   || buffer_putflush(&b, "\0", 2) < 0)
+   || buffer_puts(&b, "SSL_TLS_SNI_SERVERNAME") < 0)
+    return 0 ;
+  if (name[0])
+  {
+    if (buffer_put(&b, "=", 1) < 0
+     || buffer_puts(&b, name) < 0)
+      return 0 ;
+  }
+  if (buffer_putflush(&b, "\0", 2) < 0)
     return 0 ;
   return 1 ;
 }
