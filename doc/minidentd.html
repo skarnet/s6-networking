@@ -45,7 +45,7 @@ call failure.
 
 <p>
  minidentd does not contact the network directly. It's meant to
-run under a superserver like
+run under a super-server like
 <a href="s6-tcpserver.html">s6-tcpserver</a>. minidentd will
 work with IPv4 as well as IPv6.
 </p>
@@ -53,9 +53,9 @@ work with IPv4 as well as IPv6.
 <h2> Options </h2>
 
 <ul>
- <li> <tt>-v</tt>&nbsp;: verbose mode. Log queries and replies.. </li>
+ <li> <tt>-v</tt>&nbsp;: verbose mode. Log queries and replies. </li>
  <li> <tt>-n</tt>&nbsp;: send ERROR&nbsp;:&nbsp;HIDDEN-USER replies if
-the user has a <tt>.ident</tt> file in his home directory. </li>
+the user has a <tt>.ident</tt> file in their home directory. </li>
  <li> <tt>-i</tt>&nbsp;: user-defined answers. The first 14 chars of the
 user's <tt>.ident</tt> file, up to EOF or newline, are used instead of
 the user name. If the file exists and is empty, send

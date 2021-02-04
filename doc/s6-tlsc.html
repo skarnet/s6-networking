@@ -36,7 +36,7 @@ TLS/SSL.
  <li> s6-tlsc expects to have an open TCP connection it
 can talk to on its (by default) descriptors 6 (for reading)
 and 7 (for writing). </li>
- <li> It spawns a <a href="s6-tlsc-io.html">s6-tlsc-io</a>
+ <li> It spawns an <a href="s6-tlsc-io.html">s6-tlsc-io</a>
 child process that will initiate the TLS connection, perform the
 handshake (expecting a TLS server on the other side of the
 network) and maintain the TLS tunnel. </li>
@@ -63,7 +63,7 @@ into <em>prog...</em> instead.
 
 <p>
  s6-tlsc does not expect to have any particular
-environment variables, but it spawns a
+environment variables, but it spawns an
 <a href="s6-tlsc-io.html">s6-tlsc-io</a> program that does.
 So it should pay attention to the following variables:
 </p>

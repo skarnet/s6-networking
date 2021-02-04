@@ -40,7 +40,7 @@ involving:
 listens to TCP connections on IP address <em>ip</em> port <em>port</em>
 and forks a command line for every connection. Note that
 <a href="s6-tcpserver.html">s6-tcpserver</a> also rewrites
-itself into a more complex commnd line (the final long-lived
+itself into a more complex command line (the final long-lived
 process being <a href="s6-tcpserver4d.html">s6-tcpserver4d</a>
 or <a href="s6-tcpserver4d.html">s6-tcpserver6d</a>),
 so your end command line may look a lot longer in <tt>ps</tt>
@@ -49,7 +49,7 @@ than what you originally wrote. This is normal and healthy. </li>
 which performs TCP access control and various operations on the
 TCP connection. </li>
    <li> <a href="s6-tlsd.html">s6-tlsd</a>, which establishes
-a TLS transport (server-side) over a connection, via a
+a TLS transport (server-side) over a connection, via an
 <a href="s6-tlsd-io.html">s6-tlsd-io</a> child process. </li>
    <li> (if applicable)
 <a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>,
@@ -63,7 +63,7 @@ same pid as <a href="s6-tlsd.html">s6-tlsd</a>. </li>
 <p>
  <em>prog</em> is expected to read from its peer on its
 standard input and write to its peer on its standard output.
-Since there will be a <a href="s6-tlsd-io.html">s6-tlsd-io</a>
+Since there will be an <a href="s6-tlsd-io.html">s6-tlsd-io</a>
 program between <em>prog</em> and the network to perform
 the SSL encryption/decryption, those descriptors will not
 be a network socket - they will be pipes.
@@ -193,7 +193,6 @@ given but no <tt>-i</tt> or <tt>-x</tt> option. </li>
  <li> <tt>-Z</tt>, <tt>-z</tt> </li>
  <li> <tt>-S</tt>, <tt>-s</tt> </li>
  <li> <tt>-Y</tt>, <tt>-y</tt> </li>
- <li> <tt>-k <em>servername</em></tt> </li>
  <li> <tt>-K <em>kimeout</em></tt> </li>
 </ul>
 
@@ -220,7 +219,7 @@ This will start a server listening to 1.2.3.4 on TCP port 443,
 reading queries on stdin and replying on stdout, as user <tt>www</tt>,
 with a TLS layer protecting the connection, the TLS engine running
 as user <tt>nobody</tt> (<tt>65534:65534</tt>). The server is
-authentified by the certificate in <tt>/etc/ssl/public/mycert.pem</tt>
+authenticated by the certificate in <tt>/etc/ssl/public/mycert.pem</tt>
 that it sends to the client, and the private key in
 <tt>/etc/ssl/private/mykey.der</tt> that it keeps to itself.
 </p>
