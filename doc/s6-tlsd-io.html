@@ -200,8 +200,8 @@ TLS handshake has completed, some data (terminated by two null
 characters) will be sent to file descriptor <em>notif</em>. The
 data contains information about the TLS parameters of the connection;
 its exact contents are left unspecified, but there's at least
-a <tt>SSL_PROTOCOL=<em>protocol</em></tt> string and
-a <tt>SSL_CIPHER=<em>cipher</em></tt> string, both
+an <tt>SSL_PROTOCOL=<em>protocol</em></tt> string and
+an <tt>SSL_CIPHER=<em>cipher</em></tt> string, both
 null-terminated.
 Sending this data serves a dual purpose: telling the <em>notif</em>
 reader that the handshake has completed, and providing it with some
