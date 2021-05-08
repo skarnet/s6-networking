@@ -64,10 +64,10 @@ void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
     random_finish() ;
     br_ssl_engine_inject_entropy(&cc.eng, buf, 32) ;
     br_ssl_engine_set_buffer(&cc.eng, buf, sizeof(buf), 1) ;
-    if (!br_ssl_client_reset(&cc, servername, 0))
-      strerr_diefu2x(97, "reset client context: ", sbearssl_error_str(br_ssl_engine_last_error(&cc.eng))) ;
     if (!sbearssl_x509_minimal_set_tain(&xc, &STAMP))
       strerr_diefu1sys(111, "initialize validation time") ;
+    if (!br_ssl_client_reset(&cc, servername, 0))
+      strerr_diefu2x(97, "reset client context: ", sbearssl_error_str(br_ssl_engine_last_error(&cc.eng))) ;
 
     sbearssl_run(&cc.eng, fds, tto, options, verbosity, cb, &cbarg) ;
   }

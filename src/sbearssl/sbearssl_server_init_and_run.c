@@ -99,7 +99,9 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
     random_finish() ;
     br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
     br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
-    br_ssl_server_reset(&sc) ;
+    if (!br_ssl_server_reset(&sc))
+      strerr_diefu2x(97, "reset server context: ", sbearssl_error_str(br_ssl_engine_last_error(&sc.eng))) ;
+
     sbearssl_run(&sc.eng, fds, tto, options, verbosity, cb, &cbarg) ;
   }
 }
