@@ -188,8 +188,10 @@ no effect. </li>
 and break the connection when receiving a local EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
- <li> <tt>-Y</tt>&nbsp;: Do not send a client certificate. This is the default. </li>
- <li> <tt>-y</tt>&nbsp;: Send a client certificate. </li>
+ <li> <tt>-Y</tt>&nbsp;: Require an optional client certificate. </li>
+ <li> <tt>-y</tt>&nbsp;: Require a mandatory client certificate.
+The default, with neither the <tt>-Y</tt> nor the <tt>-y</tt> option,
+is not to require a client certificate at all. </li>
  <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: if the peer fails
 to send data for <em>kimeout</em> milliseconds during the handshake,
 close the connection. The default is 0, which means infinite timeout

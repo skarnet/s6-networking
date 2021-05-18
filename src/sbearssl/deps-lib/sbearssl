@@ -11,6 +11,8 @@ sbearssl_ec_pkey_to.o
 sbearssl_ec_skey_from.o
 sbearssl_ec_skey_to.o
 sbearssl_error_str.o
+sbearssl_get_keycert.o
+sbearssl_get_tas.o
 sbearssl_isder.o
 sbearssl_pem_decode_from_buffer.o
 sbearssl_pem_decode_from_string.o
@@ -38,6 +40,7 @@ sbearssl_ta_readfile.o
 sbearssl_ta_to.o
 sbearssl_x500_name_len.o
 sbearssl_x500_from_ta.o
+sbearssl_x509_minimal_init_with_engine.o
 sbearssl_x509_minimal_set_tai.o
 -lbearssl
 -lskarnet

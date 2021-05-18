@@ -1,5 +1,11 @@
 Changelog for s6-networking.
 
+In 2.4.2.0
+----------
+
+ - Actual server-side support for client certificates with BearSSL
+
+
 In 2.4.1.1
 ----------
 

@@ -30,8 +30,13 @@
  /* Utility functions */
 
 extern int sbearssl_isder (unsigned char const *, size_t) ;
+
+
+ /* x509 QoL functions */
+
 extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai_t const *) ;
 #define sbearssl_x509_minimal_set_tain(ctx, a) sbearssl_x509_minimal_set_tai(ctx, tain_secp(a))
+extern void sbearssl_x509_minimal_init_with_engine (br_x509_minimal_context *, br_ssl_engine_context *, br_x509_trust_anchor const *, size_t) ;
 
 
  /* Cipher suites */
