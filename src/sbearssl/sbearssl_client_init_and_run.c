@@ -13,7 +13,7 @@
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
-void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cb_t_ref cb, unsigned int notif)
+void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
 {
   sbearssl_skey skey ;
   genalloc certs = GENALLOC_ZERO ;  /* sbearssl_cert */
@@ -26,10 +26,9 @@ void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
   stralloc_shrink(&storage) ;
 
   {
-    sbearssl_handshake_cb_context_t cbarg = { .notif = notif } ;
     union br_skey_u key ;
     br_ssl_client_context cc ;
-    br_x509_minimal_context xc ;
+    sbearssl_x509_small_context xc ;
     br_x509_certificate chain[chainlen ? chainlen : 1] ;
     br_x509_trust_anchor btas[n] ;
     unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
@@ -41,8 +40,15 @@ void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
     for (size_t i = 0 ; i < n ; i++)
       sbearssl_ta_to(genalloc_s(sbearssl_ta, &tas) + i, btas + i, storage.s) ;
     genalloc_free(sbearssl_ta, &tas) ;
-
-    br_ssl_client_init_full(&cc, &xc, btas, n) ;
+    {
+      br_x509_minimal_context dummy ; /* wasteful but the only simple API we have */
+      br_ssl_client_init_full(&cc, &dummy, btas, n) ;
+    }
+    sbearssl_x509_small_init_full(&xc, btas, n, &cbarg->eedn, &cbarg->eltstatus, cbarg->eehash) ;
+    if (!sbearssl_x509_small_set_tain(&xc, &STAMP))
+      strerr_diefu1sys(111, "initialize validation time") ;
+    br_ssl_engine_set_x509(&cc.eng, &xc.vtable) ;
+    cbarg->exportmask |= 3 ;
 
     if (chainlen)
     {
@@ -78,11 +84,9 @@ void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
     random_finish() ;
     br_ssl_engine_inject_entropy(&cc.eng, buf, 32) ;
     br_ssl_engine_set_buffer(&cc.eng, buf, sizeof(buf), 1) ;
-    if (!sbearssl_x509_minimal_set_tain(&xc, &STAMP))
-      strerr_diefu1sys(111, "initialize validation time") ;
     if (!br_ssl_client_reset(&cc, servername, 0))
       strerr_diefu2x(97, "reset client context: ", sbearssl_error_str(br_ssl_engine_last_error(&cc.eng))) ;
 
-    sbearssl_run(&cc.eng, fds, tto, options, verbosity, cb, &cbarg) ;
+    sbearssl_run(&cc.eng, fds, tto, options, verbosity, cb, cbarg) ;
   }
 }

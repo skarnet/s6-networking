@@ -1,9 +1,11 @@
 /* ISC license. */
 
 #include <bearssl.h>
+
 #include <skalibs/uint64.h>
 #include <skalibs/tai.h>
 #include <skalibs/djbtime.h>
+
 #include <s6-networking/sbearssl.h>
 
 int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *ctx, tai_t const *t)

@@ -40,7 +40,8 @@ sbearssl_ta_readfile.o
 sbearssl_ta_to.o
 sbearssl_x500_name_len.o
 sbearssl_x500_from_ta.o
-sbearssl_x509_minimal_init_with_engine.o
 sbearssl_x509_minimal_set_tai.o
+sbearssl_x509_small_init_full.o
+sbearssl_x509_small_vtable.o
 -lbearssl
 -lskarnet

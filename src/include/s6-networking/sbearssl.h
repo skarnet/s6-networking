@@ -32,11 +32,40 @@
 extern int sbearssl_isder (unsigned char const *, size_t) ;
 
 
- /* x509 QoL functions */
+ /* x509 functions */
+
+typedef struct sbearssl_dn_s sbearssl_dn, *sbearssl_dn_ref ;
+struct sbearssl_dn_s
+{
+  char c[3] ;
+  char st[129] ;
+  char l[129] ;
+  char o[65] ;
+  char ou[65] ;
+  char cn[65] ;
+} ;
+#define SBEARSSL_DN_ZERO { .c = "", .st = "", .l = "", .o = "", .ou = "", .cn = "" }
+
+typedef struct sbearssl_x509_small_context_s sbearssl_x509_small_context, *sbearssl_x509_small_context_ref ;
+struct sbearssl_x509_small_context_s
+{
+  br_x509_class const *vtable ;
+  br_x509_minimal_context minimal ;
+  br_sha256_context hashctx ;
+  unsigned int i ;
+  br_name_element elts[6] ;
+  sbearssl_dn *eedn ;
+  uint8_t *eltstatus ;
+  char *eehash ;
+} ;
 
 extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai_t const *) ;
 #define sbearssl_x509_minimal_set_tain(ctx, a) sbearssl_x509_minimal_set_tai(ctx, tain_secp(a))
-extern void sbearssl_x509_minimal_init_with_engine (br_x509_minimal_context *, br_ssl_engine_context *, br_x509_trust_anchor const *, size_t) ;
+#define sbearssl_x509_small_set_tai(ctx, t) sbearssl_x509_minimal_set_tai(&(ctx)->minimal, t)
+#define sbearssl_x509_small_set_tain(ctx, a) sbearssl_x509_small_set_tai(ctx, tain_secp(a))
+
+extern br_x509_class const sbearssl_x509_small_vtable ;
+extern void sbearssl_x509_small_init_full (sbearssl_x509_small_context *, br_x509_trust_anchor *, size_t, sbearssl_dn *, uint8_t *, char *) ;
 
 
  /* Cipher suites */
@@ -216,22 +245,27 @@ extern char const *sbearssl_error_str (int) ;
 
  /* Engine */
 
-typedef struct sbearssl_handshake_cb_context_s sbearssl_handshake_cb_context_t, *sbearssl_handshake_cb_context_t_ref ;
-struct sbearssl_handshake_cb_context_s
+typedef struct sbearssl_handshake_cbarg_s sbearssl_handshake_cbarg, *sbearssl_handshake_cbarg_ref ;
+struct sbearssl_handshake_cbarg_s
 {
   unsigned int notif ;
+  sbearssl_dn eedn ;
+  char eehash[32] ;
+  uint8_t eltstatus ;
+  uint8_t exportmask ;
 } ;
+#define SBEARSSL_HANDSHAKE_CBARG_ZERO { .notif = 0, .eedn = SBEARSSL_DN_ZERO, .eehash = { 0 }, .eltstatus = 0, .exportmask = 0 }
 
-typedef int sbearssl_handshake_cb_t (br_ssl_engine_context *, sbearssl_handshake_cb_context_t *) ;
-typedef sbearssl_handshake_cb_t *sbearssl_handshake_cb_t_ref ;
+typedef int sbearssl_handshake_cbfunc (br_ssl_engine_context *, sbearssl_handshake_cbarg *) ;
+typedef sbearssl_handshake_cbfunc *sbearssl_handshake_cbfunc_ref ;
 
-extern int sbearssl_send_environment (br_ssl_engine_context *, int) ;
-extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32_t, unsigned int, sbearssl_handshake_cb_t_ref, sbearssl_handshake_cb_context_t *) gccattr_noreturn ;
+extern int sbearssl_send_environment (br_ssl_engine_context *, sbearssl_handshake_cbarg *) ;
+extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
 
 
  /* s6-tlsc-io and s6-tlsd-io implementations */
 
-extern void sbearssl_client_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, char const *, sbearssl_handshake_cb_t_ref, unsigned int) gccattr_noreturn ;
-extern void sbearssl_server_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, sbearssl_handshake_cb_t_ref, unsigned int) gccattr_noreturn ;
+extern void sbearssl_client_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, char const *, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
+extern void sbearssl_server_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
 
 #endif

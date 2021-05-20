@@ -41,11 +41,11 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
 
 #include <s6-networking/sbearssl.h>
 
-static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cb_context_t *cbarg)
+static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cbarg *cbarg)
 {
   if (cbarg->notif)
   {
-    if (!sbearssl_send_environment(ctx, cbarg->notif)) return 0 ;
+    if (!sbearssl_send_environment(ctx, cbarg)) return 0 ;
     fd_close(cbarg->notif) ;
   }
   return 1 ;
@@ -53,8 +53,10 @@ static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cb_conte
 
 static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, unsigned int notif)
 {
+  sbearssl_handshake_cbarg cbarg = SBEARSSL_HANDSHAKE_CBARG_ZERO ;
   if (!random_init()) strerr_diefu1sys(111, "initialize random device") ;
-  sbearssl_server_init_and_run(fds, tto, preoptions, options, verbosity, &handshake_cb, notif) ;
+  cbarg.notif = notif ;
+  sbearssl_server_init_and_run(fds, tto, preoptions, options, verbosity, &handshake_cb, &cbarg) ;
 }
 
 #else

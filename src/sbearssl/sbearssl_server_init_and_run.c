@@ -13,7 +13,7 @@
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
-void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, unsigned int notif)
+void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
 {
   sbearssl_skey skey ;
   genalloc certs = GENALLOC_ZERO ;  /* sbearssl_cert */
@@ -26,10 +26,9 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
   stralloc_shrink(&storage) ;
 
   {
-    sbearssl_handshake_cb_context_t cbarg = { .notif = notif } ;
     union br_skey_u key ;
     br_ssl_server_context sc ;
-    br_x509_minimal_context xc ;
+    sbearssl_x509_small_context xc ;
     br_x509_certificate chain[chainlen] ;
     br_x509_trust_anchor btas[n ? n : 1] ;
     unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
@@ -75,10 +74,12 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
 
     if (n)
     {
-      sbearssl_x509_minimal_init_with_engine(&xc, &sc.eng, btas, n) ;
-      if (!sbearssl_x509_minimal_set_tain(&xc, &STAMP))
+      sbearssl_x509_small_init_full(&xc, btas, n, &cbarg->eedn, &cbarg->eltstatus, cbarg->eehash) ;
+      if (!sbearssl_x509_small_set_tain(&xc, &STAMP))
         strerr_diefu1sys(111, "initialize validation time") ;
+      br_ssl_engine_set_x509(&sc.eng, &xc.vtable) ;
       br_ssl_server_set_trust_anchor_names_alt(&sc, btas, n) ;
+      cbarg->exportmask |= 3 ;
     }
 
     random_string((char *)buf, 32) ;
@@ -88,6 +89,6 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
     if (!br_ssl_server_reset(&sc))
       strerr_diefu2x(97, "reset server context: ", sbearssl_error_str(br_ssl_engine_last_error(&sc.eng))) ;
 
-    sbearssl_run(&sc.eng, fds, tto, options, verbosity, cb, &cbarg) ;
+    sbearssl_run(&sc.eng, fds, tto, options, verbosity, cb, cbarg) ;
   }
 }
