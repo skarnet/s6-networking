@@ -54,7 +54,6 @@ struct sbearssl_x509_small_context_s
   br_sha256_context hashctx ;
   unsigned int i ;
   br_name_element elts[6] ;
-  sbearssl_dn *eedn ;
   uint8_t *eltstatus ;
   char *eehash ;
 } ;

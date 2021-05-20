@@ -31,7 +31,7 @@ void sbearssl_x509_small_init_full (sbearssl_x509_small_context *ctx, br_x509_tr
   for (unsigned int i = 0 ; i < 6 ; i++)
   {
     ctx->elts[i].oid = eltinfo[i].oid ;
-    ctx->elts[i].buf = (char *)ctx->eedn + eltinfo[i].offset ;
+    ctx->elts[i].buf = (char *)eedn + eltinfo[i].offset ;
     ctx->elts[i].len = eltinfo[i].size ;
   }
   br_x509_minimal_set_name_elements(&ctx->minimal, ctx->elts, 6) ;
