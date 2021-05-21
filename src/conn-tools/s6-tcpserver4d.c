@@ -223,7 +223,7 @@ static inline void run_child (int s, uint32_t ip, uint16_t port, unsigned int nu
   char fmt[74] ;
   size_t n = 0 ;
   PROG = "s6-tcpserver (child)" ;
-  if ((fd_move(0, s) < 0) || (fd_copy(1, 0) < 0))
+  if ((fd_move(1, s) < 0) || (fd_copy(0, 1) < 0))
     strerr_diefu1sys(111, "move fds") ;
   memcpy(fmt+n, "PROTO=TCP\0TCPREMOTEIP=", 22) ; n += 22 ;
   n += ip4_fmtu32(fmt+n, ip) ; fmt[n++] = 0 ;
