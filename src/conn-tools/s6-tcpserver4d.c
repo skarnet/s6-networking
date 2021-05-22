@@ -222,7 +222,7 @@ static inline void run_child (int s, uint32_t ip, uint16_t port, unsigned int nu
 {
   char fmt[74] ;
   size_t n = 0 ;
-  PROG = "s6-tcpserver (child)" ;
+  PROG = "s6-tcpserver4d (child)" ;
   if ((fd_move(1, s) < 0) || (fd_copy(0, 1) < 0))
     strerr_diefu1sys(111, "move fds") ;
   memcpy(fmt+n, "PROTO=TCP\0TCPREMOTEIP=", 22) ; n += 22 ;
@@ -253,6 +253,7 @@ static inline void new_connection (int s, uint32_t ip, uint16_t port, char const
   else if (!pid)
   {
     selfpipe_finish() ;
+    sig_restore(SIGPIPE) ;
     run_child(s, ip, port, num+1, argv) ;
   }
 
