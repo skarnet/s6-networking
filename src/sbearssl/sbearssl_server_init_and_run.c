@@ -10,6 +10,8 @@
 #include <skalibs/genalloc.h>
 #include <skalibs/random.h>
 
+#include <skalibs/lolstdio.h>
+
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
@@ -74,6 +76,7 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
 
     if (n)
     {
+      LOLDEBUG("sbearssl_server_init_and_run: trusts anchors found: %zu", n) ;
       sbearssl_x509_small_init_full(&xc, btas, n, &cbarg->eedn, &cbarg->eltstatus, cbarg->eehash) ;
       if (!sbearssl_x509_small_set_tain(&xc, &STAMP))
         strerr_diefu1sys(111, "initialize validation time") ;

@@ -1,8 +1,8 @@
 /* ISC license. */
 
-#include <skalibs/lolstdio.h>
-
 #include <bearssl.h>
+
+#include <skalibs/lolstdio.h>
 
 #include <s6-networking/sbearssl.h>
 
@@ -41,15 +41,19 @@ static void end_cert (br_x509_class const **c)
   ctx->minimal.vtable->end_cert(&ctx->minimal.vtable) ;
 
   LOLDEBUG("small_context: end_cert") ;
-  if (!ctx->i) br_sha256_out(&ctx->hashctx, ctx->eehash) ;
+  if (!ctx->i)
+  {
+    br_sha256_out(&ctx->hashctx, ctx->eehash) ;
+    LOLDEBUG("finished parsing EE: CN=%.64s", ctx->elts[5].buf) ;
+  }
   ctx->i++ ;
 }
 
 static unsigned int end_chain (br_x509_class const **c)
 {
   sbearssl_x509_small_context *ctx = INSTANCE(c) ;
-  LOLDEBUG("small_context: end_chain") ;
   unsigned int r = ctx->minimal.vtable->end_chain(&ctx->minimal.vtable) ;
+  LOLDEBUG("small_context: end_chain, returned %u", r) ;
   if (!r)
   {
     uint8_t mask = 1 ;
