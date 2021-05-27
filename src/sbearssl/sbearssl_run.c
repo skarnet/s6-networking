@@ -11,8 +11,6 @@
 #include <skalibs/iopause.h>
 #include <skalibs/djbunix.h>
 
-#include <skalibs/lolstdio.h>
-
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
@@ -29,7 +27,6 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
    || ndelay_on(fds[3]) < 0)
     strerr_diefu1sys(111, "set fds non-blocking") ;
 
-  LOLDEBUG("entering engine") ;
   for (;;)
   {
     tain_t deadline = TAIN_INFINITE ;
@@ -51,7 +48,6 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
       xindex[0] = j++ ;
       if (!handshake_done)
       {
-        LOLDEBUG("handshake done, calling cb") ;
         if (!(*cb)(ctx, cbarg))
           strerr_diefu1sys(111, "post-handshake callback failed") ;
         handshake_done = 1 ;
