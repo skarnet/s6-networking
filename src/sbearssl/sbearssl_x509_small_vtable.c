@@ -1,5 +1,12 @@
 /* ISC license. */
 
+#ifdef DEBUG
+#include <execinfo.h>
+#define getbt() do { void *stack[512] ; int r = backtrace(stack, 512) ; backtrace_symbols_fd(stack, r, 2) ; } while (0)
+#else
+#define getbt()
+#endif
+
 #include <bearssl.h>
 
 #include <skalibs/lolstdio.h>
@@ -22,8 +29,9 @@ static void start_cert (br_x509_class const **c, uint32_t len)
   sbearssl_x509_small_context *ctx = INSTANCE(c) ;
   ctx->minimal.vtable->start_cert(&ctx->minimal.vtable, len) ;
 
-  LOLDEBUG("small_context: start_cert %u", ctx->i) ;
   if (!ctx->i) br_sha256_init(&ctx->hashctx) ;
+  LOLDEBUG("small_context: start_cert %u", ctx->i) ;
+  getbt() ;
 }
 
 static void append (br_x509_class const **c, unsigned char const *s, size_t len)
@@ -68,6 +76,7 @@ static br_x509_pkey const *get_pkey(br_x509_class const *const *c, unsigned int 
 {
   sbearssl_x509_small_context *ctx = INSTANCE(c) ;
   LOLDEBUG("small_context: get_pkey") ;
+  getbt() ;
   return ctx->minimal.vtable->get_pkey(&ctx->minimal.vtable, usages) ;
 }
 
