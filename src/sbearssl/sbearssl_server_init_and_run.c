@@ -81,6 +81,8 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
       if (!sbearssl_x509_small_set_tain(&xc, &STAMP))
         strerr_diefu1sys(111, "initialize validation time") ;
       br_ssl_engine_set_x509(&sc.eng, &xc.vtable) ;
+      br_ssl_engine_set_default_rsavrfy(&sc.eng) ;
+      br_ssl_engine_set_default_ecdsa(&sc.eng) ;
       br_ssl_server_set_trust_anchor_names_alt(&sc, btas, n) ;
       cbarg->exportmask |= 3 ;
     }
