@@ -12,24 +12,25 @@
 
 #include "s6tls-internal.h"
 
-#define USAGE "s6-tlsd [ -S | -s ] [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] prog..."
+#define USAGE "s6-tlsd [ -S | -s ] [ -Y | -y ] [ -k snilevel ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-static void child (int const [4][2], uint32_t, unsigned int, unsigned int) gccattr_noreturn ;
-static void child (int const p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout)
+static void child (int const [4][2], uint32_t, unsigned int, unsigned int, unsigned int) gccattr_noreturn ;
+static void child (int const p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, unsigned int snilevel)
 {
   int fds[3] = { p[0][0], p[1][1], p[2][1] } ;
   PROG = "s6-tlsd (child)" ;
   close(p[2][0]) ;
   close(p[0][1]) ;
   close(p[1][0]) ;
-  s6tls_exec_tlsdio(fds, options, verbosity, kimeout) ;
+  s6tls_exec_tlsdio(fds, options, verbosity, kimeout, snilevel) ;
 }
 
 int main (int argc, char const *const *argv)
 {
   unsigned int verbosity = 1 ;
   unsigned int kimeout = 0 ;
+  unsigned int snilevel = 0 ;
   int p[4][2] = { [3] = { 0, 1 } } ;
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
@@ -40,7 +41,7 @@ int main (int argc, char const *const *argv)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "SsYyv:K:Zz", &l) ;
+      int opt = subgetopt_r(argc, argv, "SsYyv:K:Zzk:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -52,6 +53,7 @@ int main (int argc, char const *const *argv)
         case 'K' : if (!uint0_scan(l.arg, &kimeout)) dieusage() ; break ;
         case 'Z' : poptions &= ~1 ; break ;
         case 'z' : poptions |= 1 ; break ;
+        case 'k' : if (!uint0_scan(l.arg, &snilevel)) dieusage() ; break ;
         default : dieusage() ;
       }
     }
@@ -65,7 +67,7 @@ int main (int argc, char const *const *argv)
   switch (pid)
   {
     case -1 : strerr_diefu1sys(111, "fork") ;
-    case 0 : child(p, coptions, verbosity, kimeout) ;
+    case 0 : child(p, coptions, verbosity, kimeout, snilevel) ;
     default : break ;
   }
   s6tls_sync_and_exec_app(argv, p, pid, poptions) ;

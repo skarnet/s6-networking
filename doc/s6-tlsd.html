@@ -38,7 +38,7 @@ the options given when configuring <tt>s6-networking</tt>.
 <h2> Interface </h2>
 
 <pre>
-     s6-tlsd [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -- ] <em>prog...</em>
+     s6-tlsd [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K <em>kimeout</em> ] [ -k <em>snilevel</em> ] [ -- ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -78,7 +78,10 @@ So it should pay attention to the following variables:
 </p>
 
 <ul>
- <li> <tt>KEYFILE</tt> and <tt>CERTFILE</tt> </li>
+ <li> <tt>KEYFILE</tt> and <tt>CERTFILE</tt>. Also (or alternatively),
+if the <tt>-k</tt> option is given: a series of
+<tt>KEYFILE:<em>x</em></tt> and <tt>CERTFILE:<em>x</em></tt> variables,
+for every <em>x</em> in the set of server names </li>
  <li> (if the -y or -Y option has been given) <tt>CADIR</tt> or <tt>CAFILE</tt> </li>
  <li> <tt>TLS_UID</tt> and <tt>TLS_GID</tt>
 </ul>
@@ -88,10 +91,12 @@ So it should pay attention to the following variables:
 <p>
  By default, <em>prog...</em> is run with all these
 variables <em>unset</em>: CADIR, CAFILE,
-KEYFILE, CERTFILE, TLS_UID and TLS_GID. They're passed to
+KEYFILE, CERTFILE, KEYFILE:<em>x</em> and CERTFILE:<em>x</em> for
+every <em>x</em>, TLS_UID and TLS_GID. They're passed to
 the <a href="s6-tlsd-io.html">s6-tlsd-io</a> child but
 not to <em>prog...</em>.
-The <tt>-Z</tt> option prevents that behaviour.
+The <tt>-Z</tt> option prevents that behaviour and keeps them
+accessible in the child.
 </p>
 
 <p>
@@ -107,6 +112,13 @@ used. </li>
  <li> <tt>SSL_TLS_SNI_SERVERNAME</tt> contains the required SNI
 server name, if any. It is removed from the environment if no SNI
 has been sent by the client. </li>
+ <li> <tt>SSL_PEER_CERT_HASH</tt> contains the hash of the peer's
+End Entity certificate, prefixed by the name of the hash and a colon
+(typically <tt>SHA256:</tt>). </li>
+ <li> <tt>SSL_PEER_CERT_SUBJECT</tt> contains the decoded subjectDN
+of the peer's End Entity certificate, i.e. identifying information.
+What is traditionally called the "name" of the certificate is the
+CN field in that data. </li>
  <li> More similar environment variables containing information
 about the connection may be added in the future. </li>
 </ul>
@@ -136,6 +148,19 @@ is not to require a client certificate at all. </li>
 to send data for <em>kimeout</em> milliseconds during the handshake,
 close the connection. The default is 0, which means infinite timeout
 (never kill the connection). </li>
+ <li> <tt>-k&nbsp;<em>snilevel</em></tt>&nbsp;: support alternative
+certificate chains for SNI. If <em>snilevel</em> is nonzero, private
+key file names are read from every environment variable of the form
+<tt>KEYFILE:<em>x</em></tt>, where <em>x</em> is a server name that
+the client may require, and a corresponding certificate chain for the name
+<em>x</em> should exist in the file named after the contents of the
+<tt>CERTFILE:<em>x</em></tt> environment variable. If <em>snilevel</em>
+is 2 or more, <em>only</em> those files are read, and the generic
+<tt>KEYFILE</tt> and <tt>CERTFILE</tt> variables are ignored.
+If <em>snilevel</em> is 0, or if the option is not given, which is the
+default, <tt>KEYFILE</tt> and <tt>CERTFILE</tt> are the only private
+key / certificate chain pair that are loaded, no other environment
+variable is read for keypairs. </li>
 </ul>
 
 <h2> Notes </h2>

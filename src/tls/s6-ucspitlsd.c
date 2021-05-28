@@ -13,11 +13,11 @@
 #include <s6-networking/config.h>
 #include "s6tls-internal.h"
 
-#define USAGE "s6-ucspitlsd [ -S | -s ] [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] prog..."
+#define USAGE "s6-ucspitlsd [ -S | -s ] [ -Y | -y ] [ -k snilevel ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-static inline void child (int [4][2], uint32_t, unsigned int, unsigned int) gccattr_noreturn ;
-static inline void child (int p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout)
+static inline void child (int [4][2], uint32_t, unsigned int, unsigned int, unsigned int) gccattr_noreturn ;
+static inline void child (int p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, unsigned int snilevel)
 {
   int fds[3] = { p[0][0], p[1][1], p[2][1] } ;
   ssize_t r ;
@@ -41,13 +41,14 @@ static inline void child (int p[4][2], uint32_t options, unsigned int verbosity,
     default :
       strerr_dief1x(100, "unrecognized command on control socket") ;
   }
-  s6tls_exec_tlsdio(fds, options, verbosity, kimeout) ;
+  s6tls_exec_tlsdio(fds, options, verbosity, kimeout, snilevel) ;
 }
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   unsigned int verbosity = 1 ;
   unsigned int kimeout = 0 ;
+  unsigned int snilevel = 0 ;
   int p[4][2] = { [3] = { 0, 1 } } ;
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
@@ -57,7 +58,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt_t l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "SsYyv:K:Zz", &l) ;
+      int opt = subgetopt_r(argc, argv, "SsYyv:K:Zzk:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -69,6 +70,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'K' : if (!uint0_scan(l.arg, &kimeout)) dieusage() ; break ;
         case 'Z' : poptions &= ~1 ; break ;
         case 'z' : poptions |= 1 ; break ;
+        case 'k' : if (!uint0_scan(l.arg, &snilevel)) dieusage() ; break ;
         default : dieusage() ;
       }
     }
@@ -82,7 +84,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   switch (fork())
   {
     case -1 : strerr_diefu1sys(111, "fork") ;
-    case 0 : child(p, coptions, verbosity, kimeout) ;
+    case 0 : child(p, coptions, verbosity, kimeout, snilevel) ;
     default : break ;
   }
   s6tls_ucspi_exec_app(argv, p, poptions) ;

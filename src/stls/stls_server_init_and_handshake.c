@@ -4,6 +4,8 @@
 
 #include <tls.h>
 
+#include <skalibs/posixplz.h>
+#include <skalibs/bytestr.h>
 #include <skalibs/strerr2.h>
 
 #include <s6-networking/stls.h>
@@ -23,15 +25,40 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain_t const *tto, u
   cfg = tls_config_new() ;
   if (!cfg) strerr_diefu1sys(111, "tls_config_new") ;
 
-  x = getenv("CERTFILE") ;
-  if (!x) strerr_dienotset(100, "CERTFILE") ;
-  if (tls_config_set_cert_file(cfg, x) < 0)
-    diecfg(cfg, "tls_config_set_cert_file") ;
-
-  x = getenv("KEYFILE") ;
-  if (!x) strerr_dienotset(100, "KEYFILE") ;
-  if (tls_config_set_key_file(cfg, x) < 0)
-    diecfg(cfg, "tls_config_set_key_file") ;
+  if (!(preoptions & 8)) /* snilevel < 2 */
+  {
+    char const *y = getenv("CERTFILE") ;
+    if (!y) strerr_dienotset(100, "CERTFILE") ;
+    x = getenv("KEYFILE") ;
+    if (!x) strerr_dienotset(100, "KEYFILE") ;
+    if (tls_config_set_keypair_file(cfg, y, x) < 0)
+      diecfg(cfg, "tls_config_set_keypair_file") ;
+  }
+  if (preoptions & 4) /* snilevel > 0 */
+  {
+    char const *const *envp = (char const *const *)environ ;
+    for (; *envp ; envp++)
+    {
+      if (str_start(*envp, "KEYFILE:"))
+      {
+        size_t len = strlen(*envp) ;
+        size_t kequal = byte_chr(*envp, len, '=') ;
+        if (kequal == len) strerr_dief1x(100, "invalid environment") ;
+        if (kequal != 8)
+        {
+          char certvar[len - kequal + 10] ;
+          memcpy(certvar, "CERTFILE:", 9 ;
+          memcpy(certvar + 9, *envp + 8, kequal - 8) ;
+          certvar[kequal + 1] = 0 ;
+          x = getenv(certvar) ;
+          if (!x)
+            strerr_dief3x("environment variable KEYFILE:", certvar + 9, " not paired with the corresponding CERTFILE") ;
+          else if (tls_config_add_keypair_file(cfg, x, *envp + kequal + 1) < 0)
+            diecfg(cfg, "tls_config_add_keypair_file") ;
+        }
+      }
+    }
+  }
 
   stls_drop() ;
 
@@ -76,7 +103,8 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain_t const *tto, u
   tls_config_free(cfg) ;
   if (tls_accept_fds(sctx, &ctx, fds[0], fds[1]) < 0)
     diectx(97, sctx, "tls_accept_fds") ;
-  tls_free(sctx) ;
+  /* We can't free sctx, ctx has pointers into it! Stupid API. We let sctx leak. */
+  /* tls_free(sctx) ; */
   stls_handshake(ctx, tto) ;
   return ctx ;
 }

@@ -13,7 +13,7 @@
 
 #include <s6-networking/config.h>
 
-#define USAGE "s6-tlsd-io [ -v verbosity ] [ -d notif ] [ -S | -s ] [ -Y | -y ] [ -K timeout ] fdr fdw"
+#define USAGE "s6-tlsd-io [ -v verbosity ] [ -d notif ] [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -k snilevel ] fdr fdw"
 #define dieusage() strerr_dieusage(100, USAGE)
 
 static inline void doit (int *, tain_t const *tto, uint32_t, uint32_t, unsigned int, unsigned int) gccattr_noreturn ;
@@ -66,7 +66,7 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
 #endif
 #endif
 
-int main (int argc, char const *const *argv, char const *const *envp)
+int main (int argc, char const *const *argv)
 {
   tain_t tto ;
   int fds[4] = { 0, 1, 0, 1 } ;
@@ -81,7 +81,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
     unsigned int t = 0 ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "d:SsYyv:K:", &l) ;
+      int opt = subgetopt_r(argc, argv, "d:SsYyv:K:k:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -92,6 +92,14 @@ int main (int argc, char const *const *argv, char const *const *envp)
         case 'Y' : preoptions |= 1 ; preoptions &= ~2 ; break ;
         case 'y' : preoptions |= 3 ; break ;
         case 'K' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
+        case 'k' :
+        {
+          unsigned int snilevel ;
+          if (!uint0_scan(l.arg, &snilevel)) dieusage() ;
+          if (snilevel) preoptions |= 4 ;
+          if (snilevel >= 2) preoptions |= 8 ;
+          break ;
+        }
         default : dieusage() ;
       }
     }

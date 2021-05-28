@@ -98,6 +98,13 @@ used. </li>
  <li> <tt>SSL_TLS_SNI_SERVERNAME</tt> contains <em>servername</em>,
 if the <tt>-k</tt> option has been given; otherwise it is removed
 from the environment. </li>
+ <li> <tt>SSL_PEER_CERT_HASH</tt> contains the hash of the peer's
+End Entity certificate, prefixed by the name of the hash and a colon
+(typically <tt>SHA256:</tt>). </li>
+ <li> <tt>SSL_PEER_CERT_SUBJECT</tt> contains the decoded subjectDN
+of the peer's End Entity certificate, i.e. identifying information.
+What is traditionally called the "name" of the certificate is the
+CN field in that data. </li>
  <li> More similar environment variables containing information
 about the connection may be added in the future. </li>
 </ul>

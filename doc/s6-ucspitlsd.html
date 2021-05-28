@@ -36,7 +36,7 @@ TLS stack in the server itself.
 <h2> Interface </h2>
 
 <pre>
-     s6-ucspitlsd [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -- ] <em>prog...</em>
+     s6-ucspitlsd [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k snilevel ] [ -- ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -84,7 +84,10 @@ So it should pay attention to the following variables:
 </p>
 
 <ul>
- <li> <tt>CERTFILE</tt> and <tt>KEYFILE</tt> </li>
+ <li> <tt>CERTFILE</tt> and <tt>KEYFILE</tt>. Also (or alternatively),
+if the <tt>-k</tt> option is given: a series of
+<tt>KEYFILE:<em>x</em></tt> and <tt>CERTFILE:<em>x</em></tt> variables,
+for every <em>x</em> in the set of server names </li>
  <li> (if the <tt>-Y</tt> or <tt>-y</tt> option has been given) <tt>CADIR</tt> or <tt>CAFILE</tt> </li>
  <li> <tt>TLS_UID</tt> and <tt>TLS_GID</tt>
 </ul>
@@ -94,10 +97,12 @@ So it should pay attention to the following variables:
 <p>
  By default, <em>prog...</em> is run with all these
 variables <em>unset</em>: CADIR, CAFILE,
-KEYFILE, CERTFILE, TLS_UID and TLS_GID. They're passed to
+KEYFILE, CERTFILE, KEYFILE:<em>x</em> and CERTFILE:<em>x</em> for
+every <em>x</em>, TLS_UID and TLS_GID. The variables are passed to
 the <a href="s6-tlsd-io.html">s6-tlsd-io</a> child but
 not to <em>prog...</em>.
-The <tt>-Z</tt> option prevents that behaviour.
+The <tt>-Z</tt> option prevents that behaviour and keeps them
+accessible in the child.
 </p>
 
 <p>
@@ -150,6 +155,19 @@ is not to require a client certificate at all. </li>
 the handshake takes more than <em>kimeout</em> milliseconds to complete.
 The default is 0, which means infinite timeout: let the handshake complete
 at its own pace, no matter how slow. </li>
+ <li> <tt>-k&nbsp;<em>snilevel</em></tt>&nbsp;: support alternative
+certificate chains for SNI. If <em>snilevel</em> is nonzero, private
+key file names are read from every environment variable of the form
+<tt>KEYFILE:<em>x</em></tt>, where <em>x</em> is a server name that
+the client may require, and a corresponding certificate chain for the name
+<em>x</em> should exist in the file named after the contents of the
+<tt>CERTFILE:<em>x</em></tt> environment variable. If <em>snilevel</em>
+is 2 or more, <em>only</em> those files are read, and the generic
+<tt>KEYFILE</tt> and <tt>CERTFILE</tt> variables are ignored.
+If <em>snilevel</em> is 0, or if the option is not given, which is the
+default, <tt>KEYFILE</tt> and <tt>CERTFILE</tt> are the only private
+key / certificate chain pair that are loaded, no other environment
+variable is read for keypairs. </li>
 </ul>
 
 <h2> Notes </h2>

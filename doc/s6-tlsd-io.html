@@ -38,7 +38,7 @@ the options given when configuring s6-networking.
 <h2> Interface </h2>
 
 <pre>
-     s6-tlsd-io [ -S | -s ] [ -Y | -y ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -d notif ] [ -- ] <em>fdr</em> <em>fdw</em>
+     s6-tlsd-io [ -S | -s ] [ -Y | -y ] [ -v <em>verbosity</em> ] [ -K <em>kimeout</em> ] [ -k <em>snilevel</em> ] [ -d <em>notif</em> ] [ -- ] <em>fdr</em> <em>fdw</em>
 </pre>
 
 <ul>
@@ -107,7 +107,7 @@ environment variables set:
  <li> <tt>KEYFILE</tt>: a path to the file
 containing the server's private key, DER- or PEM-encoded. </li>
  <li> <tt>CERTFILE</tt>: a path to the file
-containing the server's certificate, DER- or PEM-encoded.
+containing the server's certificate chain, DER- or PEM-encoded.
 If PEM-encoded, the file can actually contain a chain
 of certificates. </li>
 </ul>
@@ -115,6 +115,17 @@ of certificates. </li>
 <p>
  If one of those variables is unset, <tt>s6-tlsd-io</tt>
 will refuse to run.
+</p>
+
+<p>
+ Alternatively, if <em>snilevel</em> is nonzero, the private
+key for the server named <em>x</em> should be held in a file
+whose name is contained in the <tt>KEYFILE:<em>x</em></tt>
+environment variable, and the corresponding certificate chain
+file should be named in the <tt>CERTFILE:<em>x</em></tt>
+environment variable. If <em>snilevel</em> is 2 or more, the
+<tt>KEYFILE</tt> and <tt>CERTFILE</tt> variables will be
+entirely ignored.
 </p>
 
 <p>
@@ -196,6 +207,19 @@ is not to require a client certificate at all. </li>
 to send data for <em>kimeout</em> milliseconds during the handshake,
 close the connection. The default is 0, which means infinite timeout
 (never kill the connection). </li>
+ <li> <tt>-k&nbsp;<em>snilevel</em></tt>&nbsp;: support alternative
+certificate chains for SNI. If <em>snilevel</em> is nonzero, private
+key file names are read from every environment variable of the form
+<tt>KEYFILE:<em>x</em></tt>, where <em>x</em> is a server name that
+the client may require, and a corresponding certificate chain for the name
+<em>x</em> should exist in the file named after the contents of the
+<tt>CERTFILE:<em>x</em></tt> environment variable. If <em>snilevel</em>
+is 2 or more, <em>only</em> those files are read, and the generic
+<tt>KEYFILE</tt> and <tt>CERTFILE</tt> variables are ignored.
+If <em>snilevel</em> is 0, or if the option is not given, which is the
+default, <tt>KEYFILE</tt> and <tt>CERTFILE</tt> are the only private
+key / certificate chain pair that are loaded, no other environment
+variable is read for keypairs. </li>
  <li> <tt>-d&nbsp;<em>notif</em></tt>&nbsp;: handshake notification.
 <em>notif</em> must be a file descriptor open for writing. When the
 TLS handshake has completed, some data (terminated by two null
