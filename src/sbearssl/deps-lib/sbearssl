@@ -24,8 +24,11 @@ sbearssl_rsa_pkey_to.o
 sbearssl_rsa_skey_from.o
 sbearssl_rsa_skey_to.o
 sbearssl_run.o
+sbearssl_sctx_init_full_generic.o
+sbearssl_sctx_set_policy_sni.o
 sbearssl_send_environment.o
 sbearssl_server_init_and_run.o
+sbearssl_sni_policy_vtable.o
 sbearssl_skey_from.o
 sbearssl_skey_readfile.o
 sbearssl_skey_to.o

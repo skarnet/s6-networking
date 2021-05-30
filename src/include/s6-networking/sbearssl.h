@@ -13,6 +13,7 @@
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/tai.h>
+#include <skalibs/avltree.h>
 
  /*
   * Support library for bearssl.
@@ -153,6 +154,7 @@ extern int sbearssl_skey_from (sbearssl_skey *, br_skey const *, stralloc *) ;
 extern int sbearssl_skey_to (sbearssl_skey const *, br_skey *, char *) ;
 
 extern int sbearssl_skey_readfile (char const *, sbearssl_skey *, stralloc *) ;
+extern void sbearssl_skey_wipe (sbearssl_skey, char *) ;
 
 
  /* Public keys */
@@ -260,6 +262,36 @@ typedef sbearssl_handshake_cbfunc *sbearssl_handshake_cbfunc_ref ;
 
 extern int sbearssl_send_environment (br_ssl_engine_context *, sbearssl_handshake_cbarg *) ;
 extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
+
+
+ /* Generic server policy class and server-side SNI implementation */
+
+typedef struct sbearssl_sni_map_s sbearssl_sni_map, *sbearssl_sni_map_ref ;
+struct sbearssl_sni_map_s
+{
+  char const *servername ;
+  sbearssl_skey skey ;
+  size_t chainindex ;
+  size_t chainlen ;
+} ;
+
+typedef struct sbearssl_sni_policy_context_s sbearssl_sni_policy_context, *sbearssl_sni_policy_context_ref ;
+struct sbearssl_sni_policy_context_s
+{
+  br_ssl_server_policy_class const *vtable ;
+  br_skey skey ;
+  avltree map ;
+  genalloc mapga ;
+  genalloc certga ;
+  stralloc storage ;
+}
+
+extern br_ssl_server_policy_class const sbearssl_sni_policy_vtable ;
+extern int sbearssl_sni_policy_init (sbearssl_sni_policy_context *) ;
+extern int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *, char const *, char const *, char const *) ;
+
+extern void sbearssl_sctx_init_full_generic (br_ssl_server_context *) ;
+extern void sbearssl_sctx_set_policy_sni (br_ssl_server_context *, sbearssl_sni_policy_context *) ;
 
 
  /* s6-tlsc-io and s6-tlsd-io implementations */
