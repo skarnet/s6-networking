@@ -53,7 +53,7 @@ static int choose (br_ssl_server_policy_class const **pctx, br_ssl_server_contex
   sbearssl_sni_policy_node *node ;
   char const *servername = br_ssl_engine_get_server_name(&sc->eng) ;
 
- /* Get the node corresponding to the ServerName sent by the client */
+ /* Get the node corresponding to the ServerName sent by the client. "" for no SNI. */
   {
     uint32_t n ;
     if (!avltree_search(&pol->map, servername, &n)

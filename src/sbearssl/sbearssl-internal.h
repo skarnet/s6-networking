@@ -78,7 +78,7 @@ extern size_t const sbearssl_suite_list_len ;
 typedef struct sbearssl_sni_policy_node_s sbearssl_sni_policy_node, *sbearssl_policy_node_ref ;
 struct sbearssl_sni_policy_node_s
 {
-  char const *servername ;
+  size_t servername ;
   sbearssl_skey skey ;
   size_t chainindex ;
   size_t chainlen ;

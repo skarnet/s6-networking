@@ -270,27 +270,21 @@ extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32
 extern int sbearssl_choose_algos_rsa (br_ssl_server_context const *, br_ssl_server_choices *, unsigned int) ;
 extern int sbearssl_choose_algos_ec (br_ssl_server_context const *, br_ssl_server_choices *, unsigned int, int) ;
 
-typedef struct sbearssl_sni_map_s sbearssl_sni_map, *sbearssl_sni_map_ref ;
-struct sbearssl_sni_map_s
-{
-  char const *servername ;
-  sbearssl_skey skey ;
-  size_t chainindex ;
-  size_t chainlen ;
-} ;
-
 typedef struct sbearssl_sni_policy_context_s sbearssl_sni_policy_context, *sbearssl_sni_policy_context_ref ;
 struct sbearssl_sni_policy_context_s
 {
+ /* generic fields that any br_ssl_server_policy_class instance should have */
   br_ssl_server_policy_class const *vtable ;
   br_skey skey ;
-  avltree map ;
-  genalloc mapga ;
-  genalloc certga ;
-  stralloc storage ;
   union { br_rsa_private rsa ; br_ec_impl const *ec ; } keyx ;
   union { br_rsa_pkcs1_sign rsa ; br_ecdsa_sign ec ; } sign ;
   br_multihash_context const *mhash ;
+
+ /* specific fields to sni_policy: keypairs and servername->keypair dict */
+  stralloc storage ;
+  genalloc certga ;
+  genalloc mapga ;
+  avltree map ;
 } ;
 
 extern br_ssl_server_policy_class const sbearssl_sni_policy_vtable ;

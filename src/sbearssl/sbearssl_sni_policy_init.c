@@ -13,7 +13,8 @@
 
 static void *sbearssl_sni_policy_node_dtok (uint32_t d, void *data)
 {
-  return (void *)genalloc_s(sbearssl_sni_map, &((sbearssl_sni_policy_context *)data)->mapga)[d].servername ;
+  sbearssl_sni_policy_context *pol = data ;
+  return pol->storage.s + genalloc_s(sbearssl_sni_policy_node, &pol->mapga)[d].servername ;
 }
 
 static int sbearssl_sni_policy_node_cmp (void const *a, void const *b, void *data)
