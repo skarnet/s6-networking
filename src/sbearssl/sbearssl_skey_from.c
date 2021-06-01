@@ -1,6 +1,5 @@
 /* ISC license. */
 
-#include <errno.h>
 #include <bearssl.h>
 #include <s6-networking/sbearssl.h>
 
@@ -15,7 +14,7 @@ int sbearssl_skey_from (sbearssl_skey *l, br_skey const *k, stralloc *sa)
       if (!sbearssl_ec_skey_from(&l->data.ec, &k->data.ec, sa)) return 0 ;
       break ;
     default :
-      return (errno = EINVAL, 0) ;
+      return 0 ;
   }
   l->type = k->type ;
   return 1 ;

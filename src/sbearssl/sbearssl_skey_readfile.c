@@ -2,10 +2,13 @@
 
 #include <string.h>
 #include <errno.h>
+
 #include <bearssl.h>
+
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/djbunix.h>
+
 #include <s6-networking/sbearssl.h>
 
 static int decode_key (sbearssl_skey *key, char const *s, size_t len, stralloc *sa)

@@ -2,8 +2,10 @@
 
 #include <sys/types.h>
 #include <errno.h>
+
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
+
 #include <s6-networking/sbearssl.h>
 
 int sbearssl_ta_readfile (char const *file, genalloc *taga, stralloc *tasa)
@@ -35,5 +37,4 @@ int sbearssl_ta_readfile (char const *file, genalloc *taga, stralloc *tasa)
     errno = e ;
   }
   return r ;
-
 }

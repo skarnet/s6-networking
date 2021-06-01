@@ -13,6 +13,7 @@
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/tai.h>
+#include <skalibs/avltree.h>
 
  /*
   * Support library for bearssl.
@@ -153,6 +154,8 @@ extern int sbearssl_skey_from (sbearssl_skey *, br_skey const *, stralloc *) ;
 extern int sbearssl_skey_to (sbearssl_skey const *, br_skey *, char *) ;
 
 extern int sbearssl_skey_readfile (char const *, sbearssl_skey *, stralloc *) ;
+extern size_t sbearssl_skey_storagelen (sbearssl_skey const *) ;
+extern void sbearssl_skey_wipe (sbearssl_skey *, char *) ;
 
 
  /* Public keys */
@@ -260,6 +263,36 @@ typedef sbearssl_handshake_cbfunc *sbearssl_handshake_cbfunc_ref ;
 
 extern int sbearssl_send_environment (br_ssl_engine_context *, sbearssl_handshake_cbarg *) ;
 extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
+
+
+ /* Generic server policy class and server-side SNI implementation */
+
+extern int sbearssl_choose_algos_rsa (br_ssl_server_context const *, br_ssl_server_choices *, unsigned int) ;
+extern int sbearssl_choose_algos_ec (br_ssl_server_context const *, br_ssl_server_choices *, unsigned int, int) ;
+
+typedef struct sbearssl_sni_policy_context_s sbearssl_sni_policy_context, *sbearssl_sni_policy_context_ref ;
+struct sbearssl_sni_policy_context_s
+{
+ /* generic fields that any br_ssl_server_policy_class instance should have */
+  br_ssl_server_policy_class const *vtable ;
+  br_skey skey ;
+  union { br_rsa_private rsa ; br_ec_impl const *ec ; } keyx ;
+  union { br_rsa_pkcs1_sign rsa ; br_ecdsa_sign ec ; } sign ;
+  br_multihash_context const *mhash ;
+
+ /* specific fields to sni_policy: keypairs and servername->keypair dict */
+  stralloc storage ;
+  genalloc certga ;
+  genalloc mapga ;
+  avltree map ;
+} ;
+
+extern br_ssl_server_policy_class const sbearssl_sni_policy_vtable ;
+extern void sbearssl_sni_policy_init (sbearssl_sni_policy_context *) ;
+extern int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *, char const *, char const *, char const *) ;
+
+extern void sbearssl_sctx_init_full_generic (br_ssl_server_context *) ;
+extern void sbearssl_sctx_set_policy_sni (br_ssl_server_context *, sbearssl_sni_policy_context *) ;
 
 
  /* s6-tlsc-io and s6-tlsd-io implementations */
