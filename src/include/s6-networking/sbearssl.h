@@ -154,7 +154,8 @@ extern int sbearssl_skey_from (sbearssl_skey *, br_skey const *, stralloc *) ;
 extern int sbearssl_skey_to (sbearssl_skey const *, br_skey *, char *) ;
 
 extern int sbearssl_skey_readfile (char const *, sbearssl_skey *, stralloc *) ;
-extern void sbearssl_skey_wipe (sbearssl_skey, char *) ;
+extern size_t sbearssl_skey_storagelen (sbearssl_skey const *) ;
+extern void sbearssl_skey_wipe (sbearssl_skey *, char *) ;
 
 
  /* Public keys */
@@ -266,6 +267,9 @@ extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32
 
  /* Generic server policy class and server-side SNI implementation */
 
+extern int sbearssl_choose_algos_rsa (br_ssl_server_context const *, br_ssl_server_choices *, unsigned int) ;
+extern int sbearssl_choose_algos_ec (br_ssl_server_context const *, br_ssl_server_choices *, unsigned int, int) ;
+
 typedef struct sbearssl_sni_map_s sbearssl_sni_map, *sbearssl_sni_map_ref ;
 struct sbearssl_sni_map_s
 {
@@ -284,10 +288,13 @@ struct sbearssl_sni_policy_context_s
   genalloc mapga ;
   genalloc certga ;
   stralloc storage ;
-}
+  union { br_rsa_private rsa ; br_ec_impl const *ec ; } keyx ;
+  union { br_rsa_pkcs1_sign rsa ; br_ecdsa_sign ec ; } sign ;
+  br_multihash_context const *mhash ;
+} ;
 
 extern br_ssl_server_policy_class const sbearssl_sni_policy_vtable ;
-extern int sbearssl_sni_policy_init (sbearssl_sni_policy_context *) ;
+extern void sbearssl_sni_policy_init (sbearssl_sni_policy_context *) ;
 extern int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *, char const *, char const *, char const *) ;
 
 extern void sbearssl_sctx_init_full_generic (br_ssl_server_context *) ;

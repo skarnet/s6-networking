@@ -1,8 +1,11 @@
 /* ISC license. */
 
 #include <errno.h>
+
 #include <bearssl.h>
+
 #include <skalibs/stralloc.h>
+
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 

@@ -1,12 +1,14 @@
 /* ISC license. */
 
 #include <string.h>
-#include <errno.h>
+
 #include <bearssl.h>
+
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/djbunix.h>
+
 #include <s6-networking/sbearssl.h>
 
 int sbearssl_cert_readbigpem (char const *fn, genalloc *certs, stralloc *sa)

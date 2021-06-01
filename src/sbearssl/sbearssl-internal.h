@@ -78,10 +78,12 @@ extern size_t const sbearssl_suite_list_len ;
 typedef struct sbearssl_sni_policy_node_s sbearssl_sni_policy_node, *sbearssl_policy_node_ref ;
 struct sbearssl_sni_policy_node_s
 {
-  size_t servername ;
+  char const *servername ;
   sbearssl_skey skey ;
   size_t chainindex ;
   size_t chainlen ;
 } ;
+
+extern unsigned int sbearssl_choose_hash (unsigned int) ;
 
 #endif
