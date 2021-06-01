@@ -6,7 +6,9 @@
 #include <bearssl.h>
 
 #include <skalibs/bytestr.h>
-#include <skalibs/strerr2.h>
+#ifdef DEBUG
+# include <skalibs/strerr2.h>
+#endif
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/avltree.h>
@@ -105,10 +107,22 @@ static int choose (br_ssl_server_policy_class const **pctx, br_ssl_server_contex
       int r = sbearssl_ec_issuer_keytype(&kt, &choices->chain[0]) ;
       switch (r)
       {
-        case -2 : strerr_warnw3x("certificate issuer key type not recognized", servername[0] ? " for name " : "", servername[0] ? servername : "") ; return 0 ;
-        case -1 : strerr_warnwu3sys("get certificate issuer key type", servername[0] ? " for name " : "", servername[0] ? servername : "") ; return 0 ;
+        case -2 :
+#ifdef DEBUG
+          strerr_warnw3x("certificate issuer key type not recognized", servername[0] ? " for name " : "", servername[0] ? servername : "") ;
+#endif
+          return 0 ;
+        case -1 :
+#ifdef DEBUG
+          strerr_warnwu3sys("get certificate issuer key type", servername[0] ? " for name " : "", servername[0] ? servername : "") ;
+#endif
+          return 0 ;
         case 0 : break ;
-        default : strerr_warnwu5x("get certificate issuer key type", servername[0] ? " for name " : "", servername[0] ? servername : "", ": ", sbearssl_error_str(r)) ; return 0 ;
+        default :
+#ifdef DEBUG
+          strerr_warnwu5x("get certificate issuer key type", servername[0] ? " for name " : "", servername[0] ? servername : "", ": ", sbearssl_error_str(r)) ;
+#endif
+          return 0 ;
       }
       if (!sbearssl_choose_algos_ec(sc, choices, BR_KEYTYPE_KEYX | BR_KEYTYPE_SIGN, kt)) return 0 ;
       pol->keyx.ec = sc->eng.iec ;  /* the br_ssl_engine_get_ec() abstraction lacks a const */

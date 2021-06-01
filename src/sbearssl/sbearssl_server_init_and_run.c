@@ -5,6 +5,8 @@
 
 #include <bearssl.h>
 
+#include <skalibs/posixplz.h>
+#include <skalibs/bytestr.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
@@ -15,56 +17,64 @@
 
 void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
 {
-  sbearssl_skey skey ;
-  genalloc certs = GENALLOC_ZERO ;  /* sbearssl_cert */
-  genalloc tas = GENALLOC_ZERO ;  /* sbearssl_ta */
-  stralloc storage = STRALLOC_ZERO ;
-  size_t chainlen = sbearssl_get_keycert(&skey, &certs, &storage) ;
-  size_t n = preoptions & 1 ? sbearssl_get_tas(&tas, &storage) : 0 ;
+  sbearssl_sni_policy_context pol ;
+  sbearssl_sni_policy_init(&pol) ;
+
+  if (!(preoptions & 8))  /* snilevel < 2 : add default keypair */
+  {
+    char const *keyfile ;
+    char const *certfile = getenv("CERTFILE") ;
+    if (!certfile) strerr_dienotset(100, "CERTFILE") ;
+    keyfile = getenv("KEYFILE") ;
+    if (!keyfile) strerr_dienotset(100, "KEYFILE") ;
+    if (!sbearssl_sni_policy_add_keypair_file(&pol, "", certfile, keyfile))
+      strerr_diefu1sys(96, "add default keypair to policy context") ;
+  }
+
+  if (preoptions & 4)  /* snilevel > 0 : add additional keypairs */
+  {
+    char const *const *envp = (char const *const *)environ ;
+    for (; *envp ; envp++)
+    {
+      if (str_start(*envp, "KEYFILE:"))
+      {
+        size_t len = strlen(*envp) ;
+        size_t kequal = byte_chr(*envp, len, '=') ;
+        if (kequal == len) strerr_dief1x(100, "invalid environment") ;
+        if (kequal != 8)
+        {
+          char const *x ;
+          char certvar[len - kequal + 10] ;
+          memcpy(certvar, "CERTFILE:", 9) ;
+          memcpy(certvar + 9, *envp + 8, kequal - 8) ;
+          certvar[kequal + 1] = 0 ;
+          x = getenv(certvar) ;
+          if (!x)
+            strerr_dief3x(96, "environment variable KEYFILE:", certvar + 9, " not paired with the corresponding CERTFILE") ;
+          else if (!sbearssl_sni_policy_add_keypair_file(&pol, certvar + 9, x, *envp + kequal + 1))
+            strerr_diefu1sys(96, "sbearssl_sni_policy_add_keypair_file") ;
+        }
+      }
+    }
+  }
 
   sbearssl_drop() ;
-  stralloc_shrink(&storage) ;
 
   {
-    union br_skey_u key ;
     br_ssl_server_context sc ;
     sbearssl_x509_small_context xc ;
-    br_x509_certificate chain[chainlen] ;
-    br_x509_trust_anchor btas[n ? n : 1] ;
+    stralloc tastorage = STRALLOC_ZERO ;
+    genalloc tas = GENALLOC_ZERO ;  /* sbearssl_ta */
+    size_t n = preoptions & 1 ? sbearssl_get_tas(&tas, &tastorage) : 0 ;
     unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
+    br_x509_trust_anchor btas[n ? n : 1] ;
 
-    for (size_t i = 0 ; i < chainlen ; i++)
-      sbearssl_cert_to(genalloc_s(sbearssl_cert, &certs) + i, chain + i, storage.s) ;
-    genalloc_free(sbearssl_cert, &certs) ;
-
-    for (size_t i = 0 ; i < n ; i++)
-      sbearssl_ta_to(genalloc_s(sbearssl_ta, &tas) + i, btas + i, storage.s) ;
-    genalloc_free(sbearssl_ta, &tas) ;
-
-    switch (skey.type)
-    {
-      case BR_KEYTYPE_RSA :
-        sbearssl_rsa_skey_to(&skey.data.rsa, &key.rsa, storage.s) ;
-        br_ssl_server_init_full_rsa(&sc, chain, chainlen, &key.rsa) ;
-        break ;
-      case BR_KEYTYPE_EC :
-      {
-        int kt, r ;
-        sbearssl_ec_skey_to(&skey.data.ec, &key.ec, storage.s) ;
-        r = sbearssl_ec_issuer_keytype(&kt, &chain[0]) ;
-        switch (r)
-        {
-          case -2 : strerr_dief1x(96, "certificate issuer key type not recognized") ;
-          case -1 : strerr_diefu1sys(111, "get certificate issuer key type") ;
-          case 0 : break ;
-          default : strerr_diefu3x(96, "get certificate issuer key type", ": ", sbearssl_error_str(r)) ;
-        }
-        br_ssl_server_init_full_ec(&sc, chain, chainlen, kt, &key.ec) ;
-        break ;
-      }
-      default :
-        strerr_dief1x(96, "unsupported private key type") ;
-    }
+    sbearssl_sctx_init_full_generic(&sc) ;
+    sbearssl_sctx_set_policy_sni(&sc, &pol) ;
+    random_string((char *)buf, 32) ;
+    random_finish() ;
+    br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
+    br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
 
     {
       uint32_t flags = BR_OPT_ENFORCE_SERVER_PREFERENCES | BR_OPT_NO_RENEGOTIATION ;
@@ -72,25 +82,23 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
       br_ssl_engine_add_flags(&sc.eng, flags) ;
     }
 
-    if (n)
+    if (n)  /* Set up client cert verification */
     {
+      for (size_t i = 0 ; i < n ; i++)
+        sbearssl_ta_to(genalloc_s(sbearssl_ta, &tas) + i, btas + i, tastorage.s) ;
+      genalloc_free(sbearssl_ta, &tas) ;
       sbearssl_x509_small_init_full(&xc, btas, n, &cbarg->eedn, &cbarg->eltstatus, cbarg->eehash) ;
       if (!sbearssl_x509_small_set_tain(&xc, &STAMP))
         strerr_diefu1sys(111, "initialize validation time") ;
-      br_ssl_engine_set_x509(&sc.eng, &xc.vtable) ;
       br_ssl_engine_set_default_rsavrfy(&sc.eng) ;
       br_ssl_engine_set_default_ecdsa(&sc.eng) ;
+      br_ssl_engine_set_x509(&sc.eng, &xc.vtable) ;
       br_ssl_server_set_trust_anchor_names_alt(&sc, btas, n) ;
       cbarg->exportmask |= 3 ;
     }
 
-    random_string((char *)buf, 32) ;
-    random_finish() ;
-    br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
-    br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
     if (!br_ssl_server_reset(&sc))
       strerr_diefu2x(97, "reset server context: ", sbearssl_error_str(br_ssl_engine_last_error(&sc.eng))) ;
-
     sbearssl_run(&sc.eng, fds, tto, options, verbosity, cb, cbarg) ;
   }
 }

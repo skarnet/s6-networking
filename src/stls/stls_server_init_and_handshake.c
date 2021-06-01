@@ -47,12 +47,12 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain_t const *tto, u
         if (kequal != 8)
         {
           char certvar[len - kequal + 10] ;
-          memcpy(certvar, "CERTFILE:", 9 ;
+          memcpy(certvar, "CERTFILE:", 9) ;
           memcpy(certvar + 9, *envp + 8, kequal - 8) ;
           certvar[kequal + 1] = 0 ;
           x = getenv(certvar) ;
           if (!x)
-            strerr_dief3x("environment variable KEYFILE:", certvar + 9, " not paired with the corresponding CERTFILE") ;
+            strerr_dief3x(96, "environment variable KEYFILE:", certvar + 9, " not paired with the corresponding CERTFILE") ;
           else if (tls_config_add_keypair_file(cfg, x, *envp + kequal + 1) < 0)
             diecfg(cfg, "tls_config_add_keypair_file") ;
         }
