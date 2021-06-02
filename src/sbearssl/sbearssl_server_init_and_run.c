@@ -22,13 +22,17 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
 
   if (!(preoptions & 8))  /* snilevel < 2 : add default keypair */
   {
+    int e ;
     char const *keyfile ;
     char const *certfile = getenv("CERTFILE") ;
     if (!certfile) strerr_dienotset(100, "CERTFILE") ;
     keyfile = getenv("KEYFILE") ;
     if (!keyfile) strerr_dienotset(100, "KEYFILE") ;
-    if (!sbearssl_sni_policy_add_keypair_file(&pol, "", certfile, keyfile))
+    e = sbearssl_sni_policy_add_keypair_file(&pol, "", certfile, keyfile) ;
+    if (e < 0)
       strerr_diefu1sys(96, "add default keypair to policy context") ;
+    else if (e)
+      strerr_diefu3x(96, "add default keypair to policy context", ": ", sbearssl_error_str(e)) ;
   }
 
   if (preoptions & 4)  /* snilevel > 0 : add additional keypairs */
@@ -43,6 +47,7 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
         if (kequal == len) strerr_dief1x(100, "invalid environment") ;
         if (kequal != 8)
         {
+          int e ;
           char const *x ;
           char certvar[len - kequal + 10] ;
           memcpy(certvar, "CERTFILE:", 9) ;
@@ -51,14 +56,20 @@ void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
           x = getenv(certvar) ;
           if (!x)
             strerr_dief3x(96, "environment variable KEYFILE:", certvar + 9, " not paired with the corresponding CERTFILE") ;
-          else if (!sbearssl_sni_policy_add_keypair_file(&pol, certvar + 9, x, *envp + kequal + 1))
-            strerr_diefu1sys(96, "sbearssl_sni_policy_add_keypair_file") ;
+          e = sbearssl_sni_policy_add_keypair_file(&pol, certvar + 9, x, *envp + kequal + 1) ;
+          if (e < 0)
+            strerr_diefu3sys(96, "add keypair for servername ", certvar + 9, " to policy context") ;
+          else if (e)
+            strerr_diefu5x(96, "add default keypair for servername ", certvar + 9, " to policy context", ": ", sbearssl_error_str(e)) ;
         }
       }
     }
   }
 
   sbearssl_drop() ;
+
+  if (!sbearssl_sni_policy_nkeypairs(&pol))
+    strerr_dief1x(96, "no suitable keypairs found in the environment") ;
 
   {
     br_ssl_server_context sc ;

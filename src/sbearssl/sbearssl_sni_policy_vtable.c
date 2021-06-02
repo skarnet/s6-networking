@@ -6,9 +6,6 @@
 #include <bearssl.h>
 
 #include <skalibs/bytestr.h>
-#ifdef DEBUG
-# include <skalibs/strerr2.h>
-#endif
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/avltree.h>
@@ -18,28 +15,27 @@
 
 #define INSTANCE(c) ((sbearssl_sni_policy_context *)(c))
 
-#define COPY(x) do { k.data.rsa.x = m ; memcpy(s + m, t + k.data.rsa.x, k.data.rsa.x##len) ; m += k.data.rsa.x##len ; } while (0)
+#define COPY(x) do { k->data.rsa.x##len = l->data.rsa.x##len ; k->data.rsa.x = (unsigned char *)s + m ; memcpy(s + m, t + l->data.rsa.x, l->data.rsa.x##len) ; m += l->data.rsa.x##len ; } while (0)
 
-static inline size_t skey_copy (br_skey *key, sbearssl_skey const *l, char *s, char const *t)
+static inline size_t skey_copy (br_skey *k, sbearssl_skey const *l, char *s, char const *t)
 {
-  sbearssl_skey k = *l ;
   size_t m = 0 ;
-  switch (k.type)
+  k->type = l->type ;
+  switch (l->type)
   {
     case BR_KEYTYPE_RSA :
-    {
+      k->data.rsa.n_bitlen = l->data.rsa.n_bitlen ;
       COPY(p) ; COPY(q) ; COPY(dp) ; COPY(dq) ; COPY(iq) ;
       break ;
-    }
     case BR_KEYTYPE_EC :
-      k.data.ec.x = m ; memcpy(s + m, t + k.data.ec.x, k.data.ec.xlen) ; m += k.data.ec.xlen ;
+      k->data.ec.curve = l->data.ec.curve ;
+      k->data.ec.xlen = l->data.ec.xlen ; k->data.ec.x = (unsigned char *)s + m ; memcpy(s + m, t + l->data.ec.x, l->data.ec.xlen) ; m += l->data.ec.xlen ;
       break ;
   }
-  sbearssl_skey_to(&k, key, s) ;
   return m ;
 }
 
-static size_t cert_copy (br_x509_certificate *newc, sbearssl_cert const *oldc, char *s, char const *t)
+static inline size_t cert_copy (br_x509_certificate *newc, sbearssl_cert const *oldc, char *s, char const *t)
 {
   memcpy(s, t + oldc->data, oldc->datalen) ;
   newc->data = (unsigned char *)s ;
@@ -56,9 +52,11 @@ static int choose (br_ssl_server_policy_class const **pctx, br_ssl_server_contex
  /* Get the node corresponding to the ServerName sent by the client. "" for no SNI. */
   {
     uint32_t n ;
-    if (!avltree_search(&pol->map, servername, &n)
-     && (!servername[0] || !avltree_search(&pol->map, "", &n)))
-      return 0 ;
+    if (!avltree_search(&pol->map, servername, &n))
+    {
+      if (!servername[0]) return 0 ;
+      if (!avltree_search(&pol->map, "", &n)) return 0 ;
+    }
     avltree_free(&pol->map) ;
     node = genalloc_s(sbearssl_sni_policy_node, &pol->mapga) + n ;
   }
@@ -104,26 +102,7 @@ static int choose (br_ssl_server_policy_class const **pctx, br_ssl_server_contex
     case BR_KEYTYPE_EC :
     {
       int kt ;
-      int r = sbearssl_ec_issuer_keytype(&kt, &choices->chain[0]) ;
-      switch (r)
-      {
-        case -2 :
-#ifdef DEBUG
-          strerr_warnw3x("certificate issuer key type not recognized", servername[0] ? " for name " : "", servername[0] ? servername : "") ;
-#endif
-          return 0 ;
-        case -1 :
-#ifdef DEBUG
-          strerr_warnwu3sys("get certificate issuer key type", servername[0] ? " for name " : "", servername[0] ? servername : "") ;
-#endif
-          return 0 ;
-        case 0 : break ;
-        default :
-#ifdef DEBUG
-          strerr_warnwu5x("get certificate issuer key type", servername[0] ? " for name " : "", servername[0] ? servername : "", ": ", sbearssl_error_str(r)) ;
-#endif
-          return 0 ;
-      }
+      if (sbearssl_ec_issuer_keytype(&kt, &choices->chain[0])) return 0 ;
       if (!sbearssl_choose_algos_ec(sc, choices, BR_KEYTYPE_KEYX | BR_KEYTYPE_SIGN, kt)) return 0 ;
       pol->keyx.ec = sc->eng.iec ;  /* the br_ssl_engine_get_ec() abstraction lacks a const */
       pol->sign.ec = br_ecdsa_i31_sign_asn1 ;  /* have to hardcode, no access to BR_LOMUL */

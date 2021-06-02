@@ -290,6 +290,7 @@ struct sbearssl_sni_policy_context_s
 extern br_ssl_server_policy_class const sbearssl_sni_policy_vtable ;
 extern void sbearssl_sni_policy_init (sbearssl_sni_policy_context *) ;
 extern int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *, char const *, char const *, char const *) ;
+extern size_t sbearssl_sni_policy_nkeypairs (sbearssl_sni_policy_context const *) ;
 
 extern void sbearssl_sctx_init_full_generic (br_ssl_server_context *) ;
 extern void sbearssl_sctx_set_policy_sni (br_ssl_server_context *, sbearssl_sni_policy_context *) ;

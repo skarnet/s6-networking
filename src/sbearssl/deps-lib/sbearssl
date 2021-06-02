@@ -38,6 +38,7 @@ sbearssl_skey_to.o
 sbearssl_skey_wipe.o
 sbearssl_sni_policy_add_keypair_file.o
 sbearssl_sni_policy_init.o
+sbearssl_sni_policy_nkeypairs.o
 sbearssl_sni_policy_vtable.o
 sbearssl_suite_bits.o
 sbearssl_suite_list.o

@@ -17,14 +17,19 @@ int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *pol, char
   size_t gabase = genalloc_len(sbearssl_cert, &pol->certga) ;
   size_t mbase = genalloc_len(sbearssl_sni_policy_node, &pol->mapga) ;
   sbearssl_sni_policy_node node = { .servername = sabase, .chainindex = gabase } ;
+  int e ;
 
-  if (!stralloc_catb(&pol->storage, servername, strlen(servername) + 1)) return 0 ;
-  if (!sbearssl_cert_readbigpem(certfile, &pol->certga, &pol->storage)) goto err0 ;
+  if (!stralloc_catb(&pol->storage, servername, strlen(servername) + 1)) return -1 ;
+  e = sbearssl_cert_readbigpem(certfile, &pol->certga, &pol->storage) ;
+  if (e) goto err0 ;
   node.chainlen = genalloc_len(sbearssl_cert, &pol->certga) - node.chainindex ;
-  if (!sbearssl_skey_readfile(keyfile, &node.skey, &pol->storage)) goto err1 ;
-  if (!genalloc_catb(sbearssl_sni_policy_node, &pol->mapga, &node, 1)) goto err2 ;
-  if (!avltree_insert(&pol->map, mbase)) goto err3 ;
-  return 1 ;
+  e = sbearssl_skey_readfile(keyfile, &node.skey, &pol->storage) ;
+  if (e) goto err1 ;
+  e = genalloc_catb(sbearssl_sni_policy_node, &pol->mapga, &node, 1) ? 0 : -1 ;
+  if (e) goto err2 ;
+  e = avltree_insert(&pol->map, mbase) ? 0 : -1 ;
+  if (e) goto err3 ;
+  return 0 ;
 
  err3:
   if (mbase) genalloc_setlen(sbearssl_sni_policy_node, &pol->mapga, mbase) ;
@@ -37,5 +42,5 @@ int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *pol, char
  err0:
   if (sabase) pol->storage.len = sabase ;
   else stralloc_free(&pol->storage) ;
-  return 0 ;
+  return e ;
 }
