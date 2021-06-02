@@ -20,6 +20,7 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain_t const *tto, u
   struct tls *sctx ;
   struct tls_config *cfg ;
   char const *x ;
+  int got = 0 ;
 
   if (tls_init() < 0) strerr_diefu1sys(111, "tls_init") ;
   cfg = tls_config_new() ;
@@ -33,6 +34,7 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain_t const *tto, u
     if (!x) strerr_dienotset(100, "KEYFILE") ;
     if (tls_config_set_keypair_file(cfg, y, x) < 0)
       diecfg(cfg, "tls_config_set_keypair_file") ;
+    got = 1 ;
   }
   if (preoptions & 4) /* snilevel > 0 */
   {
@@ -53,6 +55,12 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain_t const *tto, u
           x = getenv(certvar) ;
           if (!x)
             strerr_dief3x(96, "environment variable KEYFILE:", certvar + 9, " not paired with the corresponding CERTFILE") ;
+          else if (!got)
+          {
+            if (tls_config_set_keypair_file(cfg, x, *envp + kequal + 1) < 0)
+              diecfg(cfg, "tls_config_set_keypair_file") ;
+            got = 1 ;
+          }
           else if (tls_config_add_keypair_file(cfg, x, *envp + kequal + 1) < 0)
             diecfg(cfg, "tls_config_add_keypair_file") ;
         }
