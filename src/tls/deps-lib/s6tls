@@ -1,3 +1,4 @@
+s6tls_clean_and_exec.o
 s6tls_exec_tlscio.o
 s6tls_exec_tlsdio.o
 s6tls_sync_and_exec_app.o

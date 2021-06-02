@@ -97,6 +97,7 @@ src/tls/s6-tlsd.o src/tls/s6-tlsd.lo: src/tls/s6-tlsd.c src/tls/s6tls-internal.h
 src/tls/s6-tlsserver.o src/tls/s6-tlsserver.lo: src/tls/s6-tlsserver.c src/include/s6-networking/config.h
 src/tls/s6-ucspitlsc.o src/tls/s6-ucspitlsc.lo: src/tls/s6-ucspitlsc.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
 src/tls/s6-ucspitlsd.o src/tls/s6-ucspitlsd.lo: src/tls/s6-ucspitlsd.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
+src/tls/s6tls_clean_and_exec.o src/tls/s6tls_clean_and_exec.lo: src/tls/s6tls_clean_and_exec.c src/tls/s6tls-internal.h
 src/tls/s6tls_exec_tlscio.o src/tls/s6tls_exec_tlscio.lo: src/tls/s6tls_exec_tlscio.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
 src/tls/s6tls_exec_tlsdio.o src/tls/s6tls_exec_tlsdio.lo: src/tls/s6tls_exec_tlsdio.c src/include/s6-networking/config.h src/tls/s6tls-internal.h
 src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_sync_and_exec_app.lo: src/tls/s6tls_sync_and_exec_app.c src/tls/s6tls-internal.h
@@ -158,12 +159,12 @@ endif
 libstls.so.xyzzy: EXTRA_LIBS := ${CRYPTO_LIB} -lskarnet ${TIMER_LIB}
 libstls.so.xyzzy: src/stls/stls_drop.lo src/stls/stls_handshake.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
-libs6tls.a.xyzzy: src/tls/s6tls_exec_tlscio.o src/tls/s6tls_exec_tlsdio.o src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_ucspi_exec_app.o
+libs6tls.a.xyzzy: src/tls/s6tls_clean_and_exec.o src/tls/s6tls_exec_tlscio.o src/tls/s6tls_exec_tlsdio.o src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_ucspi_exec_app.o
 else
-libs6tls.a.xyzzy: src/tls/s6tls_exec_tlscio.lo src/tls/s6tls_exec_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
+libs6tls.a.xyzzy: src/tls/s6tls_clean_and_exec.lo src/tls/s6tls_exec_tlscio.lo src/tls/s6tls_exec_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
 endif
 libs6tls.so.xyzzy: EXTRA_LIBS := -lskarnet
-libs6tls.so.xyzzy: src/tls/s6tls_exec_tlscio.lo src/tls/s6tls_exec_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
+libs6tls.so.xyzzy: src/tls/s6tls_clean_and_exec.lo src/tls/s6tls_exec_tlscio.lo src/tls/s6tls_exec_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
 s6-tlsc: EXTRA_LIBS := -lskarnet
 s6-tlsc: src/tls/s6-tlsc.o libs6tls.a.xyzzy
 s6-tlsc-io: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
