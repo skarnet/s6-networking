@@ -105,7 +105,7 @@ static int choose (br_ssl_server_policy_class const **pctx, br_ssl_server_contex
       if (sbearssl_ec_issuer_keytype(&kt, &choices->chain[0])) return 0 ;
       if (!sbearssl_choose_algos_ec(sc, choices, BR_KEYTYPE_KEYX | BR_KEYTYPE_SIGN, kt)) return 0 ;
       pol->keyx.ec = sc->eng.iec ;  /* the br_ssl_engine_get_ec() abstraction lacks a const */
-      pol->sign.ec = br_ecdsa_i31_sign_asn1 ;  /* have to hardcode, no access to BR_LOMUL */
+      pol->sign.ec = br_ecdsa_sign_asn1_get_default() ;
       pol->mhash = &sc->eng.mhash ;  /* missing an abstraction function there */
       break ;
     }
