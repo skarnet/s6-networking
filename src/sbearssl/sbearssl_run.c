@@ -37,7 +37,7 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
     if (state & BR_SSL_CLOSED)
     {
       r = br_ssl_engine_last_error(ctx) ;
-      if (r) strerr_diefu2x(98, "establish or maintain SSL connection to peer: ", sbearssl_error_str(r)) ;
+      if (r) strerr_dief4x(98, "the TLS engine closed the connection ", handshake_done ? "after" : "during", " the handshake: ", sbearssl_error_str(r)) ;
       break ;
     }
 
@@ -49,7 +49,7 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
       if (!handshake_done)
       {
         if (!(*cb)(ctx, cbarg))
-          strerr_diefu1sys(111, "post-handshake callback failed") ;
+          strerr_dief1sys(111, "post-handshake callback failed") ;
         handshake_done = 1 ;
       }
     }

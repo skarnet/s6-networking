@@ -70,7 +70,6 @@ void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preopti
             case 0 : break ;
             default : strerr_diefu3x(96, "get certificate issuer key type", ": ", sbearssl_error_str(r)) ;
           }
-
           br_ssl_client_set_single_ec(&cc, chain, chainlen, &key.ec, BR_KEYTYPE_KEYX | BR_KEYTYPE_SIGN, kt, br_ec_get_default(), br_ecdsa_sign_asn1_get_default()) ;
           break ;
         }
