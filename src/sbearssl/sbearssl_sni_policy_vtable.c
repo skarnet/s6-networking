@@ -134,7 +134,7 @@ static uint32_t do_keyx (br_ssl_server_policy_class const **pctx, unsigned char 
   }
 }
 
-static size_t sign_rsa (sbearssl_sni_policy_context *pol, unsigned int algo_id, unsigned char *data, size_t hv_len, size_t len)
+static inline size_t sign_rsa (sbearssl_sni_policy_context *pol, unsigned int algo_id, unsigned char *data, size_t hv_len, size_t len)
 {
   static unsigned char const HASH_OID_SHA1[] = { 0x05, 0x2B, 0x0E, 0x03, 0x02, 0x1A } ;
   static unsigned char const HASH_OID_SHA224[] = { 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x04 } ;
@@ -154,7 +154,7 @@ static size_t sign_rsa (sbearssl_sni_policy_context *pol, unsigned int algo_id, 
   return pol->sign.rsa(hash_oid, hv, hv_len, &pol->skey.data.rsa, data) ? sig_len : 0 ;
 }
 
-static size_t sign_ec (sbearssl_sni_policy_context *pol, unsigned int algo_id, unsigned char *data, size_t hv_len, size_t len)
+static inline size_t sign_ec (sbearssl_sni_policy_context *pol, unsigned int algo_id, unsigned char *data, size_t hv_len, size_t len)
 {
   unsigned char hv[64] ;
   br_hash_class const *hc = br_multihash_getimpl(pol->mhash, algo_id) ;
