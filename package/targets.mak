@@ -14,21 +14,11 @@ s6-clockadd \
 s6-clockview \
 s6-sntpclock \
 s6-taiclock \
-s6-taiclockd \
-minidentd
+s6-taiclockd
 
 LIBEXEC_TARGETS :=
 
 LIB_DEFS := S6NET=s6net
-
-EXTRA_TARGETS := src/minidentd/mgetuid.c
-
-src/minidentd/mgetuid.c: src/minidentd/mgetuid-linux.c src/minidentd/mgetuid-default.c
-	@if grep -q -iF -- -linux $(sysdeps)/target 2>/dev/null ; then \
-	  ln -sf mgetuid-linux.c src/minidentd/mgetuid.c ; \
-	else \
-	  ln -sf mgetuid-default.c src/minidentd/mgetuid.c ; \
-	fi
 
 ifneq ($(SSL_IMPL),)
 
