@@ -3,6 +3,7 @@ Changelog for s6-networking.
 In 2.5.0.0
 ----------
 
+ - Adaptation to skalibs-2.11.0.0
  - minidentd has been removed
 
 
