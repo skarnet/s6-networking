@@ -13,7 +13,7 @@
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
-void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
+void sbearssl_client_init_and_run (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
 {
   sbearssl_skey skey ;
   genalloc certs = GENALLOC_ZERO ;  /* sbearssl_cert */

@@ -9,8 +9,8 @@
 int main (void)
 {
   char buf[TAIN_PACK] ;
-  tain_t now, adj ;
-  localtmn_t l ;
+  tain now, adj ;
+  localtmn l ;
   char fmt[LOCALTMN_FMT] ;
   PROG = "s6-clockview" ;
 

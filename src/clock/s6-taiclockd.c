@@ -16,9 +16,9 @@
 int main (int argc, char const *const *argv)
 {
   int s ;
-  ip46_t ip = IP46_ZERO ;
+  ip46 ip = IP46_ZERO ;
   uint16_t port = 4014 ;
-  subgetopt_t l = SUBGETOPT_ZERO ;
+  subgetopt l = SUBGETOPT_ZERO ;
   PROG = "s6-taiclockd" ;
   for (;;)
   {
@@ -44,7 +44,7 @@ int main (int argc, char const *const *argv)
     ssize_t r = socket_recv46(s, packet, 256, &ip, &port) ;
     if ((r >= 20) && !memcmp(packet, "ctai", 4))
     {
-      tain_t now ;
+      tain now ;
       packet[0] = 's' ;
       if (!tain_wallclock_read(&now)) strerr_diefu1sys(111, "tain_wallclock_read") ;
       tain_pack(packet + 4, &now) ;

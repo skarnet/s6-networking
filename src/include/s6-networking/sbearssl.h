@@ -59,7 +59,7 @@ struct sbearssl_x509_small_context_s
   char *eehash ;
 } ;
 
-extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai_t const *) ;
+extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai const *) ;
 #define sbearssl_x509_minimal_set_tain(ctx, a) sbearssl_x509_minimal_set_tai(ctx, tain_secp(a))
 #define sbearssl_x509_small_set_tai(ctx, t) sbearssl_x509_minimal_set_tai(&(ctx)->minimal, t)
 #define sbearssl_x509_small_set_tain(ctx, a) sbearssl_x509_small_set_tai(ctx, tain_secp(a))
@@ -262,7 +262,7 @@ typedef int sbearssl_handshake_cbfunc (br_ssl_engine_context *, sbearssl_handsha
 typedef sbearssl_handshake_cbfunc *sbearssl_handshake_cbfunc_ref ;
 
 extern int sbearssl_send_environment (br_ssl_engine_context *, sbearssl_handshake_cbarg *) ;
-extern void sbearssl_run (br_ssl_engine_context *, int *, tain_t const *, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
+extern void sbearssl_run (br_ssl_engine_context *, int *, tain const *, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
 
 
  /* Generic server policy class and server-side SNI implementation */
@@ -298,7 +298,7 @@ extern void sbearssl_sctx_set_policy_sni (br_ssl_server_context *, sbearssl_sni_
 
  /* s6-tlsc-io and s6-tlsd-io implementations */
 
-extern void sbearssl_client_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, char const *, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
-extern void sbearssl_server_init_and_run (int *, tain_t const *, uint32_t, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
+extern void sbearssl_client_init_and_run (int *, tain const *, uint32_t, uint32_t, unsigned int, char const *, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
+extern void sbearssl_server_init_and_run (int *, tain const *, uint32_t, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
 
 #endif

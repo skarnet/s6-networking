@@ -253,7 +253,6 @@ static inline void new_connection (int s, uint32_t ip, uint16_t port, char const
   else if (!pid)
   {
     selfpipe_finish() ;
-    sig_restore(SIGPIPE) ;
     run_child(s, ip, port, num+1, argv) ;
   }
 
@@ -280,7 +279,7 @@ int main (int argc, char const *const *argv)
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ | IOPAUSE_EXCEPT } } ;
   PROG = "s6-tcpserver4d" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     int flag1 = 0 ;
     for (;;)
     {
@@ -315,7 +314,7 @@ int main (int argc, char const *const *argv)
 
     x[0].fd = selfpipe_init() ;
     if (x[0].fd == -1) strerr_diefu1sys(111, "create selfpipe") ;
-    if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+    if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
     {
       sigset_t set ;
       sigemptyset(&set) ;
@@ -324,7 +323,7 @@ int main (int argc, char const *const *argv)
       sigaddset(&set, SIGHUP) ;
       sigaddset(&set, SIGQUIT) ;
       sigaddset(&set, SIGABRT) ;
-      if (selfpipe_trapset(&set) < 0) strerr_diefu1sys(111, "trap signals") ;
+      if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
     }
     fmtlocalmaxconn[1+uint_fmt(fmtlocalmaxconn+1, localmaxconn)] = 0 ;
     if (verbosity >= 2)

@@ -25,11 +25,11 @@ static unsigned int verbosity = 1 ;
 
 #define N 28
 
-int tain_exchange (int s, ip46_t const *ip, uint16_t port, tain_t *serversays, tain_t const *deadline)
+int tain_exchange (int s, ip46 const *ip, uint16_t port, tain *serversays, tain const *deadline)
 {
   char query[N] = "ctai" ;
   char answer[N] ;
-  ip46_t dummyip ;
+  ip46 dummyip ;
   ssize_t r ;
   uint16_t dummyport ;
   tain_pack(query+4, &STAMP) ;
@@ -48,15 +48,15 @@ int tain_exchange (int s, ip46_t const *ip, uint16_t port, tain_t *serversays, t
 
 int main (int argc, char const *const *argv)
 {
-  tain_t deltamin = TAIN_ZERO ;
-  tain_t deltaoffset ;
-  tain_t deltamax ;
-  tain_t errmax ;
-  tain_t timeouttto, throttletto, globaltto ;
-  tain_t globaldeadline ;
+  tain deltamin = TAIN_ZERO ;
+  tain deltaoffset ;
+  tain deltamax ;
+  tain errmax ;
+  tain timeouttto, throttletto, globaltto ;
+  tain globaldeadline ;
   unsigned int roundtrips = 10 ;
   unsigned int i = 0 ;
-  ip46_t ipremote ;
+  ip46 ipremote ;
   int sock ;
   int flagforce = 0 ;
   uint16_t portremote = 4014 ;
@@ -67,7 +67,7 @@ int main (int argc, char const *const *argv)
     unsigned int throttle = 0 ;
     unsigned int bigtimeout = 10000 ;
     unsigned int emax = 100 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "fv:r:t:h:T:e:p:", &l) ;
@@ -110,7 +110,7 @@ int main (int argc, char const *const *argv)
 
   for (; i < roundtrips ; i++)
   {
-    tain_t deadline, before, serversays ;
+    tain deadline, before, serversays ;
     tain_add_g(&deadline, &timeouttto) ;
     if (tain_less(&globaldeadline, &deadline)) deadline = globaldeadline ;
     tain_copynow(&before) ;
@@ -127,7 +127,7 @@ int main (int argc, char const *const *argv)
     }
     else
     {
-      tain_t cur, min, max ;
+      tain cur, min, max ;
       tain_add(&cur, &serversays, &deltaoffset) ;
       tain_add(&min, &before, &deltamin) ;
       tain_add(&max, &before, &deltamax) ;
@@ -155,7 +155,7 @@ int main (int argc, char const *const *argv)
 
   {
     char adj[TAIN_PACK] ;
-    tain_t delta ;
+    tain delta ;
     if (tain_less(&deltamax, &deltamin)) tain_sub(&delta, &deltamin, &deltamax) ;
     else tain_sub(&delta, &deltamax, &deltamin) ;
     if (tain_less(&errmax, &delta))

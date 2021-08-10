@@ -42,7 +42,7 @@ struct tflags_s
   char const *localname ;
   unsigned int timeout ;
   unsigned int timeoutconn[2] ;
-  ip46_t localip ;
+  ip46 localip ;
   uint16_t localport ;
   unsigned int verbosity : 2 ;
 #ifdef SKALIBS_IPV6_ENABLED
@@ -55,7 +55,7 @@ struct tflags_s
   unsigned int qualif : 1 ;
 } ;
 
-static tain_t deadline ;
+static tain deadline ;
 
 int main (int argc, char const *const *argv)
 {
@@ -65,7 +65,7 @@ int main (int argc, char const *const *argv)
   uint16_t remoteport ;
   PROG = "s6-tcpclient" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, OPTSTRING, &l) ;
@@ -120,7 +120,7 @@ int main (int argc, char const *const *argv)
   else tain_add_g(&deadline, &tain_infinite_relative) ;
   if (!s6dns_init()) strerr_diefu1sys(111, "init DNS") ; 
   {
-    ip46_t ip[2][MAXIP] ;
+    ip46 ip[2][MAXIP] ;
     unsigned int j = 0 ;
     size_t n[2] = { 0, 0 } ;
     if (!**argv || ((**argv == '0') && !argv[0][1]))
@@ -164,10 +164,10 @@ int main (int argc, char const *const *argv)
             size_t i = 0 ;
             if (s6dns_resolve_aaaaa_g(&ips, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
               strerr_diefu4x(111, "resolve ", argv[0], ": ", s6dns_constants_error_str(errno)) ;
-            n[0] = genalloc_len(ip46_t, &ips) ;
+            n[0] = genalloc_len(ip46, &ips) ;
             if (n[0] >= MAXIP) n[0] = MAXIP ;
-            for (; i < n[0] ; i++) ip[0][i] = genalloc_s(ip46_t, &ips)[i] ;
-            genalloc_free(ip46_t, &ips) ;
+            for (; i < n[0] ; i++) ip[0][i] = genalloc_s(ip46, &ips)[i] ;
+            genalloc_free(ip46, &ips) ;
           }
         }
         else if (flags.ip6)
@@ -226,7 +226,7 @@ int main (int argc, char const *const *argv)
       size_t i = 0 ;
       for (; i < n[j] ; i++)
       {
-        tain_t localdeadline ;
+        tain localdeadline ;
 #ifdef SKALIBS_IPV6_ENABLED
         if(!localip) flags.localip.is6 = ip46_is6(&ip[j][i]);
 #endif
@@ -261,7 +261,7 @@ int main (int argc, char const *const *argv)
     strerr_diefu2sys(111, "get local", " address and port") ;
 
   {
-    ip46_t remoteip ;
+    ip46 remoteip ;
     char fmtip[IP46_FMT] ;
     char fmtport[UINT16_FMT] ;
 
@@ -314,7 +314,7 @@ int main (int argc, char const *const *argv)
         data[1].rtype = S6DNS_T_PTR ;
       }
       {
-        tain_t infinite = TAIN_INFINITE ;
+        tain infinite = TAIN_INFINITE ;
         if (!s6dns_resolven_parse_g(blob + !!flags.localname, !flags.localname + !!flags.remotehost, &infinite))
           strerr_diefu2x(111, "resolve IP addresses: ", s6dns_constants_error_str(errno)) ;
       }

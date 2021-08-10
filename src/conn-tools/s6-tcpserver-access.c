@@ -39,7 +39,7 @@
 #define X() strerr_dief1x(101, "internal inconsistency. Please submit a bug-report.")
 
 
-static void logit (pid_t pid, ip46_t const *ip, int h)
+static void logit (pid_t pid, ip46 const *ip, int h)
 {
   char fmtpid[PID_FMT] ;
   char fmtip[IP46_FMT] ;
@@ -49,12 +49,12 @@ static void logit (pid_t pid, ip46_t const *ip, int h)
   else strerr_warni5sys("deny", " pid ", fmtpid, " ip ", fmtip) ;
 }
 
-static inline void log_accept (pid_t pid, ip46_t const *ip)
+static inline void log_accept (pid_t pid, ip46 const *ip)
 {
   logit(pid, ip, 1) ;
 }
 
-static inline void log_deny (pid_t pid, ip46_t const *ip)
+static inline void log_deny (pid_t pid, ip46 const *ip)
 {
   logit(pid, ip, 0) ;
 }
@@ -64,25 +64,24 @@ int main (int argc, char const *const *argv)
 {
   s6_accessrules_params_t params = S6_ACCESSRULES_PARAMS_ZERO ;
   stralloc modifs = STRALLOC_ZERO ;
-  tain_t deadline, tto ;
+  tain deadline, tto ;
   char const *rulestypestr[3] = { "no", "fs", "cdb" } ;
   char const *rules = 0 ;
   char const *localname = 0 ;
   char const *proto ;
-  struct cdb c = CDB_ZERO ;
-  int cdbfd = -1 ;
+  cdb c = CDB_ZERO ;
   unsigned int rulestype = 0 ;
   unsigned int verbosity = 1 ;
   size_t protolen ;
   s6_accessrules_result_t accepted ;
-  ip46_t remoteip, localip ;
+  ip46 remoteip, localip ;
   int flagfatal = 1, flagnodelay = 0, flagdnslookup = 1,
     flagident = 0, flagparanoid = 0, e = 0 ;
   uint16_t remoteport, localport ;
   PROG = "s6-tcpserver-access" ;
   {
     unsigned int timeout = 0 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "WwDdHhRrPpv:l:B:t:i:x:", &l) ;
@@ -158,15 +157,9 @@ int main (int argc, char const *const *argv)
       accepted = s6_accessrules_ip46_fs(&remoteip, (void *)rules, &params) ;
       break ;
     case 2 :
-      cdbfd = open_readb(rules) ;
-      if (cdbfd < 0) strerr_diefu2sys(111, "open_readb ", rules) ;
-      if (cdb_init(&c, cdbfd) < 0) strerr_diefu2sys(111, "cdb_init ", rules) ;
+      if (!cdb_init(&c, rules)) strerr_diefu2sys(111, "cdb_init ", rules) ;
       accepted = s6_accessrules_ip46_cdb(&remoteip, &c, &params) ;
-      if (accepted == S6_ACCESSRULES_ALLOW)
-      {
-        cdb_free(&c) ;
-        fd_close(cdbfd) ;
-      }
+      if (accepted == S6_ACCESSRULES_ALLOW) cdb_free(&c) ;
       break ;
     default : X() ;
   }
@@ -238,7 +231,7 @@ int main (int argc, char const *const *argv)
   }
   else
   {
-    tain_t infinite ;
+    tain infinite ;
     s6dns_dpag_t data[2] = { S6DNS_DPAG_ZERO, S6DNS_DPAG_ZERO } ;
     s6dns_resolve_t blob[2] ;
     char remotebuf[256] ;
@@ -363,11 +356,7 @@ int main (int argc, char const *const *argv)
       }
     }
 
-    if ((rulestype == 2) && (accepted != S6_ACCESSRULES_ALLOW))
-    {
-      cdb_free(&c) ;
-      fd_close(cdbfd) ;
-    }
+    if ((rulestype == 2) && (accepted != S6_ACCESSRULES_ALLOW)) cdb_free(&c) ;
 
     switch (accepted)
     {

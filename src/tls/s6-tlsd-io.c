@@ -16,13 +16,13 @@
 #define USAGE "s6-tlsd-io [ -v verbosity ] [ -d notif ] [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -k snilevel ] fdr fdw"
 #define dieusage() strerr_dieusage(100, USAGE)
 
-static inline void doit (int *, tain_t const *tto, uint32_t, uint32_t, unsigned int, unsigned int) gccattr_noreturn ;
+static inline void doit (int *, tain const *tto, uint32_t, uint32_t, unsigned int, unsigned int) gccattr_noreturn ;
 
 #ifdef S6_NETWORKING_USE_TLS
 
 #include <s6-networking/stls.h>
 
-static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, unsigned int notif)
+static inline void doit (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, unsigned int notif)
 {
   struct tls *ctx = stls_server_init_and_handshake(fds + 2, tto, preoptions) ;
   if (notif)
@@ -51,7 +51,7 @@ static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cbarg *c
   return 1 ;
 }
 
-static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, unsigned int notif)
+static inline void doit (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, unsigned int notif)
 {
   sbearssl_handshake_cbarg cbarg = SBEARSSL_HANDSHAKE_CBARG_ZERO ;
   if (!random_init()) strerr_diefu1sys(111, "initialize random device") ;
@@ -68,7 +68,7 @@ static inline void doit (int *fds, tain_t const *tto, uint32_t preoptions, uint3
 
 int main (int argc, char const *const *argv)
 {
-  tain_t tto ;
+  tain tto ;
   int fds[4] = { 0, 1, 0, 1 } ;
   unsigned int verbosity = 1 ;
   unsigned int notif = 0 ;
@@ -77,7 +77,7 @@ int main (int argc, char const *const *argv)
 
   PROG = "s6-tlsd-io" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     unsigned int t = 0 ;
     for (;;)
     {
@@ -115,7 +115,7 @@ int main (int argc, char const *const *argv)
     fds[1] = u ;
   }
 
-  if (sig_ignore(SIGPIPE) < 0) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
   tain_now_set_stopwatch_g() ;
   doit(fds, &tto, preoptions, options, verbosity, notif) ;
 }

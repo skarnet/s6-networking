@@ -4,7 +4,7 @@
 #include <errno.h>
 #include <s6-networking/ident.h>
 
-ssize_t s6net_ident_client (char *s, size_t max, ip46_t const *remoteip, uint16_t remoteport, ip46_t const *localip, uint16_t localport, tain_t const *deadline, tain_t *stamp)
+ssize_t s6net_ident_client (char *s, size_t max, ip46 const *remoteip, uint16_t remoteport, ip46 const *localip, uint16_t localport, tain const *deadline, tain *stamp)
 {
   char buf[S6NET_IDENT_REPLY_SIZE] ;
   size_t len ;

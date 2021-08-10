@@ -30,7 +30,7 @@ int main (int argc, char const *const *argv)
   unsigned int backlog = (unsigned int)-1 ;
   PROG = "s6-tcpserver4" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "Dd1Uv:c:C:b:u:g:G:", &l) ;

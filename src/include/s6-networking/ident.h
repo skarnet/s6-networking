@@ -13,14 +13,14 @@
 
  /* High-level */
 
-extern ssize_t s6net_ident_client (char *, size_t, ip46_t const *, uint16_t, ip46_t const *, uint16_t, tain_t const *, tain_t *) ;
+extern ssize_t s6net_ident_client (char *, size_t, ip46 const *, uint16_t, ip46 const *, uint16_t, tain const *, tain *) ;
 #define s6net_ident_client_g(s, max, ra, rp, la, lp, deadline) s6net_ident_client(s, max, ra, rp, la, lp, (deadline), &STAMP)
 extern char const *s6net_ident_error_str (int) ;
 
 
  /* Low-level */
 
-extern ssize_t s6net_ident_reply_get (char *, ip46_t const *, uint16_t, ip46_t const *, uint16_t, tain_t const *, tain_t *) ;
+extern ssize_t s6net_ident_reply_get (char *, ip46 const *, uint16_t, ip46 const *, uint16_t, tain const *, tain *) ;
 #define s6net_ident_reply_get_g(s, ra, rp, la, lp, deadline) s6net_ident_reply_get(s, ra, rp, la, lp, (deadline), &STAMP)
 extern ssize_t s6net_ident_reply_parse (char const *, uint16_t, uint16_t) ;
 

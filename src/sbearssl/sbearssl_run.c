@@ -14,7 +14,7 @@
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
-void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
+void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
 {
   iopause_fd x[4] ;
   unsigned int xindex[4] ;
@@ -29,7 +29,7 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint
 
   for (;;)
   {
-    tain_t deadline = TAIN_INFINITE ;
+    tain deadline = TAIN_INFINITE ;
     unsigned int j = 0 ;
     unsigned int state = br_ssl_engine_current_state(ctx) ;
     int r ;

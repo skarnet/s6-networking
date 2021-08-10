@@ -17,7 +17,7 @@ static void alrm_handler (int sig)
   strerr_dief1x(98, "handshake timed out") ;
 }
 
-void stls_handshake (struct tls *ctx, tain_t const *tto)
+void stls_handshake (struct tls *ctx, tain const *tto)
 {
   struct sigaction saold ;
   struct sigaction sanew = { .sa_handler = &alrm_handler, .sa_flags = SA_RESTART, .sa_sigaction = 0 } ;

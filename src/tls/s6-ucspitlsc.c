@@ -58,7 +58,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   PROG = "s6-ucspitlsc (parent)" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "SsYyv:K:Zzk:6:7:", &l) ;

@@ -21,7 +21,7 @@ extern void stls_run (struct tls *, int *, uint32_t, unsigned int) gccattr_noret
 
  /* s6-tlsc-io and s6-tlsd-io */
 
-struct tls *stls_client_init_and_handshake (int const *, tain_t const *, uint32_t, char const *) ;
-struct tls *stls_server_init_and_handshake (int const *, tain_t const *, uint32_t) ;
+struct tls *stls_client_init_and_handshake (int const *, tain const *, uint32_t, char const *) ;
+struct tls *stls_server_init_and_handshake (int const *, tain const *, uint32_t) ;
 
 #endif

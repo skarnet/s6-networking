@@ -26,7 +26,7 @@ int main (int argc, char const *const *argv)
   uint16_t port ;
   PROG = "s6-tcpserver6-socketbinder" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "DdMmBb:", &l) ;

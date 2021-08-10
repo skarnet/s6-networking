@@ -90,7 +90,7 @@ int main (int argc, char const *const *argv)
   options_t o = OPTIONS_ZERO ;
   PROG = "s6-tlsserver" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpl:eB:t:i:x:SsYyK:Zzk:", &l) ;

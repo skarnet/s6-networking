@@ -8,7 +8,7 @@
 
 #include <s6-networking/sbearssl.h>
 
-int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *ctx, tai_t const *t)
+int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *ctx, tai const *t)
 {
   uint64_t u ;
   if (!utc_from_tai(&u, t)) return 0 ;

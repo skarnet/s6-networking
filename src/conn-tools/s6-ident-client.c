@@ -17,13 +17,13 @@
 
 int main (int argc, char const *const *argv)
 {
-  tain_t deadline ;
-  ip46_t ra, la ;
+  tain deadline ;
+  ip46 ra, la ;
   uint16_t rp, lp ;
   PROG = "s6-ident-client" ;
   {
     unsigned int t = 0 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "t:", &l) ;

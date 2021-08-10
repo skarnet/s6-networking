@@ -11,12 +11,12 @@
 
 int main (int argc, char const *const *argv)
 {
-  tain_t now, adj ;
+  tain now, adj ;
   unsigned int emax = 2000 ;
   int flagforce = 0 ;
   PROG = "s6-clockadd" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "fe:", &l) ;
@@ -39,7 +39,7 @@ int main (int argc, char const *const *argv)
   tain_from_millisecs(&now, emax) ;
   if (tain_less(&now, &adj))
   {
-    tain_t tmp = TAIN_ZERO ;
+    tain tmp = TAIN_ZERO ;
     tain_sub(&tmp, &tmp, &adj) ;
     if (tain_less(&now, &tmp))
     {

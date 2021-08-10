@@ -8,6 +8,6 @@
 #include <skalibs/tai.h>
 
 extern void stls_drop (void) ;
-extern void stls_handshake (struct tls *, tain_t const *) ;
+extern void stls_handshake (struct tls *, tain const *) ;
 
 #endif

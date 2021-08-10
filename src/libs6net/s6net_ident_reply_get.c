@@ -12,7 +12,7 @@
 
 #include <s6-networking/ident.h>
 
-ssize_t s6net_ident_reply_get (char *s, ip46_t const *remoteip, uint16_t remoteport, ip46_t const *localip, uint16_t localport, tain_t const *deadline, tain_t *stamp)
+ssize_t s6net_ident_reply_get (char *s, ip46 const *remoteip, uint16_t remoteport, ip46 const *localip, uint16_t localport, tain const *deadline, tain *stamp)
 {
   size_t len ;
   int fd ;

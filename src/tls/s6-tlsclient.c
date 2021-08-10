@@ -26,7 +26,7 @@ struct options_s
   unsigned int ximeout ;
   unsigned int yimeout ;
   unsigned int kimeout ;
-  ip46full_t localip ;
+  ip46full localip ;
   uint16_t localport ;
   unsigned int verbosity : 2 ;
   unsigned int flag4 : 1 ;
@@ -69,7 +69,7 @@ int main (int argc, char const *const *argv)
   options_t o = OPTIONS_ZERO ;
   PROG = "s6-tlsclient" ;
   {
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsYyK:k:Zz", &l) ;
@@ -124,7 +124,7 @@ int main (int argc, char const *const *argv)
 
   if (!o.servername && !o.flagH)
   {
-    ip46full_t ip ;
+    ip46full ip ;
     if (!ip46full_scan(argv[0], &ip))
       o.servername = argv[0] ;
   }

@@ -15,7 +15,7 @@
 #include <s6-networking/sbearssl.h>
 #include "sbearssl-internal.h"
 
-void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
+void sbearssl_server_init_and_run (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
 {
   sbearssl_sni_policy_context pol ;
   sbearssl_sni_policy_init(&pol) ;

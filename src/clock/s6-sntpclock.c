@@ -23,13 +23,13 @@
 
 static unsigned int verbosity = 1 ;
 
-int ntp_exchange (int s, ip46_t const *ip, uint16_t port, tain_t *stamps, tain_t const *deadline)
+int ntp_exchange (int s, ip46 const *ip, uint16_t port, tain *stamps, tain const *deadline)
 {
   char query[48] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0" ;
   char answer[48] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0" ;
-  tain_t starttime ;
+  tain starttime ;
   uint64_t ntpstamp ;
-  ip46_t dummyip ;
+  ip46 dummyip ;
   uint16_t dummyport ;
   ssize_t r ;
   tain_copynow(&starttime) ;
@@ -75,17 +75,17 @@ int ntp_exchange (int s, ip46_t const *ip, uint16_t port, tain_t *stamps, tain_t
 
 int main (int argc, char const *const *argv)
 {
-  tain_t deltamin = TAIN_ZERO ;
-  tain_t deltaoffset ;
-  tain_t deltamax ;
-  tain_t errmax ;
-  tain_t timeouttto, throttletto, globaltto ;
-  tain_t globaldeadline ;
+  tain deltamin = TAIN_ZERO ;
+  tain deltaoffset ;
+  tain deltamax ;
+  tain errmax ;
+  tain timeouttto, throttletto, globaltto ;
+  tain globaldeadline ;
   unsigned int roundtrips = 10 ;
   unsigned int i = 0 ;
   int sock ;
   int flagforce = 0 ;
-  ip46_t ipremote ;
+  ip46 ipremote ;
   uint16_t portremote = 123 ;
   PROG = "s6-sntpclock" ;
 
@@ -94,7 +94,7 @@ int main (int argc, char const *const *argv)
     unsigned int throttle = 0 ;
     unsigned int bigtimeout = 10000 ;
     unsigned int emax = 100 ;
-    subgetopt_t l = SUBGETOPT_ZERO ;
+    subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
       int opt = subgetopt_r(argc, argv, "fv:r:t:h:T:e:p:", &l) ;
@@ -135,8 +135,8 @@ int main (int argc, char const *const *argv)
 
   for (; i < roundtrips ; i++)
   {
-    tain_t stamps[4] ;
-    tain_t deadline ;
+    tain stamps[4] ;
+    tain deadline ;
     tain_add_g(&deadline, &timeouttto) ;
     if (tain_less(&globaldeadline, &deadline)) deadline = globaldeadline ;
     if (verbosity >= 3)
@@ -160,14 +160,14 @@ int main (int argc, char const *const *argv)
     }
     else
     {
-      tain_t cur, min, max ;
+      tain cur, min, max ;
       if (verbosity >= 3)
       {
         unsigned int j = 0 ;
         for (; j < 4 ; j++)
         {
           uint64_t ntp ;
-          localtmn_t l ;
+          localtmn l ;
           char fmt[UINT_FMT] ;
           char fmtntp[UINT64_XFMT] ;
           char fmttaia[TAIN_FMT] ;
@@ -210,7 +210,7 @@ int main (int argc, char const *const *argv)
 
   {
     char adj[TAIN_PACK] ;
-    tain_t delta ;
+    tain delta ;
     if (tain_less(&deltamax, &deltamin)) tain_sub(&delta, &deltamin, &deltamax) ;
     else tain_sub(&delta, &deltamax, &deltamin) ;
     if (tain_less(&errmax, &delta))
