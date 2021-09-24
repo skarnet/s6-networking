@@ -17,8 +17,8 @@
 #define USAGE "s6-ucspitlsc [ -S | -s ] [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] [ -k servername ] [ -6 fdr ] [ -7 fdw ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-static inline void child (int [4][2], uint32_t, unsigned int, unsigned int, char const *) gccattr_noreturn ;
-static inline void child (int p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, char const *servername)
+static inline void child (int [4][2], uint32_t, unsigned int, unsigned int, char const *, pid_t) gccattr_noreturn ;
+static inline void child (int p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, char const *servername, pid_t pid)
 {
   int fds[3] = { p[0][0], p[1][1], p[2][1] } ;
   ssize_t r ;
@@ -31,7 +31,16 @@ static inline void child (int p[4][2], uint32_t options, unsigned int verbosity,
     strerr_diefu1sys(111, "move network fds to stdin/stdout") ;
   r = read(p[2][1], &c, 1) ;
   if (r < 0) strerr_diefu1sys(111, "read from control socket") ;
-  if (!r) _exit(0) ;
+  if (!r)
+  {
+    if (verbosity >= 2)
+    {
+      char fmt[PID_FMT] ;
+      fmt[pid_fmt(fmt, pid)] = 0 ;
+      strerr_warni4x("pid ", fmt, " declined", " opportunistic TLS") ;
+    }
+    _exit(0) ;
+  }
   switch (c)
   {
     case 'y' :
@@ -44,6 +53,12 @@ static inline void child (int p[4][2], uint32_t options, unsigned int verbosity,
     default :
       strerr_dief1x(100, "unrecognized command on control socket") ;
   }
+  if (verbosity >= 2)
+  {
+    char fmt[PID_FMT] ;
+    fmt[pid_fmt(fmt, pid)] = 0 ;
+    strerr_warni4x("pid ", fmt, " accepted", " opportunistic TLS") ;
+  }
   s6tls_exec_tlscio(fds, options, verbosity, kimeout, servername) ;
 }
 
@@ -55,6 +70,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
   char const *servername = 0 ;
+  pid_t pid ;
 
   PROG = "s6-ucspitlsc (parent)" ;
   {
@@ -100,10 +116,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
 
   if (ipc_pair_b(p[2]) < 0) strerr_diefu1sys(111, "ipc_pair") ;
   if (pipe(p[0]) < 0 || pipe(p[1]) < 0) strerr_diefu1sys(111, "pipe") ;
+  pid = getpid() ;
   switch (fork())
   {
     case -1 : strerr_diefu1sys(111, "fork") ;
-    case 0 : child(p, coptions, verbosity, kimeout, servername) ;
+    case 0 : child(p, coptions, verbosity, kimeout, servername, pid) ;
     default : break ;
   }
   s6tls_ucspi_exec_app(argv, p, poptions) ;
