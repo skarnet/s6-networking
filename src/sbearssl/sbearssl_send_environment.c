@@ -137,5 +137,5 @@ int sbearssl_send_environment (br_ssl_engine_context *ctx, sbearssl_handshake_cb
   }
   if (buffer_put(&b, "", 1) < 0) return 0 ;
 
-  return buffer_putflush(&b, "\0", 2) >= 0 ;
+  return buffer_putflush(&b, "", 1) >= 0 ;
 }

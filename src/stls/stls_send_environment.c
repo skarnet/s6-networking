@@ -22,7 +22,6 @@ static int add (buffer *b, int h, char const *key, char const *value)
   return 1 ;
 }
 
-
 int stls_send_environment (struct tls *ctx, int fd)
 {
   char buf[4096] ;
