@@ -9,7 +9,6 @@
 /libstls.a.xyzzy
 /libstls.so.xyzzy
 /libs6tls.a.xyzzy
-/minidentd
 /s6-clockadd
 /s6-clockview
 /s6-getservbyname
@@ -34,4 +33,3 @@
 /s6-tlsd-io
 /s6-ucspitlsc
 /s6-ucspitlsd
-/src/minidentd/mgetuid.c
