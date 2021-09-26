@@ -3,14 +3,11 @@ Changelog for s6-networking.
 In 2.5.0.0
 ----------
 
- - Adaptation to skalibs-2.11.0.0
- - minidentd has been removed
-
-
-In 2.4.2.0
-----------
-
- - Actual server-side support for client certificates with BearSSL
+ - Adaptation to skalibs-2.11.0.0.
+ - minidentd removed.
+ - Full client certificate support.
+ - Server-side SNI support.
+ - s6-ucspitls[cd] -v2 now logs whether TLS is activated or not.
 
 
 In 2.4.1.1
