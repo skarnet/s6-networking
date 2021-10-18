@@ -24,11 +24,12 @@ int sbearssl_cert_readbigpem (char const *fn, genalloc *certs, stralloc *sa)
   size_t i = 0 ;
   int certswasnull = !genalloc_s(sbearssl_cert, certs) ;
   int sawasnull = !sa->s ;
-  int r ;
   if (fd < 0) return -1 ;
-  r = sbearssl_pem_decode_from_buffer(&b, &pems, sa) ;
-  fd_close(fd) ;
-  if (r) return r ;
+  {
+    int r = sbearssl_pem_decode_from_buffer(&b, &pems, sa) ;
+    fd_close(fd) ;
+    if (r) return r ;
+  }
   p = genalloc_s(sbearssl_pemobject, &pems) ;
   n = genalloc_len(sbearssl_pemobject, &pems) ;
   for (; i < n ; i++)
@@ -51,5 +52,5 @@ int sbearssl_cert_readbigpem (char const *fn, genalloc *certs, stralloc *sa)
   if (sawasnull) stralloc_free(sa) ;
   else sa->len = sabase ;
   genalloc_free(sbearssl_pemobject, &pems) ;
-  return r ;
+  return -1 ;
 }
