@@ -167,6 +167,7 @@ static inline size_t sign_ec (sbearssl_sni_policy_context *pol, unsigned int alg
 static size_t do_sign (br_ssl_server_policy_class const **pctx, unsigned int algo_id, unsigned char *data, size_t hv_len, size_t len)
 {
   sbearssl_sni_policy_context *pol = INSTANCE(pctx) ;
+  algo_id &= 0xff ;  /* workaround for bearssl bug */
   switch (pol->skey.type)
   {
     case BR_KEYTYPE_RSA : return sign_rsa(pol, algo_id, data, hv_len, len) ;
