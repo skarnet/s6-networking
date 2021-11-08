@@ -146,7 +146,6 @@ static inline size_t sign_rsa (sbearssl_sni_policy_context *pol, unsigned int al
   size_t sig_len ;
   unsigned char hv[64] ;
   memcpy(hv, data, hv_len) ;
-  algo_id &= 0xff ;
   if (algo_id >= 2 && algo_id <= 6) hash_oid = HASH_OID[algo_id - 2] ;
   else if (algo_id) return 0 ;
   sig_len = (pol->skey.data.rsa.n_bitlen + 7) >> 3 ;
