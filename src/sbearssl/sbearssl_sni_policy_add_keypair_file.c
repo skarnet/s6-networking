@@ -38,7 +38,7 @@ int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *pol, char
   sbearssl_skey_wipe(&node.skey, pol->storage.s) ;
  err1:
   if (gabase) genalloc_setlen(sbearssl_cert, &pol->certga, gabase) ;
-  else genalloc_free(sbearssl_sni_policy_node, &pol->mapga) ;
+  else genalloc_free(sbearssl_sni_policy_node, &pol->certga) ;
  err0:
   if (sabase) pol->storage.len = sabase ;
   else stralloc_free(&pol->storage) ;
