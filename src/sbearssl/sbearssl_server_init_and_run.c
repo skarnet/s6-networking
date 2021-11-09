@@ -60,7 +60,7 @@ void sbearssl_server_init_and_run (int *fds, tain const *tto, uint32_t preoption
           if (e < 0)
             strerr_diefu3sys(96, "add keypair for servername ", certvar + 9, " to policy context") ;
           else if (e)
-            strerr_diefu5x(96, "add default keypair for servername ", certvar + 9, " to policy context", ": ", sbearssl_error_str(e)) ;
+            strerr_diefu5x(96, "add keypair for servername ", certvar + 9, " to policy context", ": ", sbearssl_error_str(e)) ;
         }
       }
     }
