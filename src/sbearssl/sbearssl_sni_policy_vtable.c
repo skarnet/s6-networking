@@ -49,14 +49,36 @@ static int choose (br_ssl_server_policy_class const **pctx, br_ssl_server_contex
   sbearssl_sni_policy_node *node ;
   char const *servername = br_ssl_engine_get_server_name(&sc->eng) ;
 
- /* Get the node corresponding to the ServerName sent by the client. "" for no SNI. */
+ /*
+    Get the node corresponding to the ServerName sent by the client.
+    If servername is foo.bar.baz, try:
+    1. foo.bar.baz
+    2. *.bar.baz (don't do this for TLDs, we don't want *.com)
+    3. empty string (i.e. default certificate)
+    If no SNI, only try the empty string.
+ */
   {
-    uint32_t n ;
-    if (!avltree_search(&pol->map, servername, &n))
+    uint32_t n = avltree_totalsize(&pol->map) ;
+    if (servername)
     {
-      if (!servername[0]) return 0 ;
-      if (!avltree_search(&pol->map, "", &n)) return 0 ;
+      if (!avltree_search(&pol->map, servername, &n))
+      {
+        char const *sub1 = strchr(servername, '.') ;
+        if (sub1 && sub1[1])
+        {
+          char const *sub2 = strchr(sub1 + 1, '.') ;
+          if (sub2 && sub2[1])
+          {
+            size_t len = strlen(sub1) ;
+            char tmp[len + 2] ;
+            tmp[0] = '*' ;
+            memcpy(tmp + 1, sub1, len + 1) ;
+            avltree_search(&pol->map, tmp, &n) ;
+          }
+        }
+      }
     }
+    if (n == avltree_totalsize(&pol->map) && !avltree_search(&pol->map, "", &n)) return 0 ;
     avltree_free(&pol->map) ;
     node = genalloc_s(sbearssl_sni_policy_node, &pol->mapga) + n ;
   }

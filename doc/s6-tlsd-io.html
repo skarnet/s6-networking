@@ -129,6 +129,17 @@ entirely ignored.
 </p>
 
 <p>
+ You can wildcard the first level of a SNI domain: you can point
+to a valid certificate for <tt><em>foo</em>.example.com</tt> for all
+values of <em>foo</em> via a variable called <tt>CERTFILE:*.example.com</tt>
+(and have the corresponding <tt>KEYFILE:*.example.com</tt>). Only the
+first level can be wildcarded, and this does not work for top-level
+domains (you cannot hold a certificate for <tt>*.com</tt>). Note: if you are
+using a shell to handle your environment variables, be careful to
+properly quote them so that it does not attempt to expand the asterisks.
+</p>
+
+<p>
  If you are using client certificates, <tt>s6-tlsd-io</tt>
 also requires either one of the following variables to be set:
 </p>
