@@ -1,6 +1,6 @@
 /* ISC license. */
 
-#include <string.h>
+#include <strings.h>
 
 #include <bearssl.h>
 
@@ -20,7 +20,7 @@ static void *sbearssl_sni_policy_node_dtok (uint32_t d, void *data)
 static int sbearssl_sni_policy_node_cmp (void const *a, void const *b, void *data)
 {
   (void)data ;
-  return strcmp((char const *)a, (char const *)b) ;
+  return strcasecmp((char const *)a, (char const *)b) ;
 }
 
 void sbearssl_sni_policy_init (sbearssl_sni_policy_context *pol)
