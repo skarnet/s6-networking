@@ -99,7 +99,7 @@ void sbearssl_server_init_and_run (int *fds, tain const *tto, uint32_t preoption
         sbearssl_ta_to(genalloc_s(sbearssl_ta, &tas) + i, btas + i, tastorage.s) ;
       genalloc_free(sbearssl_ta, &tas) ;
       sbearssl_x509_small_init_full(&xc, btas, n, &cbarg->eedn, &cbarg->eltstatus, cbarg->eehash) ;
-      if (!sbearssl_x509_small_set_tain(&xc, &STAMP))
+      if (!sbearssl_x509_small_set_tain_g(&xc))
         strerr_diefu1sys(111, "initialize validation time") ;
       br_ssl_engine_set_default_rsavrfy(&sc.eng) ;
       br_ssl_engine_set_default_ecdsa(&sc.eng) ;

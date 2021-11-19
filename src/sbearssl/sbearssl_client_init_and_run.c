@@ -45,7 +45,7 @@ void sbearssl_client_init_and_run (int *fds, tain const *tto, uint32_t preoption
       br_ssl_client_init_full(&cc, &dummy, btas, n) ;
     }
     sbearssl_x509_small_init_full(&xc, btas, n, &cbarg->eedn, &cbarg->eltstatus, cbarg->eehash) ;
-    if (!sbearssl_x509_small_set_tain(&xc, &STAMP))
+    if (!sbearssl_x509_small_set_tain_g(&xc))
       strerr_diefu1sys(111, "initialize validation time") ;
     br_ssl_engine_set_x509(&cc.eng, &xc.vtable) ;
     cbarg->exportmask |= 3 ;

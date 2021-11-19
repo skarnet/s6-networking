@@ -61,8 +61,12 @@ struct sbearssl_x509_small_context_s
 
 extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai const *) ;
 #define sbearssl_x509_minimal_set_tain(ctx, a) sbearssl_x509_minimal_set_tai(ctx, tain_secp(a))
+#define sbearssl_x509_minimal_set_tai_g(ctx) sbearssl_x509_minimal_set_tain((ctx), &STAMP)
+#define sbearssl_x509_minimal_set_tain_g(ctx) sbearssl_x509_minimal_set_tain((ctx), &STAMP)
 #define sbearssl_x509_small_set_tai(ctx, t) sbearssl_x509_minimal_set_tai(&(ctx)->minimal, t)
 #define sbearssl_x509_small_set_tain(ctx, a) sbearssl_x509_small_set_tai(ctx, tain_secp(a))
+#define sbearssl_x509_small_set_tai_g(ctx) sbearssl_x509_small_set_tain((ctx), &STAMP)
+#define sbearssl_x509_small_set_tain_g(ctx) sbearssl_x509_small_set_tain((ctx), &STAMP)
 
 extern br_x509_class const sbearssl_x509_small_vtable ;
 extern void sbearssl_x509_small_init_full (sbearssl_x509_small_context *, br_x509_trust_anchor *, size_t, sbearssl_dn *, uint8_t *, char *) ;
