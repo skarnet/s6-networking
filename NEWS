@@ -1,5 +1,13 @@
 Changelog for s6-networking.
 
+In 2.5.1.0
+----------
+
+ - SNI wildcarding support in s6-tlsd-io.
+ - New sbearssl_*_set_tain(n)_g convenience macros.
+ - Bugfixes.
+
+
 In 2.5.0.0
 ----------
 
