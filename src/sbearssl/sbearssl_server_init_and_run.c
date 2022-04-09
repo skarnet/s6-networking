@@ -82,8 +82,7 @@ void sbearssl_server_init_and_run (int *fds, tain const *tto, uint32_t preoption
 
     sbearssl_sctx_init_full_generic(&sc) ;
     sbearssl_sctx_set_policy_sni(&sc, &pol) ;
-    random_string((char *)buf, 32) ;
-    random_finish() ;
+    random_buf((char *)buf, 32) ;
     br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
     br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
 

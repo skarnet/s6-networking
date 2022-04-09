@@ -39,8 +39,6 @@ static inline void doit (int *fds, tain const *tto, uint32_t preoptions, uint32_
 
 #include <bearssl.h>
 
-#include <skalibs/random.h>
-
 #include <s6-networking/sbearssl.h>
 
 static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cbarg *cbarg)
@@ -56,7 +54,6 @@ static int handshake_cb (br_ssl_engine_context *ctx, sbearssl_handshake_cbarg *c
 static inline void doit (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, unsigned int notif)
 {
   sbearssl_handshake_cbarg cbarg = SBEARSSL_HANDSHAKE_CBARG_ZERO ;
-  if (!random_init()) strerr_diefu1sys(111, "initialize random device") ;
   cbarg.notif = notif ;
   sbearssl_client_init_and_run(fds, tto, preoptions, options, verbosity, servername, &handshake_cb, &cbarg) ;
 }

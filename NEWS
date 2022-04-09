@@ -1,5 +1,11 @@
 Changelog for s6-networking.
 
+In 2.5.1.1
+----------
+
+ - Adaptation to skalibs-2.12.0.0.
+
+
 In 2.5.1.0
 ----------
 

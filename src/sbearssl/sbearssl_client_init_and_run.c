@@ -79,8 +79,7 @@ void sbearssl_client_init_and_run (int *fds, tain const *tto, uint32_t preoption
     }
 
     br_ssl_engine_add_flags(&cc.eng, BR_OPT_NO_RENEGOTIATION) ;
-    random_string((char *)buf, 32) ;
-    random_finish() ;
+    random_buf((char *)buf, 32) ;
     br_ssl_engine_inject_entropy(&cc.eng, buf, 32) ;
     br_ssl_engine_set_buffer(&cc.eng, buf, sizeof(buf), 1) ;
     if (!br_ssl_client_reset(&cc, servername, 0))
