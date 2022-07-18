@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <errno.h>
+
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
@@ -32,6 +34,7 @@ int main (int argc, char const *const *argv)
   }
   {
     char buf[TAIN_PACK] ;
+    errno = EPIPE ;
     if (allread(0, buf, TAIN_PACK) < TAIN_PACK)
       strerr_diefu1sys(111, "read 16 bytes from stdin") ;
     tain_unpack(buf, &adj) ;

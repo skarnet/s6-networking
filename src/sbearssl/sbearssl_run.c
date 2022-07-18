@@ -5,6 +5,7 @@
 
 #include <bearssl.h>
 
+#include <skalibs/allreadwrite.h>
 #include <skalibs/error.h>
 #include <skalibs/strerr2.h>
 #include <skalibs/tai.h>

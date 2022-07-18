@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <errno.h>
+
 #include <skalibs/allreadwrite.h>
 #include <skalibs/buffer.h>
 #include <skalibs/strerr2.h>
@@ -14,6 +16,7 @@ int main (void)
   char fmt[LOCALTMN_FMT] ;
   PROG = "s6-clockview" ;
 
+  errno = EPIPE ;
   if (allread(0, buf, TAIN_PACK) < TAIN_PACK) strerr_diefu1sys(111, "read from stdin") ;
   tain_unpack(buf, &adj) ;
   if (!sysclock_get(&now)) strerr_diefu1sys(111, "sysclock_get") ;
