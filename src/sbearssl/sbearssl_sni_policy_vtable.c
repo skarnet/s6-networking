@@ -15,7 +15,7 @@
 
 #define INSTANCE(c) ((sbearssl_sni_policy_context *)(c))
 
-#define COPY(x) do { k->data.rsa.x##len = l->data.rsa.x##len ; k->data.rsa.x = (unsigned char *)s + m ; memcpy(s + m, t + l->data.rsa.x, l->data.rsa.x##len) ; m += l->data.rsa.x##len ; } while (0)
+#define COPY(kt, x) do { k->data.kt.x##len = l->data.kt.x##len ; k->data.kt.x = (unsigned char *)s + m ; memcpy(s + m, t + l->data.kt.x, l->data.kt.x##len) ; m += l->data.kt.x##len ; } while (0)
 
 static inline size_t skey_copy (br_skey *k, sbearssl_skey const *l, char *s, char const *t)
 {
@@ -25,11 +25,11 @@ static inline size_t skey_copy (br_skey *k, sbearssl_skey const *l, char *s, cha
   {
     case BR_KEYTYPE_RSA :
       k->data.rsa.n_bitlen = l->data.rsa.n_bitlen ;
-      COPY(p) ; COPY(q) ; COPY(dp) ; COPY(dq) ; COPY(iq) ;
+      COPY(rsa, p) ; COPY(rsa, q) ; COPY(rsa, dp) ; COPY(rsa, dq) ; COPY(rsa, iq) ;
       break ;
     case BR_KEYTYPE_EC :
       k->data.ec.curve = l->data.ec.curve ;
-      k->data.ec.xlen = l->data.ec.xlen ; k->data.ec.x = (unsigned char *)s + m ; memcpy(s + m, t + l->data.ec.x, l->data.ec.xlen) ; m += l->data.ec.xlen ;
+      COPY(ec, x) ;
       break ;
   }
   return m ;
