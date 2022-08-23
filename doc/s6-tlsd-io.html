@@ -3,9 +3,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>s6-networking: the s6-tlsc-io program</title>
-    <meta name="Description" content="s6-networking: the s6-tlsc-io program" />
-    <meta name="Keywords" content="s6-networking s6-tlsc-io tlsc tls ssl ucspi tcp inet network tcp/ip client" />
+    <title>s6-networking: the s6-tlsd-io program</title>
+    <meta name="Description" content="s6-networking: the s6-tlsd-io program" />
+    <meta name="Keywords" content="s6-networking s6-tlsd-io tlsd tls ssl ucspi tcp inet network tcp/ip server" />
     <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
@@ -210,7 +210,7 @@ no effect. </li>
 and break the connection when receiving a local EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
- <li> <tt>-Y</tt>&nbsp;: Request an client certificate.
+ <li> <tt>-Y</tt>&nbsp;: Request a client certificate.
 The certificate is optional: if the client gives none, the connection
 proceeds. </li>
  <li> <tt>-y</tt>&nbsp;: Request a client certificate.
