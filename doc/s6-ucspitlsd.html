@@ -146,10 +146,10 @@ before execing <em>prog...</em>. This is the default. </li>
 and break the connection when <em>prog</em> sends EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
- <li> <tt>-Y</tt>&nbsp;: Require an optional client certificate. </li>
- <li> <tt>-y</tt>&nbsp;: Require a mandatory client certificate.
+ <li> <tt>-Y</tt>&nbsp;: Request an optional client certificate. </li>
+ <li> <tt>-y</tt>&nbsp;: Request a mandatory client certificate.
 The default, with neither the <tt>-Y</tt> nor the <tt>-y</tt> option,
-is not to require a client certificate at all. </li>
+is not to request a client certificate at all. </li>
  <li> <tt>-K&nbsp;<em>kimeout</em></tt>&nbsp;: close the connection if
 the handshake takes more than <em>kimeout</em> milliseconds to complete.
 The default is 0, which means infinite timeout: let the handshake complete
