@@ -28,5 +28,6 @@ void s6tls_sync_and_exec_app (char const *const *argv, int const p[4][2], pid_t 
     _exit(wait_estatus(wstat)) ;
   }
   if (r >= MAXENVSIZE) strerr_dief1x(101, "SSL data too large; recompile with a bigger MAXENVSIZE") ;
+  close(p[2][0]) ;
   s6tls_clean_and_exec(argv, options, buf, r-1) ;
 }
