@@ -5,6 +5,8 @@
 
 #include <bearssl.h>
 
+#include <skalibs/tai.h>
+
 #include <s6-networking/sbearssl.h>
 
 struct eltinfo_s
@@ -28,6 +30,9 @@ void sbearssl_x509_small_init_full (sbearssl_x509_small_context *ctx, br_x509_tr
 {
   ctx->vtable = &sbearssl_x509_small_vtable ;
   br_x509_minimal_init_full(&ctx->minimal, btas, n) ;
+#ifdef BR_FEATURE_X509_TIME_CALLBACK
+  br_x509_minimal_set_time_callback(&ctx->minimal, tain_secp(&STAMP), &sbearssl_x509_time_check) ;
+#endif
   for (unsigned int i = 0 ; i < 6 ; i++)
   {
     ctx->elts[i].oid = eltinfo[i].oid ;

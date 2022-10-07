@@ -31,6 +31,8 @@
  /* Utility functions */
 
 extern int sbearssl_isder (unsigned char const *, size_t) ;
+extern int sbearssl_tai_from_dayseconds (tai *, uint32_t, uint32_t) ;
+extern int sbearssl_dayseconds_from_tai (uint32_t *, uint32_t *, tai const *) ;
 
 
  /* x509 functions */
@@ -67,6 +69,8 @@ extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai const *
 #define sbearssl_x509_small_set_tain(ctx, a) sbearssl_x509_small_set_tai(ctx, tain_secp(a))
 #define sbearssl_x509_small_set_tai_g(ctx) sbearssl_x509_small_set_tain((ctx), &STAMP)
 #define sbearssl_x509_small_set_tain_g(ctx) sbearssl_x509_small_set_tain((ctx), &STAMP)
+
+extern int sbearssl_x509_time_check (void *, uint32_t, uint32_t, uint32_t, uint32_t) ;  /* br_x509_time_check */
 
 extern br_x509_class const sbearssl_x509_small_vtable ;
 extern void sbearssl_x509_small_init_full (sbearssl_x509_small_context *, br_x509_trust_anchor *, size_t, sbearssl_dn *, uint8_t *, char *) ;
