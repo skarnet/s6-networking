@@ -155,7 +155,9 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain const *tto, uint32
     {
       size_t len ;
       unsigned char *s = br_ssl_engine_sendapp_buf(ctx, &len) ;
-      size_t w = allread(fds[0], (char *)s, len) ;
+      size_t w ;
+      errno = 0 ;
+      w = allread(fds[0], (char *)s, len) ;
       if (!w)
       {
         br_ssl_engine_flush(ctx, 0) ;
@@ -194,7 +196,9 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain const *tto, uint32
     {
       size_t len ;
       unsigned char *s = br_ssl_engine_recvrec_buf(ctx, &len) ;
-      size_t w = allread(fds[2], (char *)s, len) ;
+      size_t w ;
+      errno = 0 ;
+      w = allread(fds[2], (char *)s, len) ;
       if (!w)
       {
         if (!error_isagain(errno))
