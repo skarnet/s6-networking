@@ -452,7 +452,23 @@ interpreted via this function.
 looks like a DER-encoded object. Returns 1 if it does and 0 otherwise.
 </p>
 
-<h4> <code> int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *ctx, tai_t t) </code> </h4>
+<h4> <code> int sbearssl_tai_from_dayseconds (tai *t, uint32_t days, uint32_t seconds) </code> </h4>
+
+<p>
+ Makes a TAI absolute time from the date given in days and seconds as
+provided in an x509 certificate. Returns 1 on success and 0 on failure
+(which probably means days/seconds don't encode a valid date).
+</p>
+
+<h4> <code> int sbearssl_dayseconds_from_tai (uint32_t *days, uint32_t *seconds, tai const *t) </code> </h4>
+
+<p>
+ Compute suitable days and seconds, for an x509 certificate, from an
+absolute TAI date. Returns 1 on success and 0 on failure (which probably
+means the given date doesn't fit the days/seconds format).
+</p>
+
+<h4> <code> int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *ctx, tai const *t) </code> </h4>
 
 <p>
  Sets the validation time for the X.509 context in *<em>ctx</em> to
@@ -462,7 +478,7 @@ Returns 1 if it succeeds, or 0 if it fails - probably
 because *<em>t</em> does not represent a valid time.
 </p>
 
-<h4> <code> int sbearssl_x509_minimal_set_tain (br_x509_minimal_context *ctx, tain_t a) </code> </h4>
+<h4> <code> int sbearssl_x509_minimal_set_tain (br_x509_minimal_context *ctx, tain const *a) </code> </h4>
 
 <p>
  Same as the above function, except the time is given as a
@@ -470,7 +486,7 @@ because *<em>t</em> does not represent a valid time.
 i.e. a <tt>tai_t</tt> plus nanoseconds (which are simply ignored).
 </p>
 
-<h4> <code> void sbearssl_drop () </code> </h4>
+<h4> <code> void sbearssl_drop (void) </code> </h4>
 
 <p>
  If the process is running as root, then this function drops its privileges
@@ -584,7 +600,7 @@ exits 100 with an error message.
 order: the fd reading from the application (cleartext), the fd writing to the
 application (cleartext), the fd reading from the network, the fd writing to
 the network. </li>
- <li> <tt>preoptions&nbsp;: a bitfield.
+ <li> <tt>preoptions</tt>&nbsp;: a bitfield.
   <ul>
    <li> Bit 0: if clear, no client authentication is performed. If set,
 the <tt>CERTFILE</tt> and <tt>KEYFILE</tt> environment variables are read,
@@ -593,7 +609,7 @@ they must contain the path to a valid client certificate and private key
 server for client authentication. <strong>This feature is currently
 unsupported and will not work; leave that bit clear for now.</strong> </li>
   </ul> </li>
- <li> <tt>options&nbsp;: a bitfield, which will be passed to
+ <li> <tt>options</tt>&nbsp;: a bitfield, which will be passed to
 <tt>sbearssl_run()</tt>.
   <ul>
    <li> Bit 0: if clear, no close_notify is performed and the engine
