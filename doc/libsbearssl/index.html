@@ -473,7 +473,7 @@ means the given date doesn't fit the days/seconds format).
 <p>
  Sets the validation time for the X.509 context in *<em>ctx</em> to
 the absolute time contained in *<em>t</em>, which is a
-<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tai_t</a>.
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tai</a>.
 Returns 1 if it succeeds, or 0 if it fails - probably
 because *<em>t</em> does not represent a valid time.
 </p>
@@ -482,8 +482,8 @@ because *<em>t</em> does not represent a valid time.
 
 <p>
  Same as the above function, except the time is given as a
-<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>,
-i.e. a <tt>tai_t</tt> plus nanoseconds (which are simply ignored).
+<a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain</a>,
+i.e. a <tt>tai</tt> plus nanoseconds (which are simply ignored).
 </p>
 
 <h4> <code> void sbearssl_drop (void) </code> </h4>
@@ -512,7 +512,7 @@ transmitted. The function returns 1 if it succeeds and 0 if it fails.
 
 <h3> Running the TLS/SSL engine (internal function for both clients and servers) </h3>
 
-<h4> <code> void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain_t const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, sbearssl_handshake_cb_context_t *cbarg) </code> </h4>
+<h4> <code> void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, sbearssl_handshake_cb_context_t *cbarg) </code> </h4>
 
 <p>
  This function runs a full-duplex TLS/SSL engine, reading/writing
@@ -530,7 +530,7 @@ TLS/SSL handshake does not have to be completed. </li>
 order: fd reading clear text, fd writing clear text, fd reading
 ciphertext, fd writing ciphertext. </li>
  <li> <em>tto</em> is a pointer to a
-  <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>
+  <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain</a>
 containing a relative time (i.e. a timeout) If *<em>tto</em> time elapses
 with no application data being exchanged, the engine will forcibly close the
 connection (with the method defined by <tt><em>options</em> &amp; 1</tt>).
@@ -572,7 +572,7 @@ SSL/TLS connection closed cleanly, the process exits 0.
 
 <h3> Initializing and running the engine </h3>
 
-<h4> <code> void sbearssl_client_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cb_t_ref cb, unsigned int notif) </code> </h4>
+<h4> <code> void sbearssl_client_init_and_run (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cb_t_ref cb, unsigned int notif) </code> </h4>
 
 <p>
  This function initializes a TLS context for a client-side connection,
@@ -629,7 +629,7 @@ valid fd on which to write SSL data information once the handshake has
 completed. </li>
 </ul>
 
-<h4> <code> void sbearssl_server_init_and_run (int *fds, tain_t const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, unsigned int notif) </code> </h4>
+<h4> <code> void sbearssl_server_init_and_run (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, unsigned int notif) </code> </h4>
 
 <p>
  Same as the previous function, but on the server side. No <em>servername</em>
