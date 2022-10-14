@@ -79,7 +79,7 @@ extern void sbearssl_x509_small_init_full (sbearssl_x509_small_context *, br_x50
  /* Cipher suites */
 
 extern char const *sbearssl_suite_name (br_ssl_session_parameters const *) ;
-extern uint16_t bearssl_suite_bits (br_ssl_session_parameters const *) ;
+extern uint16_t sbearssl_suite_bits (br_ssl_session_parameters const *) ;
 
 
  /* Certificates (x509-encoded) */

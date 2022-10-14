@@ -510,6 +510,110 @@ but at least <tt>SSL_PROTOCOL=value</tt> and <tt>SSL_CIPHER=value</tt> are
 transmitted. The function returns 1 if it succeeds and 0 if it fails.
 </p>
 
+<h3> X.509 validation with some information extraction </h3>
+
+<p>
+ A <tt>sbearssl_x509_small_context</tt> structure is an implementation of the
+<tt>br_x509_class</tt> type that is a little more powerful than the
+<tt>br_x509_minimal_context</tt> implementation provided by BearSSL:
+running a certificate chain through a <tt>sbearssl_x509_small_context</tt>
+validator allows you to get the hash of the End Entity certificate in the
+chain, as well as the DN it certifies.
+</p>
+
+<h4> <code> void sbearssl_x509_small_init_full (sbearssl_x509_small_context *ctx, br_x509_trust_anchor *btas, size_t n, sbearssl_dn *eedn, uint8_t *eltstatus, char *eehash) </code> </h4>
+
+<p>
+ Initializes the validator in <em>*ctx</em> with the list of <em>n</em>
+trust anchors pointed to by <em>btas</em>. <em>eehash</em> must point
+to a user-supplied buffer of at least 32 bytes, which will contain the
+sha256 hash of the EE certificate after validation. <em>eedn</em> must point
+to a user-supplied <tt>sbearssl_dn</tt> structure that will contain the
+DN of the end entity after validation. <em>eltstatus</em> must point to a
+user-supplied <tt>uint8_t</tt>, which after validation encodes the status
+of DN extraction: bit 7 of <em>eltstatus</em> is set if there was an issue during extraction (in
+which case the contents of <em>*eedn</em> are meaningless) and clear if
+everything went well, and bits 0 to 6 are set iff the corresponding element
+of the DN is present, by increasing order C, ST, L, O, OU and CN.
+</p>
+
+<h4> <code> int sbearssl_x509_small_set_tai (sbearssl_x509_small_context *ctx, tai const *t) </code> </h4>
+<h4> <code> int sbearssl_x509_small_set_tain (sbearssl_x509_small_context *ctx, tain const *a) </code> </h4>
+
+<p>
+ Like their <tt>sbearssl_x509_minimal_set_tai</tt> and <tt>sbearssl_x509_minimal_set_tain</tt>
+counterparts, but for <tt>sbearssl_x509_small_context</tt> validators instead of
+<tt>br_x509_minimal_context</tt> ones.
+</p>
+
+<h3> Server-side SNI support </h3>
+
+<p>
+ A <tt>sbearssl_sni_policy_context</tt> structure is an implementation of the
+<tt>br_ssl_server_policy_class</tt> type that supports Server Name Identification,
+unlike the default <tt>br_ssl_server_policy_rsa_context</tt> and
+<tt>br_ssl_server_policy_ec_context</tt> implementations provided by BearSSL that
+only support a single certificate chain.
+</p>
+
+<p>
+ During preparation, the user fills the structure with as many keypairs as they wish;
+then at handshake time, depending on the ServerName requested by the client,
+the relevant keypair is kept and used, and all the other ones are wiped from memory.
+</p>
+
+<h4> <code> void sbearssl_sni_policy_init (sbearssl_sni_policy_context *pol) </code> </h4>
+
+<p>
+ Initializes the user-supplied <em>*pol</em> structure.
+</p>
+
+<h4> <code> int sbearssl_sni_policy_add_keypair_file (sbearssl_sni_policy_context *pol, char const *servername, char const *certfile, char const *keyfile) </code> </h4>
+
+<p>
+ This function reads a PEM-encoded certificate chain in the file <em>certfile</em>,
+and a corresponding PEM- or DER-encoded private key in the file <em>keyfile</em>.
+It registers them with the <em>*pol</em> structure as the keypair to use if the
+client requests the <em>servername</em> ServerName. Wildcards are supported in
+<em>servername</em> except on TLDs. If <em>servername</em> is empty, then the
+keypair is registered as a default, to use when no ServerName matches (or when
+the client doesn't request SNI).
+</p>
+
+<p>
+ The function returns 0 on success. It returns a negative value in
+case of a system error, in which case <tt>errno</tt> identifies the
+error. It returns a positive value in case of an error returned by
+a BearSSL decoder, in which case an appropriate message can be
+obtained with the <tt>sbearssl_error_str()</tt> function.
+</p>
+
+<h4> <code> size_t sbearssl_sni_policy_nkeypairs (sbearssl_sni_policy_context const *pol) </code> </h4>
+
+<p>
+ Returns the number of keypairs currently registered with <em>*pol</em>.
+</p>
+
+<h4> <code> void sbearssl_sctx_init_full_generic (br_ssl_server_context *sc) </code> </h4>
+
+<p>
+ Not directly related to SNI support, but complementary to it. This function is
+a high-level function missing from BearSSL: it fully initializes a
+<tt>br_ssl_server_context</tt> structure, registering all the cipher suites
+and all the hashes provided by BearSSL with a good degradation order,
+supporting TLS 1.0 to TLS 1.2, etc. What it doesn't set: the engine buffer,
+the certificate policy, the optional engine flags, and the optional client
+certificate validation.
+</p>
+
+<h4> <code> void sbearssl_sctx_set_policy_sni (br_ssl_server_context *sc, sbearssl_sni_policy_context *pol) </code> </h4>
+
+<p>
+ Registers <em>*pol</em> as the certificate policy for the <em>*sc</em>
+server context. This tells BearSSL that the handshake will support SNI
+and use the keypairs registered with <em>*pol</em>.
+</p>
+
 <h3> Running the TLS/SSL engine (internal function for both clients and servers) </h3>
 
 <h4> <code> void sbearssl_run (br_ssl_engine_context *ctx, int *fds, tain const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cb_t_ref cb, sbearssl_handshake_cb_context_t *cbarg) </code> </h4>
@@ -572,6 +676,13 @@ SSL/TLS connection closed cleanly, the process exits 0.
 
 <h3> Initializing and running the engine </h3>
 
+<p>
+ The following functions are high-level interfaces and rely on all the
+functions described above. They're the core of the
+<a href="../s6-tlsc-io.html">s6-tlsc-io</a> and
+<a href="../s6-tlsd-io.html">s6-tlsd-io</a> programs.
+</p>
+
 <h4> <code> void sbearssl_client_init_and_run (int *fds, tain const *tto, uint32_t preoptions, uint32_t options, unsigned int verbosity, char const *servername, sbearssl_handshake_cb_t_ref cb, unsigned int notif) </code> </h4>
 
 <p>
@@ -606,8 +717,7 @@ the network. </li>
 the <tt>CERTFILE</tt> and <tt>KEYFILE</tt> environment variables are read,
 they must contain the path to a valid client certificate and private key
 (else the process exits 96); this certificate is then provided to the
-server for client authentication. <strong>This feature is currently
-unsupported and will not work; leave that bit clear for now.</strong> </li>
+server for client authentication. </li>
   </ul> </li>
  <li> <tt>options</tt>&nbsp;: a bitfield, which will be passed to
 <tt>sbearssl_run()</tt>.
@@ -636,8 +746,7 @@ completed. </li>
 argument is required. The <tt>CERTFILE</tt> and <tt>KEYFILE</tt> environment
 variables are mandatory, they point to the server's certificate and private
 key. It is only necessary to set <tt>CADIR</tt> or <tt>CAFILE</tt> when bit
-0 of <em>preoptions</em> is set <strong>(this functionality <em>is</em> supported server-side)</strong>,
-in which case client authentication will be
+0 of <em>preoptions</em> is set, in which case client authentication will be
 requested, and a list of trust anchors (read from either the directory
 in <tt>CADIR</tt> or the PEM file in <tt>CAFILE</tt>) will be used to verify
 the client certificate.
