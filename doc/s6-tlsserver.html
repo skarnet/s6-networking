@@ -208,15 +208,15 @@ given but no <tt>-i</tt> or <tt>-x</tt> option. </li>
 
 <p>
  As root:
-  <code> KEYFILE=/etc/ssl/private/mykey.der CERTFILE=/etc/ssl/public/mycert.pem \
- TLS_UID=65534 TLS_UID=65536 \
- s6-envuidgid www
- s6-tlsserver -U -- 1.2.3.4 443 httpd </code>
 </p>
+<pre>env KEYFILE=/etc/ssl/private/mykey.der CERTFILE=/etc/ssl/public/mycert.pem \
+TLS_UID=65534 TLS_UID=65534 \
+s6-envuidgid www \
+s6-tlsserver -U -- 1.2.3.4 443 httpd</pre>
 
 <p>
 This will start a server listening to 1.2.3.4 on TCP port 443,
- and for every connection, spawn the <tt>httpd</tt> program
+and for every connection, spawn the <tt>httpd</tt> program
 reading queries on stdin and replying on stdout, as user <tt>www</tt>,
 with a TLS layer protecting the connection, the TLS engine running
 as user <tt>nobody</tt> (<tt>65534:65534</tt>). The server is
