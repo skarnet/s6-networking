@@ -94,9 +94,8 @@ variables <em>unset</em>: CADIR, CAFILE,
 KEYFILE, CERTFILE, KEYFILE:<em>x</em> and CERTFILE:<em>x</em> for
 every <em>x</em>, TLS_UID and TLS_GID. They're passed to
 the <a href="s6-tlsd-io.html">s6-tlsd-io</a> child but
-not to <em>prog...</em>.
-The <tt>-Z</tt> option prevents that behaviour and keeps them
-accessible in the child.
+not to <em>prog...</em>;
+the <tt>-Z</tt> option keeps them accessible in <em>prog...</em> as well.
 </p>
 
 <p>
