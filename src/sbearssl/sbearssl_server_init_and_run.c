@@ -7,7 +7,7 @@
 
 #include <skalibs/posixplz.h>
 #include <skalibs/bytestr.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/random.h>

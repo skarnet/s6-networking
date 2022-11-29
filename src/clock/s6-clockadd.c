@@ -5,7 +5,7 @@
 #include <skalibs/sgetopt.h>
 #include <skalibs/types.h>
 #include <skalibs/allreadwrite.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 
 #define USAGE "s6-clockadd [ -f ] [ -e errmax ]"

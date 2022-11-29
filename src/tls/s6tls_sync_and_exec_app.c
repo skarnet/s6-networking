@@ -2,7 +2,7 @@
 
 #include <unistd.h>
 
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/djbunix.h>
 
 #include "s6tls-internal.h"

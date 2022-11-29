@@ -6,7 +6,7 @@
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 #include <skalibs/tai.h>
 #include <skalibs/sig.h>
 #include <skalibs/djbunix.h>

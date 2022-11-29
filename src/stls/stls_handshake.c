@@ -6,7 +6,7 @@
 #include <tls.h>
 
 #include <skalibs/alarm.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 
 #include "stls-internal.h"
 

@@ -6,7 +6,7 @@
 
 #include <skalibs/posixplz.h>
 #include <skalibs/bytestr.h>
-#include <skalibs/strerr2.h>
+#include <skalibs/strerr.h>
 
 #include <s6-networking/stls.h>
 #include "stls-internal.h"
