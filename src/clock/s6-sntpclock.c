@@ -82,8 +82,10 @@ int main (int argc, char const *const *argv)
   tain timeouttto, throttletto, globaltto ;
   tain globaldeadline ;
   unsigned int roundtrips = 10 ;
+  unsigned int successes = 0 ;
   unsigned int i = 0 ;
   int sock ;
+  int e = 0 ;
   int flagforce = 0 ;
   ip46 ipremote ;
   uint16_t portremote = 123 ;
@@ -149,6 +151,7 @@ int main (int argc, char const *const *argv)
     }
     if (!ntp_exchange(sock, &ipremote, portremote, stamps, &deadline))
     {
+      e = errno ;
       if (verbosity >= 2)
       {
         char fmt[UINT_FMT] ;
@@ -192,6 +195,7 @@ int main (int argc, char const *const *argv)
       tain_add(&max, &stamps[3], &deltamax) ;
       if (tain_less(&cur, &max) && !tain_less(&cur, &min))
         tain_sub(&deltamin, &cur, &stamps[3]) ;
+      successes++ ;
     }
 
     tain_add_g(&deadline, &throttletto) ;
@@ -206,6 +210,20 @@ int main (int argc, char const *const *argv)
       }
       else return 1 ;
     }
+  }
+
+  if (!successes)
+  {
+    errno = e ;
+    strerr_diefu2sys(1, "contact NTP server at ", argv[0]) ;
+  }
+  if (successes < roundtrips && verbosity >= 2)
+  {
+    char fmts[UINT_FMT] ;
+    char fmtr[UINT_FMT] ;
+    fmts[uint_fmt(fmts, successes)] = 0 ;
+    fmtr[uint_fmt(fmtr, roundtrips)] = 0 ;
+    strerr_warnw5x("only ", fmts, " server exchanges succeeded out of ", fmtr, " - uncertainty may be higher than expected") ;
   }
 
   {

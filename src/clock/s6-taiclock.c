@@ -55,9 +55,11 @@ int main (int argc, char const *const *argv)
   tain timeouttto, throttletto, globaltto ;
   tain globaldeadline ;
   unsigned int roundtrips = 10 ;
+  unsigned int successes = 0 ;
   unsigned int i = 0 ;
   ip46 ipremote ;
   int sock ;
+  int e = 0 ;
   int flagforce = 0 ;
   uint16_t portremote = 4014 ;
   PROG = "s6-taiclock" ;
@@ -95,6 +97,7 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
   if (!ip46_scan(argv[0], &ipremote)) dieusage() ;
+  if (roundtrips < 1) roundtrips = 1 ;
 
   sock = socket_udp46(ip46_is6(&ipremote)) ;
   if (sock < 0) strerr_diefu1sys(111, "socket_udp") ;
@@ -115,6 +118,7 @@ int main (int argc, char const *const *argv)
     tain_copynow(&before) ;
     if (!tain_exchange(sock, &ipremote, portremote, &serversays, &deadline))
     {
+      e = errno ;
       if (verbosity >= 2)
       {
         char fmt[UINT_FMT] ;
@@ -136,6 +140,7 @@ int main (int argc, char const *const *argv)
       tain_add_g(&max, &deltamax) ;
       if (tain_less(&cur, &max) && !tain_less(&cur, &min))
         tain_sub(&deltamin, &cur, &STAMP) ;
+      successes++ ;
     }
 
     tain_add_g(&deadline, &throttletto) ;
@@ -150,6 +155,20 @@ int main (int argc, char const *const *argv)
       }
       else return 1 ;
     }
+  }
+
+  if (!successes)
+  {
+    errno = e ;
+    strerr_diefu2sys(1, "contact taiclock server at ", argv[0]) ;
+  }
+  if (successes < roundtrips && verbosity >= 2)
+  {
+    char fmts[UINT_FMT] ;
+    char fmtr[UINT_FMT] ;
+    fmts[uint_fmt(fmts, successes)] = 0 ;
+    fmtr[uint_fmt(fmtr, roundtrips)] = 0 ;
+    strerr_warnw5x("only ", fmts, " server exchanges succeeded out of ", fmtr, " - uncertainty may be higher than expected") ;
   }
 
   {
