@@ -14,7 +14,7 @@
 
 ssize_t s6net_ident_reply_get (char *s, ip46 const *remoteip, uint16_t remoteport, ip46 const *localip, uint16_t localport, tain const *deadline, tain *stamp)
 {
-  size_t len ;
+  size_t len = 0 ;
   int fd ;
   if (ip46_is6(remoteip) != ip46_is6(localip)) return (errno = EAFNOSUPPORT, -1) ;
   fd = socket_tcp46(ip46_is6(remoteip)) ;
