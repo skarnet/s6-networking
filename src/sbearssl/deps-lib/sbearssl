@@ -57,5 +57,5 @@ sbearssl_x509_small_vtable.o
 sbearssl_dayseconds_from_tai.o
 sbearssl_tai_from_dayseconds.o
 sbearssl_x509_time_check.o
--lbearssl
 -lskarnet
+-lbearssl

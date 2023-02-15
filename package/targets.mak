@@ -23,7 +23,6 @@ LIB_DEFS := S6NET=s6net
 ifneq ($(SSL_IMPL),)
 
 BIN_TARGETS += s6-tlsclient s6-tlsc s6-tlsc-io s6-tlsserver s6-tlsd s6-tlsd-io s6-ucspitlsc s6-ucspitlsd
-INTERNAL_LIBS += libs6tls.a.xyzzy
 
 ifeq ($(SSL_IMPL),tls)
 
@@ -34,6 +33,10 @@ else ifeq ($(SSL_IMPL),bearssl)
 
 LIB_DEFS += CRYPTOSUPPORT=sbearssl
 CRYPTO_LIB := -lbearssl
+
+else
+
+CRYPTO_LIB := $(error invalid SSL_IMPL. Please configure with --enable-ssl=bearssl or --enable-ssl=libtls.)
 
 endif
 endif
