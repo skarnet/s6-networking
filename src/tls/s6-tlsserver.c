@@ -47,6 +47,7 @@ struct options_s
   unsigned int ruleswhat : 2 ;
   unsigned int flagS : 1 ;
   unsigned int flagy : 1 ;
+  unsigned int flagY : 1 ;
   unsigned int flagZ : 1 ;
   unsigned int onlyvars : 1 ;
   unsigned int doaccess : 1 ;
@@ -79,6 +80,7 @@ struct options_s
   .ruleswhat = 0, \
   .flagS = 0, \
   .flagy = 0, \
+  .flagY = 0, \
   .flagZ = 0, \
   .onlyvars = 0, \
   .doaccess = 0, \
@@ -128,8 +130,8 @@ int main (int argc, char const *const *argv)
         case 'x' : o.rules = l.arg ; o.ruleswhat = 2 ; o.doaccess = 1 ; break ;
         case 'S' : o.flagS = 1 ; break ;
         case 's' : o.flagS = 0 ; break ;
-        case 'Y' : o.flagy = 0 ; break ;
-        case 'y' : o.flagy = 1 ; break ;
+        case 'Y' : o.flagY = 1 ; o.flagy = 0 ; break ;
+        case 'y' : o.flagy = 1 ; o.flagY = 0 ; break ;
         case 'K' : if (!uint0_scan(l.arg, &o.kimeout)) dieusage() ; break ;
         case 'Z' : o.flagZ = 1 ; break ;
         case 'z' : o.flagZ = 0 ; break ;
@@ -218,6 +220,7 @@ int main (int argc, char const *const *argv)
       newargv[m++] = o.verbosity ? "-v2" : "-v0" ;
     if (o.flagS) newargv[m++] = "-S" ;
     if (o.flagy) newargv[m++] = "-y" ;
+    else if (o.flagY) newargv[m++] = "-Y" ;
     if (o.kimeout)
     {
       newargv[m++] = "-K" ;
