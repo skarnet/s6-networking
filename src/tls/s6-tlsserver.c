@@ -154,7 +154,6 @@ int main (int argc, char const *const *argv)
     if (o.verbosity != 1)
     {
       newargv[m++] = o.verbosity ? "-v" : "-q" ;
-      newargv[m++] = fmt ;
       pos = uint_fmt(fmt, o.verbosity) ;
       fmt[pos++] = 0 ;
     }
