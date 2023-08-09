@@ -133,7 +133,7 @@ int main (int argc, char const *const *argv)
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 4 + UINT16_FMT + IP46_FMT] ;
-    char const *newargv[29 + argc] ;
+    char const *newargv[31 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpclient" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag4) newargv[m++] = "-4" ;

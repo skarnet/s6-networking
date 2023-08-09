@@ -44,12 +44,12 @@ struct options_s
   unsigned int flagH : 1 ;
   unsigned int flagr : 1 ;
   unsigned int flagp : 1 ;
-  unsigned int ruleswhat : 2 ;
+  unsigned int rulesx : 1 ;
   unsigned int flagS : 1 ;
   unsigned int flagy : 1 ;
   unsigned int flagY : 1 ;
   unsigned int flagZ : 1 ;
-  unsigned int onlyvars : 1 ;
+  unsigned int forceaccess : 1 ;
   unsigned int doaccess : 1 ;
   unsigned int doapply : 1 ;
 } ;
@@ -77,13 +77,13 @@ struct options_s
   .flagH = 0, \
   .flagr = 0, \
   .flagp = 0, \
-  .ruleswhat = 0, \
+  .rulesx = 0, \
   .flagS = 0, \
   .flagy = 0, \
   .flagY = 0, \
   .flagZ = 0, \
-  .onlyvars = 0, \
-  .doaccess = 0, \
+  .forceaccess = 0, \
+  .doaccess = 1, \
   .doapply = 0 \
 }
 
@@ -114,20 +114,20 @@ int main (int argc, char const *const *argv)
         case 'U' : o.flagU = 1 ; o.uid = 0 ; o.gid = 0 ; o.gidn = (size_t)-1 ; o.doapply = 1 ; break ;
         case 'W' : o.flagw = 0 ; break ;
         case 'w' : o.flagw = 1 ; break ;
-        case 'D' : o.flagD = 1 ; o.doaccess = 1 ; break ;
+        case 'D' : o.flagD = 1 ; break ;
         case 'd' : o.flagD = 0 ; break ;
-        case 'H' : o.flagH = 1 ; o.doaccess = 1 ; break ;
+        case 'H' : o.flagH = 1 ; break ;
         case 'h' : o.flagH = 0 ; break ;
         case 'R' : o.flagr = 0 ; break ;
-        case 'r' : o.flagr = 1 ; o.doaccess = 1 ; break ;
+        case 'r' : o.flagr = 1 ; break ;
         case 'P' : o.flagp = 0 ; break ;
-        case 'p' : o.flagp = 1 ; o.doaccess = 1 ; break ;
-        case 'l' : o.localname = l.arg ; o.doaccess = 1 ; break ;
-        case 'e' : o.onlyvars = 1 ; o.doaccess = 1 ; break ;
-        case 'B' : o.banner = l.arg ; o.doaccess = 1 ; break ;
+        case 'p' : o.flagp = 1 ; break ;
+        case 'l' : o.localname = l.arg ; break ;
+        case 'e' : o.forceaccess = 1 ; break ;
+        case 'B' : o.banner = l.arg ; break ;
         case 't' : if (!uint0_scan(l.arg, &o.timeout)) dieusage() ; break ;
-        case 'i' : o.rules = l.arg ; o.ruleswhat = 1 ; o.doaccess = 1 ; break ;
-        case 'x' : o.rules = l.arg ; o.ruleswhat = 2 ; o.doaccess = 1 ; break ;
+        case 'i' : o.rules = l.arg ; o.rulesx = 0 ; break ;
+        case 'x' : o.rules = l.arg ; o.rulesx = 1 ; break ;
         case 'S' : o.flagS = 1 ; break ;
         case 's' : o.flagS = 0 ; break ;
         case 'Y' : o.flagY = 1 ; o.flagy = 0 ; break ;
@@ -143,13 +143,21 @@ int main (int argc, char const *const *argv)
     if (argc < 3) dieusage() ;
   }
 
+  o.doaccess = o.forceaccess || (o.verbosity >= 2) || o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
+
   {
     size_t pos = 0 ;
     unsigned int m = 0 ;
-    char fmt[UINT_FMT * 5 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
-    char const *newargv[46 + argc] ;
+    char fmt[UINT_FMT * 6 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
+    char const *newargv[50 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
-    if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
+    if (o.verbosity != 1)
+    {
+      newargv[m++] = o.verbosity ? "-v" : "-q" ;
+      newargv[m++] = fmt ;
+      pos = uint_fmt(fmt, o.verbosity) ;
+      fmt[pos++] = 0 ;
+    }
     if (o.flag46) newargv[m++] = o.flag46 == 1 ? "-4" : "-6" ;
     if (o.flag1) newargv[m++] = "-1" ;
     if (o.maxconn)
@@ -179,13 +187,11 @@ int main (int argc, char const *const *argv)
     if (o.doaccess)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-access" ;
-      if (o.verbosity)
+      if (o.verbosity != 1)
       {
-        if (o.verbosity > 1 && (!o.onlyvars || o.ruleswhat))
-          newargv[m++] = "-v2" ;
+        newargv[m++] = "-v" ;
+        newargv[m++] = fmt ;
       }
-      else newargv[m++] = "-v0" ;
-
       if (o.flagw) newargv[m++] = "-w" ;
       if (o.flagD) newargv[m++] = "-D" ;
       if (o.flagH) newargv[m++] = "-H" ;
@@ -208,16 +214,19 @@ int main (int argc, char const *const *argv)
         pos += uint_fmt(fmt + pos, o.timeout) ;
         fmt[pos++] = 0 ;
       }
-      if (o.ruleswhat)
+      if (o.rules)
       {
-        newargv[m++] = o.ruleswhat == 1 ? "-i" : "-x" ;
+        newargv[m++] = o.rulesx ? "-x" : "-i" ;
         newargv[m++] = o.rules ;
       }
       newargv[m++] = "--" ;
     }
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsd" ;
     if (o.verbosity != 1)
-      newargv[m++] = o.verbosity ? "-v2" : "-v0" ;
+    {
+      newargv[m++] = "-v" ;
+      newargv[m++] = fmt ;
+    }
     if (o.flagS) newargv[m++] = "-S" ;
     if (o.flagy) newargv[m++] = "-y" ;
     else if (o.flagY) newargv[m++] = "-Y" ;
