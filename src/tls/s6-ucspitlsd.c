@@ -20,15 +20,14 @@
 static inline void child (int [4][2], uint32_t, unsigned int, unsigned int, unsigned int, pid_t) gccattr_noreturn ;
 static inline void child (int p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, unsigned int snilevel, pid_t pid)
 {
+  ssize_t r ;
   char const *newargv[S6TLS_PREP_IO_ARGC] ;
   char buf[S6TLS_PREP_IO_BUFLEN] ;
-  ssize_t r ;
   char c ;
   PROG = "s6-ucspitlsd" ;
   close(p[2][0]) ;
   close(p[0][1]) ;
   close(p[1][0]) ;
-  s6tls_prep_tlsdio(newargv, buf, p[0][0], p[1][1], p[2][1], options, verbosity, kimeout, snilevel) ;
   r = read(p[2][1], &c, 1) ;
   if (r < 0) strerr_diefu1sys(111, "read from control socket") ;
   if (!r)
@@ -53,6 +52,7 @@ static inline void child (int p[4][2], uint32_t options, unsigned int verbosity,
     default :
       strerr_dief1x(100, "unrecognized command on control socket") ;
   }
+  s6tls_prep_tlsdio(newargv, buf, p, options, verbosity, kimeout, snilevel) ;
   if (verbosity >= 2)
   {
     char fmt[PID_FMT] ;
@@ -67,7 +67,7 @@ int main (int argc, char const *const *argv)
   unsigned int verbosity = 1 ;
   unsigned int kimeout = 0 ;
   unsigned int snilevel = 0 ;
-  int p[4][2] = { [3] = { 0, 1 } } ;
+  int p[4][2] = { [3] = { [0] = -1, [1] = -1 } } ;
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
   pid_t pid ;
@@ -97,8 +97,8 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
 
-  if (ipc_pair_b(p[2]) < 0) strerr_diefu1sys(111, "ipc_pair") ;
-  if (pipe(p[0]) < 0 || pipe(p[1]) < 0) strerr_diefu1sys(111, "pipe") ;
+  if (ipc_pair_b(p[2]) == -1) strerr_diefu1sys(111, "ipc_pair") ;
+  if (pipe(p[0]) == -1 || pipe(p[1]) == -1) strerr_diefu1sys(111, "pipe") ;
   pid = getpid() ;
 
   switch (fork())

@@ -5,7 +5,7 @@
 #include <s6-networking/config.h>
 #include "s6tls-internal.h"
 
-void s6tls_prep_tlscio (char const **argv, char *buf, int fdr, int fdw, int fdnotif, uint32_t options, unsigned int verbosity, unsigned int kimeout, char const *servername)
+void s6tls_prep_tlscio (char const **argv, char *buf, int const p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, char const *servername)
 {
   size_t m = 0 ;
   size_t n = 0 ;
@@ -18,11 +18,11 @@ void s6tls_prep_tlscio (char const **argv, char *buf, int fdr, int fdw, int fdno
     n += uint_fmt(buf + n, verbosity) ;
     buf[n++] = 0 ;
   }
-  if (fdnotif)
+  if (p[2][1])
   {
     argv[m++] = "-d" ;
     argv[m++] = buf + n ;
-    n += uint_fmt(buf + n, fdnotif) ;
+    n += uint_fmt(buf + n, p[2][1]) ;
     buf[n++] = 0 ;
   }
   argv[m++] = options & 4 ? "-S" : "-s" ;
@@ -41,10 +41,10 @@ void s6tls_prep_tlscio (char const **argv, char *buf, int fdr, int fdw, int fdno
   }
   argv[m++] = "--" ;
   argv[m++] = buf + n ;
-  n += uint_fmt(buf + n, fdr) ;
+  n += uint_fmt(buf + n, p[0][0]) ;
   buf[n++] = 0 ;
   argv[m++] = buf + n ;
-  n += uint_fmt(buf + n, fdw) ;
+  n += uint_fmt(buf + n, p[1][1]) ;
   buf[n++] = 0 ;
   argv[m++] = 0 ;
 }
