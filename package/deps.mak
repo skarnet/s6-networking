@@ -20,6 +20,7 @@ src/conn-tools/s6-tcpserver4d.o src/conn-tools/s6-tcpserver4d.lo: src/conn-tools
 src/conn-tools/s6-tcpserver6-socketbinder.o src/conn-tools/s6-tcpserver6-socketbinder.lo: src/conn-tools/s6-tcpserver6-socketbinder.c
 src/conn-tools/s6-tcpserver6.o src/conn-tools/s6-tcpserver6.lo: src/conn-tools/s6-tcpserver6.c src/include/s6-networking/config.h
 src/conn-tools/s6-tcpserver6d.o src/conn-tools/s6-tcpserver6d.lo: src/conn-tools/s6-tcpserver6d.c
+src/conn-tools/tcpserverd_spawn.o src/conn-tools/tcpserverd_spawn.lo: src/conn-tools/tcpserverd_spawn.c src/conn-tools/tcpserverd-internal.h
 src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_client.lo: src/libs6net/s6net_ident_client.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_error.o src/libs6net/s6net_ident_error.lo: src/libs6net/s6net_ident_error.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_get.lo: src/libs6net/s6net_ident_reply_get.c src/include/s6-networking/ident.h
@@ -127,13 +128,13 @@ s6-tcpserver4: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver4: src/conn-tools/s6-tcpserver4.o
 s6-tcpserver4-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver4-socketbinder: src/conn-tools/s6-tcpserver4-socketbinder.o
-s6-tcpserver4d: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-tcpserver4d: EXTRA_LIBS := -ls6 -lskarnet ${SOCKET_LIB}
 s6-tcpserver4d: src/conn-tools/s6-tcpserver4d.o
 s6-tcpserver6: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver6: src/conn-tools/s6-tcpserver6.o
 s6-tcpserver6-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o
-s6-tcpserver6d: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-tcpserver6d: EXTRA_LIBS := -ls6 -lskarnet ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o

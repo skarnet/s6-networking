@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <signal.h>
 
-#include <skalibs/gccattributes.h>
+#include <skalibs/posixplz.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
@@ -21,9 +21,10 @@
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
 #include <skalibs/socket.h>
-#include <skalibs/exec.h>
 
-#define ABSOLUTE_MAXCONN 1000
+#include <s6/ucspiserver.h>
+
+#define ABSOLUTE_MAXCONN 16384
 
 #define USAGE "s6-tcpserver6d [ -v verbosity ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] prog..."
 
@@ -53,9 +54,6 @@ static unsigned int iplen = 0 ;
 static char fmtmaxconn[UINT_FMT+1] = "/" ;
 static char fmtlocalmaxconn[UINT_FMT+1] = "/" ;
 
-
- /* Utility functions */
-
 static inline void dieusage ()
 {
   strerr_dieusage(100, USAGE) ;
@@ -66,9 +64,6 @@ static inline void X (void)
   strerr_dief1x(101, "internal inconsistency. Please submit a bug-report.") ;
 }
 
-
- /* Lookup primitives */
- 
 static inline unsigned int lookup_pid (pid_t pid)
 {
   unsigned int i = 0 ;
@@ -82,9 +77,6 @@ static inline unsigned int lookup_ip (char const *ip)
   for (; i < iplen ; i++) if (!memcmp(ip, ipnum[i].ip, 16)) break ;
   return i ;
 }
-
-
- /* Logging */
 
 static inline void log_start (void)
 {
@@ -139,9 +131,6 @@ static inline void log_close (pid_t pid, char const *ip, int w)
   fmtw[uint_fmt(fmtw, WIFSIGNALED(w) ? WTERMSIG(w) : WEXITSTATUS(w))] = 0 ;
   strerr_warni6x("end pid ", fmtpid, " ip ", fmtip, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
 }
-
-
- /* Signal handling */
 
 static void killthem (int sig)
 {
@@ -220,46 +209,32 @@ static inline void handle_signals (void)
   }
 }
 
-
- /* New connection handling */
-
-static inline void run_child (int, char const *, uint16_t, unsigned int, char const *const *) gccattr_noreturn ;
-static inline void run_child (int s, char const *ip, uint16_t port, unsigned int num, char const *const *argv)
+static inline void new_connection (int s, char const *ip, uint16_t port, char const *const *argv, char const *const *envp, size_t envlen)
 {
-  char fmt[98] ;
-  size_t n = 0 ;
-  PROG = "s6-tcpserver6d (child)" ;
-  if ((fd_move(1, s) < 0) || (fd_copy(0, 1) < 0))
-    strerr_diefu1sys(111, "move fds") ;
-  memcpy(fmt+n, "PROTO=TCP\0TCPREMOTEIP=", 22) ; n += 22 ;
-  n += ip6_fmt(fmt+n, ip) ; fmt[n++] = 0 ;
-  memcpy(fmt+n, "TCPREMOTEPORT=", 14) ; n += 14 ;
-  n += uint16_fmt(fmt+n, port) ; fmt[n++] = 0 ;
-  memcpy(fmt+n, "TCPCONNNUM=", 11) ; n += 11 ;
-  n += uint_fmt(fmt+n, num) ; fmt[n++] = 0 ;
-  xmexec_n(argv, fmt, n, 4) ;
-}
-
-static inline void new_connection (int s, char const *ip, uint16_t port, char const *const *argv)
-{
+  pid_t pid ;
   unsigned int i = lookup_ip(ip) ;
   unsigned int num = (i < iplen) ? ipnum[i].num : 0 ;
-  pid_t pid ;
+  size_t m = 0 ;
+  char fmt[47 + IP6_FMT + UINT16_FMT + UINT_FMT] ;
+
   if (num >= localmaxconn)
   {
     log_deny(ip, port, num) ;
     return ;
   }
-  pid = fork() ;
-  if (pid < 0)
+
+  memcpy(fmt + m, "PROTO=TCP\0TCPREMOTEIP=", 22) ; m += 22 ;
+  m += ip6_fmt(fmt + m, ip) ; fmt[m++] = 0 ;
+  memcpy(fmt + m, "TCPREMOTEPORT=", 14) ; m += 14 ;
+  m += uint16_fmt(fmt + m, port) ; fmt[m++] = 0 ;
+  memcpy(fmt + m, "TCPCONNNUM=", 11) ; m += 11 ;
+  m += uint_fmt(fmt + m, num) ; fmt[m++] = 0 ;
+
+  pid = s6_ucspiserver_spawn(s, argv, envp, envlen, fmt, m, 4) ;
+  if (!pid)
   {
-    if (verbosity) strerr_warnwu1sys("fork") ;
+    if (verbosity) strerr_warnwu2sys("spawn ", argv[0]) ;
     return ;
-  }
-  else if (!pid)
-  {
-    selfpipe_finish() ;
-    run_child(s, ip, port, num+1, argv) ;
   }
 
   if (i < iplen) ipnum[i].num = num + 1 ;
@@ -276,7 +251,6 @@ static inline void new_connection (int s, char const *ip, uint16_t port, char co
     log_status() ;
   }
 }
-
 
 int main (int argc, char const *const *argv)
 {
@@ -356,6 +330,7 @@ int main (int argc, char const *const *argv)
   {
     pidip_t pidip_inyostack[maxconn] ;
     ipnum_t ipnum_inyostack[maxconn] ;
+    size_t envlen = env_len((char const *const *)environ) ;
     pidip = pidip_inyostack ; ipnum = ipnum_inyostack ;
 
     while (cont)
@@ -379,7 +354,7 @@ int main (int argc, char const *const *argv)
           }
           else
           {
-            new_connection(fd, ip, port, argv) ;
+            new_connection(fd, ip, port, argv, (char const *const *)environ, envlen) ;
             fd_close(fd) ;
           }
         }
