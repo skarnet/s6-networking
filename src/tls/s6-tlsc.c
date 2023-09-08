@@ -10,6 +10,7 @@
 #include <skalibs/strerr.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #include "s6tls-internal.h"
 
@@ -19,14 +20,16 @@
 static void child (int const [4][2], uint32_t, unsigned int, unsigned int, char const *) gccattr_noreturn ;
 static void child (int const p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, char const *servername)
 {
-  int fds[3] = { p[0][0], p[1][1], p[2][1] } ;
+  char const *newargv[S6TLS_PREP_IO_ARGC] ;
+  char buf[S6TLS_PREP_IO_BUFLEN] ;
   PROG = "s6-tlsc (child)" ;
   close(p[2][0]) ;
   close(p[0][1]) ;
   close(p[1][0]) ;
-  if (fd_move(0, p[3][0]) < 0 || fd_move(1, p[3][1]) < 0)
+  if (fd_move(0, p[3][0]) == -1 || fd_move(1, p[3][1]) == -1)
     strerr_diefu1sys(111, "move network fds to stdin/stdout") ;
-  s6tls_exec_tlscio(fds, options, verbosity, kimeout, servername) ;
+  s6tls_prep_tlscio(newargv, buf, p[0][0], p[1][1], p[2][1], options, verbosity, kimeout, servername) ;
+  xexec(newargv) ;
 }
 
 int main (int argc, char const *const *argv)

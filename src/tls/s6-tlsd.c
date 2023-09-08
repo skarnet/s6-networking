@@ -9,6 +9,7 @@
 #include <skalibs/strerr.h>
 #include <skalibs/env.h>
 #include <skalibs/djbunix.h>
+#include <skalibs/exec.h>
 
 #include "s6tls-internal.h"
 
@@ -18,12 +19,14 @@
 static void child (int const [4][2], uint32_t, unsigned int, unsigned int, unsigned int) gccattr_noreturn ;
 static void child (int const p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, unsigned int snilevel)
 {
-  int fds[3] = { p[0][0], p[1][1], p[2][1] } ;
+  char const *newargv[S6TLS_PREP_IO_ARGC] ;
+  char buf[S6TLS_PREP_IO_BUFLEN] ;
   PROG = "s6-tlsd (child)" ;
   close(p[2][0]) ;
   close(p[0][1]) ;
   close(p[1][0]) ;
-  s6tls_exec_tlsdio(fds, options, verbosity, kimeout, snilevel) ;
+  s6tls_prep_tlsdio(newargv, buf, p[0][0], p[1][1], p[2][1], options, verbosity, kimeout, snilevel) ;
+  xexec(newargv) ;
 }
 
 int main (int argc, char const *const *argv)
