@@ -16,8 +16,7 @@ void s6tls_sync_and_exec_app (char const *const *argv, int const p[4][2], pid_t 
   close(p[2][1]) ;
   close(p[1][1]) ;
   close(p[0][0]) ;
-  if ((p[3][0] >= 0 && fd_move(p[3][0], p[1][0]) == -1)
-   || (p[3][1] >= 0 && fd_move(p[3][1], p[0][1]) == -1))
+  if (fd_move(p[3][0], p[1][0]) == -1 || fd_move(p[3][1], p[0][1]) == -1)
     strerr_diefu1sys(111, "move file descriptors") ;
   r = read(p[2][0], buf, MAXENVSIZE) ;
   if (r < 0) strerr_diefu1sys(111, "read from handshake notification pipe") ;

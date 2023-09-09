@@ -17,7 +17,7 @@ int main (int argc, char const *const *argv)
   unsigned int verbosity = 1 ;
   unsigned int kimeout = 0 ;
   unsigned int snilevel = 0 ;
-  int p[4][2] = { [3] = { [0] = -1, [1] = -1 } } ;
+  int p[4][2] = { [3] = { [0] = 0, [1] = 1 } } ;
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
   pid_t pid ;
