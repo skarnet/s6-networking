@@ -16,13 +16,12 @@
 #include <skalibs/strerr.h>
 #include <skalibs/fmtscan.h>
 #include <skalibs/env.h>
+#include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/sig.h>
 #include <skalibs/selfpipe.h>
 #include <skalibs/iopause.h>
 #include <skalibs/socket.h>
-
-#include <s6/ucspiserver.h>
 
 #define ABSOLUTE_MAXCONN 16384
 
@@ -230,7 +229,16 @@ static inline void new_connection (int s, char const *ip, uint16_t port, char co
   memcpy(fmt + m, "TCPCONNNUM=", 11) ; m += 11 ;
   m += uint_fmt(fmt + m, num) ; fmt[m++] = 0 ;
 
-  pid = s6_ucspiserver_spawn(s, argv, envp, envlen, fmt, m, 4) ;
+  {
+    cspawn_fileaction fa[2] =
+    {
+      [0] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 0, [1] = s } } },
+      [1] = { .type = CSPAWN_FA_COPY, .x = { .fd2 = { [0] = 1, [1] = 0 } } }
+    } ;
+    char const *newenvp[envlen + 5] ;
+    env_mergen(newenvp, envlen + 5, envp, envlen, fmt, m, 4) ;
+    pid = cspawn(argv[0], argv, newenvp, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, 2) ;
+  }
   if (!pid)
   {
     if (verbosity) strerr_warnwu2sys("spawn ", argv[0]) ;

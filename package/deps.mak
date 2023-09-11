@@ -128,13 +128,13 @@ s6-tcpserver4: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver4: src/conn-tools/s6-tcpserver4.o
 s6-tcpserver4-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver4-socketbinder: src/conn-tools/s6-tcpserver4-socketbinder.o
-s6-tcpserver4d: EXTRA_LIBS := -ls6 -lskarnet ${SOCKET_LIB}
+s6-tcpserver4d: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver4d: src/conn-tools/s6-tcpserver4d.o
 s6-tcpserver6: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver6: src/conn-tools/s6-tcpserver6.o
 s6-tcpserver6-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o
-s6-tcpserver6d: EXTRA_LIBS := -ls6 -lskarnet ${SOCKET_LIB}
+s6-tcpserver6d: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
 s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
