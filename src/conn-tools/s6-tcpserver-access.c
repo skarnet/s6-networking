@@ -150,7 +150,6 @@ int main (int argc, char const *const *argv)
   switch (rulestype)
   {
     case 0 :
-      if (verbosity >= 2) strerr_warnw1x("invoked without a ruleset!") ;
       accepted = S6_ACCESSRULES_ALLOW ;
       break ;
     case 1 :

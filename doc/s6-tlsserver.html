@@ -156,10 +156,7 @@ certificates, you probably still want TCP access rules.
 <a href="s6-tcpserver-access.html">s6-tcpserver-access</a> should
 be invoked, even if no other option requires it, even in the absence
 of an access control ruleset. This ensures that <em>prog...</em>
-will always have access to environment variables such as TCPLOCALPORT.
-This option also ensures that the log does not get spammed with
-spurious "no ruleset" warnings if the <tt>-v</tt> option has been
-given but no <tt>-i</tt> or <tt>-x</tt> option. </li>
+will always have access to environment variables such as TCPLOCALPORT. </li>
 </ul>
 
 <h3> Options passed as is to s6-tcpserver </h3>

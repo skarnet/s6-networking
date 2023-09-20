@@ -143,7 +143,7 @@ int main (int argc, char const *const *argv)
     if (argc < 3) dieusage() ;
   }
 
-  o.doaccess = o.forceaccess || (o.verbosity >= 2) || o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
+  o.doaccess = o.forceaccess || o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
 
   {
     size_t pos = 0 ;
