@@ -207,7 +207,7 @@ will always have access to environment variables such as TCPLOCALPORT. </li>
  As root:
 </p>
 <pre>env KEYFILE=/etc/ssl/private/mykey.der CERTFILE=/etc/ssl/public/mycert.pem \
-TLS_UID=65534 TLS_UID=65534 \
+TLS_UID=65534 TLS_GID=65534 \
 s6-envuidgid www \
 s6-tlsserver -U -- 1.2.3.4 443 httpd</pre>
 
