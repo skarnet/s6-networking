@@ -118,7 +118,7 @@ variables will not appear in <em>prog</em>'s environment.
 <h2> Options </h2>
 
 <p>
- <tt>s6-tlsclient</tt> accepts a myriad of options, most of which are
+ <tt>s6-tlsclient</tt> accepts a myriad of options, all of which are
 passed as is to the correct executable. Not giving any options will
 generally work: the defaults are sensible.
 </p>
@@ -126,25 +126,27 @@ generally work: the defaults are sensible.
 <h3> Options passed as is to s6-tcpclient </h3>
 
 <ul>
- <li> <tt>-q</tt>, <tt>-Q</tt>, <tt>-v</tt> </li>
- <li> <tt>-4</tt>, <tt>-6</tt> </li>
- <li> <tt>-d</tt>, <tt>-D</tt> </li>
- <li> <tt>-r</tt>, <tt>-R</tt> </li>
- <li> <tt>-h</tt>, <tt>-H</tt>, <tt>-l <em>localname</em></tt> </li>
- <li> <tt>-n</tt>, <tt>-N</tt> </li>
- <li> <tt>-t <em>timeout</em></tt> </li>
- <li> <tt>-i <em>localip</em></tt>, <tt>-p <em>localport</em></tt> </li>
- <li> <tt>-T <em>timeoutconn</em></tt> </li>
+ <li> <tt>-q</tt>, <tt>-Q</tt>, <tt>-v</tt>&nbsp;: be quiet, normally verbose, or verbose </li>
+ <li> <tt>-4</tt>, <tt>-6</tt>&nbsp;: stick to IPv4 or IPv6 addresses </li>
+ <li> <tt>-d</tt>, <tt>-D</tt>&nbsp;: enable or disable Nagle's algorithm </li>
+ <li> <tt>-r</tt>, <tt>-R</tt>&nbsp;: enable or disable IDENT lookup </li>
+ <li> <tt>-h</tt>, <tt>-H</tt>&nbsp;: enable or disable DNS lookups </li>
+ <li> <tt>-l <em>localname</em></tt>&nbsp;: get the local name from the command line, not from a DNS lookup </li>
+ <li> <tt>-n</tt>, <tt>-N</tt>&nbsp;: qualify the host or not when resolving it </li>
+ <li> <tt>-t <em>timeout</em></tt>&nbsp;: global timeout on the connection attempt </li>
+ <li> <tt>-i <em>localip</em></tt>, <tt>-p <em>localport</em></tt>&nbsp;: force local socket parameters </li>
+ <li> <tt>-T <em>timeoutconn</em></tt>&nbsp;: configurable connection timeouts </li>
 </ul>
 
 <h3> Options passed as is to s6-tlsc </h3>
 
 <ul>
- <li> <tt>-Z</tt>, <tt>-z</tt> </li>
- <li> <tt>-S</tt>, <tt>-s</tt> </li>
- <li> <tt>-Y</tt>, <tt>-y</tt> </li>
- <li> <tt>-k <em>servername</em></tt> </li>
- <li> <tt>-K <em>kimeout</em></tt> </li>
+ <li> <tt>-Z</tt>, <tt>-z</tt>&nbsp;: keep or remove the <a href="s6-tlsc-io.html">s6-tlsc-io</a>-specific
+variables from the application's environment </li>
+ <li> <tt>-S</tt>, <tt>-s</tt>&nbsp;: use close_notify or EOF to signal the end of a TLS connection </li>
+ <li> <tt>-Y</tt>, <tt>-y</tt>&nbsp;: don't send, or send, a client certificate </li>
+ <li> <tt>-k <em>servername</em></tt>&nbsp;: use SNI and provide a server name </li>
+ <li> <tt>-K <em>kimeout</em></tt>&nbsp;: set a timeout for the TLS handshake </li>
 </ul>
 
 <h2> Example </h2>

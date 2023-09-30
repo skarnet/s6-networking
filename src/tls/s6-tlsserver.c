@@ -12,8 +12,8 @@
 
 #include <s6-networking/config.h>
 
-#define USAGE "s6-tlsserver [ -e ] [ options ] ip port prog...\n" \
-"s6-tcpserver options: [ -q | -Q | -v ] [ -4 | -6 ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
+#define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
+"s6-tcpserver options: [ -q | -Q | -v ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
 "s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
 "s6-tlsd options: [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ] [ -k snilevel ]"
 
@@ -36,7 +36,6 @@ struct options_s
   unsigned int kimeout ;
   unsigned int snilevel ;
   unsigned int verbosity : 2 ;
-  unsigned int flag46 : 2 ;
   unsigned int flag1 : 1 ;
   unsigned int flagU : 1 ;
   unsigned int flagw : 1 ;
@@ -49,8 +48,6 @@ struct options_s
   unsigned int flagy : 1 ;
   unsigned int flagY : 1 ;
   unsigned int flagZ : 1 ;
-  unsigned int forceaccess : 1 ;
-  unsigned int doaccess : 1 ;
   unsigned int doapply : 1 ;
 } ;
 
@@ -69,7 +66,6 @@ struct options_s
   .kimeout = 0, \
   .verbosity = 1, \
   .snilevel = 0, \
-  .flag46 = 0, \
   .flag1 = 0, \
   .flagU = 0, \
   .flagw = 0, \
@@ -82,8 +78,6 @@ struct options_s
   .flagy = 0, \
   .flagY = 0, \
   .flagZ = 0, \
-  .forceaccess = 0, \
-  .doaccess = 1, \
   .doapply = 0 \
 }
 
@@ -95,15 +89,13 @@ int main (int argc, char const *const *argv)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qQv461c:C:b:G:g:u:UWwDdHhRrPpl:eB:t:i:x:SsYyK:Zzk:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQv1c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsYyK:Zzk:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
         case 'q' : o.verbosity = 0 ; break ;
         case 'Q' : o.verbosity = 1 ; break ;
         case 'v' : o.verbosity = 2 ; break ;
-        case '4' : o.flag46 = 1 ; break ;
-        case '6' : o.flag46 = 2 ; break ;
         case '1' : o.flag1 = 1 ; break ;
         case 'c' : if (!uint0_scan(l.arg, &o.maxconn)) dieusage() ; if (!o.maxconn) o.maxconn = 1 ; break ;
         case 'C' : if (!uint0_scan(l.arg, &o.localmaxconn)) dieusage() ; if (!o.localmaxconn) o.localmaxconn = 1 ; break ;
@@ -123,7 +115,6 @@ int main (int argc, char const *const *argv)
         case 'P' : o.flagp = 0 ; break ;
         case 'p' : o.flagp = 1 ; break ;
         case 'l' : o.localname = l.arg ; break ;
-        case 'e' : o.forceaccess = 1 ; break ;
         case 'B' : o.banner = l.arg ; break ;
         case 't' : if (!uint0_scan(l.arg, &o.timeout)) dieusage() ; break ;
         case 'i' : o.rules = l.arg ; o.rulesx = 0 ; break ;
@@ -143,13 +134,12 @@ int main (int argc, char const *const *argv)
     if (argc < 3) dieusage() ;
   }
 
-  o.doaccess = o.forceaccess || o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
-
   {
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 6 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
-    char const *newargv[50 + argc] ;
+    char const *newargv[49 + argc] ;
+    int doaccess = o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1)
     {
@@ -157,7 +147,6 @@ int main (int argc, char const *const *argv)
       pos = uint_fmt(fmt, o.verbosity) ;
       fmt[pos++] = 0 ;
     }
-    if (o.flag46) newargv[m++] = o.flag46 == 1 ? "-4" : "-6" ;
     if (o.flag1) newargv[m++] = "-1" ;
     if (o.maxconn)
     {
@@ -183,7 +172,7 @@ int main (int argc, char const *const *argv)
     newargv[m++] = "--" ;
     newargv[m++] = *argv++ ;
     newargv[m++] = *argv++ ;
-    if (o.doaccess)
+    if (doaccess)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-access" ;
       if (o.verbosity != 1)

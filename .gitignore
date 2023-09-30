@@ -13,13 +13,9 @@
 /s6-taiclockd
 /s6-tcpclient
 /s6-tcpserver
+/s6-tcpserver-socketbinder
+/s6-tcpserverd
 /s6-tcpserver-access
-/s6-tcpserver4
-/s6-tcpserver4-socketbinder
-/s6-tcpserver4d
-/s6-tcpserver6
-/s6-tcpserver6-socketbinder
-/s6-tcpserver6d
 /s6-tlsc
 /s6-tlsclient
 /s6-tlsd

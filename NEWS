@@ -4,8 +4,19 @@ In 2.6.0.0
 ----------
 
  - Bugfixes.
- - Major performance improvements.
- - Removed extra warning on s6-tcpserver-access with no ruleset.
+ - s6-tcpserver has been unified! no ipv4 and ipv6 separation anymore.
+   * the only programs in the superserver chain are now s6-tcpserver,
+s6-tcpserver-socketbinder, and s6-tcpserverd.
+   * s6-tcpserver-access still exists, should now run under s6-tcpserverd,
+still invoked once per connection. Doesn't spam the log anymore when
+invoked with no ruleset.
+   * Options -4 and -6 removed from s6-tcpserver and s6-tlsserver.
+Protocol detection happens when the cmdline address is scanned.
+   * Option -e removed from s6-tlsserver. It should now always invoke
+s6-tcpserver-access when needed (and only then).
+ - Major performance improvements. s6-tcpserverd does not fork on
+systems that support posix_spawn. Also, its lookups are now logarithmic
+instead of linear (which only matters on *heavy* loads).
 
 
 In 2.5.1.3

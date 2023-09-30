@@ -41,8 +41,7 @@ listens to TCP connections on IP address <em>ip</em> port <em>port</em>
 and forks a command line for every connection. Note that
 <a href="s6-tcpserver.html">s6-tcpserver</a> also rewrites
 itself into a more complex command line (the final long-lived
-process being <a href="s6-tcpserver4d.html">s6-tcpserver4d</a>
-or <a href="s6-tcpserver4d.html">s6-tcpserver6d</a>),
+process being <a href="s6-tcpserverd.html">s6-tcpserverd</a>),
 so your end command line may look a lot longer in <tt>ps</tt>
 than what you originally wrote. This is normal and healthy. </li>
    <li> (if applicable) <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>,
@@ -73,9 +72,8 @@ be a network socket - they will be pipes.
 
 <p>
  <tt>s6-tlsserver</tt> reacts to the same signals as
-<a href="s6-tcpserver4d.html">s6-tcpserver4d</a> or
-<a href="s6-tcpserver6d.html">s6-tcpserver6d</a>,
-one of which is the long-lived process hanging around.
+<a href="s6-tcpserverd.html">s6-tcpserverd</a>,
+which is the long-lived process hanging around.
 </p>
 
 <h2> Environment variables </h2>
@@ -104,9 +102,8 @@ every <a href="s6-tlsd.html">s6-tlsd</a> invocation:
 
 <p>
  <em>prog...</em> is run with the following variables added to,
-or removed from, its environment by <a href="s6-tcpserver4d.html">s6-tcpserver4d</a>
-or <a href="s6-tcpserver6d.html">s6-tcpserver6d</a>, and possibly
-by <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>:
+or removed from, its environment by <a href="s6-tcpserverd.html">s6-tcpserverd</a>
+and possibly by <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>:
 </p>
 
 <ul>
@@ -142,28 +139,17 @@ variables will not appear in <em>prog</em>'s environment.
 <h2> Options </h2>
 
 <p>
- <tt>s6-tlsserver</tt> accepts a myriad of options, most of which are
+ <tt>s6-tlsserver</tt> accepts a myriad of options, all of which are
 passed as is to the correct executable. Not giving any options will
 generally work, but unless you're running a very public server
 (such as a Web server) or base your access control on client
 certificates, you probably still want TCP access rules.
 </p>
 
-<h3> Options handled directly by s6-tlsserver </h3>
-
-<ul>
- <li> <tt>-e</tt>:&nbsp;: indicates that
-<a href="s6-tcpserver-access.html">s6-tcpserver-access</a> should
-be invoked, even if no other option requires it, even in the absence
-of an access control ruleset. This ensures that <em>prog...</em>
-will always have access to environment variables such as TCPLOCALPORT. </li>
-</ul>
-
 <h3> Options passed as is to s6-tcpserver </h3>
 
 <ul>
  <li> <tt>-q</tt>, <tt>-Q</tt>, <tt>-v</tt> </li>
- <li> <tt>-4</tt>, <tt>-6</tt> </li>
  <li> <tt>-1</tt> </li>
  <li> <tt>-c <em>maxconn</em></tt> </li>
  <li> <tt>-C <em>localmaxconn</em></tt> </li>
@@ -174,31 +160,34 @@ will always have access to environment variables such as TCPLOCALPORT. </li>
 
 <ul>
  <li> The verbosity level, if not default, as <tt>-v0</tt> or <tt>-v2</tt> </li>
- <li> <tt>-w</tt>, <tt>-W</tt> </li>
- <li> <tt>-d</tt>, <tt>-D</tt> </li>
- <li> <tt>-r</tt>, <tt>-R</tt> </li>
- <li> <tt>-p</tt>, <tt>-P</tt> </li>
- <li> <tt>-h</tt>, <tt>-H</tt>, <tt>-l <em>localname</em></tt> </li>
- <li> <tt>-B <em>banner</em></tt> </li>
- <li> <tt>-t <em>timeout</em></tt> </li>
- <li> <tt>-i <em>rulesdir</em></tt>, <tt>-x <em>rulesfile</em></tt> </li>
+ <li> <tt>-w</tt>, <tt>-W</tt>&nbsp;: be strict or tolerant with DNS or IDENT resolution errors </li>
+ <li> <tt>-d</tt>, <tt>-D</tt>&nbsp;: enable or disable Nagle's algorithm </li>
+ <li> <tt>-r</tt>, <tt>-R</tt>&nbsp;: enable or disable IDENT lookups </li>
+ <li> <tt>-p</tt>, <tt>-P</tt>&nbsp;: enable or disable paranoid DNS cross-checking </li>
+ <li> <tt>-h</tt>, <tt>-H</tt>&nbsp;: enable or disable DNS lookups </li>
+ <li> <tt>-l <em>localname</em></tt>&nbsp;: get the local name from the command line, not from DNS </li>
+ <li> <tt>-B <em>banner</em></tt>&nbsp;: initial server-side banner </li>
+ <li> <tt>-t <em>timeout</em></tt>&nbsp;: set a timeout for all the lookups </li>
+ <li> <tt>-i <em>rulesdir</em></tt>, <tt>-x <em>rulesfile</em></tt>&nbsp;: TCP access control </li>
 </ul>
 
 <h3> Options passed as is to s6-tlsd </h3>
 
 <ul>
- <li> <tt>-Z</tt>, <tt>-z</tt> </li>
- <li> <tt>-S</tt>, <tt>-s</tt> </li>
- <li> <tt>-Y</tt>, <tt>-y</tt> </li>
- <li> <tt>-K <em>kimeout</em></tt> </li>
- <li> <tt>-k <em>snilevel</em></tt> </li>
+ <li> <tt>-Z</tt>, <tt>-z</tt>&nbsp;: keep or remove the <a href="s6-tlsd-io.html">s6-tlsd-io</a>-specific
+variables from the application's environment </li>
+ <li> <tt>-S</tt>, <tt>-s</tt>&nbsp;: use close_notify or EOF to signal the end of a TLS connection </li>
+ <li> <tt>-Y</tt>, <tt>-y</tt>&nbsp;: request an optional or a mandatory client certificate </li>
+ <li> <tt>-K <em>kimeout</em></tt>&nbsp;: set a timeout for the TLS handshake </li>
+ <li> <tt>-k <em>snilevel</em></tt>&nbsp;: support SNI-based certificate chains </li>
 </ul>
 
 <h3> Options passed to s6-applyuidgid </h3>
 
 <ul>
- <li> <tt>-u <em>uid</em></tt>, <tt>-g <em>gid</em></tt>, <tt>-G <em>gidlist</em></tt> </li>
- <li> <tt>-U</tt> (passed as <tt>-Uz</tt>) </li>
+ <li> <tt>-u <em>uid</em></tt>, <tt>-g <em>gid</em></tt>, <tt>-G <em>gidlist</em></tt>&nbsp;: set uid, gid, or supplementary group list </li>
+ <li> <tt>-U</tt> (passed as <tt>-Uz</tt>)&nbsp;: get the uid, gid and supplementary group list from the UID, GID and GIDLIST variables,
+and remove these variables from the application's environment </li>
 </ul>
 
 <h2> Example </h2>
