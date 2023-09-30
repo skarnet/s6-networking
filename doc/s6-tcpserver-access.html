@@ -35,12 +35,8 @@ just like tcpwrappers' <tt>tcpd</tt> program.
 
 <ul>
  <li> s6-tcpserver-access checks it is run under a UCSPI server tool
-such as <a href="s6-tcpserver.html">s6-tcpserver</a>,
- <a href="s6-tcpserver4.html">s6-tcpserver4</a> or
- <a href="s6-tcpserver6.html">s6-tcpserver6</a>, or their
- stripped-down versions
- <a href="s6-tcpserver4d.html">s6-tcpserver4d</a> or
- <a href="s6-tcpserver6d.html">s6-tcpserver6d</a>. </li>
+such as <a href="s6-tcpserver.html">s6-tcpserver</a> or its stripped-down version
+ <a href="s6-tcpserverd.html">s6-tcpserverd</a>. </li>
  <li> It checks that the remote end of the connection fits the
 accepted criteria defined by the database contained in <em>rulesdir</em>
 or <em>rulesfile</em>. If the database tells it to reject the connection,
@@ -59,9 +55,11 @@ its parent:
 </p>
 
 <ul>
- <li> PROTO: normally TCP, but could be anything else, like SSL. </li>
+ <li> PROTO: normally TCP, but could be anything else. </li>
+ <li> ${PROTO}LOCALIP: the local address of the socket. </li>
+ <li> ${PROTO}LOCALPORT: the local port of the socket. </li>
  <li> ${PROTO}REMOTEIP: the remote address of the socket, i.e. the client's
-IP address. This can be IPv4 or (if the underlying skalibs supports it) IPv6. </li>
+IP address. </li>
  <li> ${PROTO}REMOTEPORT: the remote port of the socket. </li>
 </ul>
 
@@ -71,16 +69,14 @@ IP address. This can be IPv4 or (if the underlying skalibs supports it) IPv6. </
 </p>
 
 <ul>
- <li> ${PROTO}LOCALIP: set to the local address of the socket. </li>
- <li> ${PROTO}LOCALPORT: set to the local port of the socket. </li>
- <li> ${PROTO}REMOTEINFO: normally unset, but set to the information
-retrieved from ${PROTO}REMOTEIP via the IDENT protocol if the <tt>-r</tt>
-option has been given. </li>
  <li> ${PROTO}REMOTEHOST: set to the remote host name obtained from
 a DNS lookup. Unset if the <tt>-H</tt> option has been given. </li>
  <li> ${PROTO}LOCALHOST: set to the local host name obtained from a
 DNS lookup. If the <tt>-l</tt> option has been given, set to
 <em>localname</em> instead. </li>
+ <li> ${PROTO}REMOTEINFO: normally unset, but set to the information
+retrieved from ${PROTO}REMOTEIP via the IDENT protocol if the <tt>-r</tt>
+option has been given. </li>
 </ul>
 
 <p>
@@ -227,12 +223,6 @@ environment modifications, if any, s6-tcpserver-access execs into
 <h2> Notes </h2>
 
 <ul>
- <li> s6-tcpserver-access works with
-<a href="s6-tcpserver4d.html">s6-tcpserver4d</a>, handling IPv4 addresses,
-as well as
-<a href="s6-tcpserver6d.html">s6-tcpserver6d</a>, handling IPv6 addresses.
-It will automatically detect the remote address type and match it against the
-correct subdatabase. </li>
  <li> s6-tcpserver-access may perform several DNS queries. For efficiency
 purposes, it does as many of them as possible in parallel. However, if asked
 to do an IDENT query, it does not parallelize it with DNS queries. Take

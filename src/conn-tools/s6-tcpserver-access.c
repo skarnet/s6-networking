@@ -127,6 +127,14 @@ int main (int argc, char const *const *argv)
     char const *x ;
     char tmp[protolen + 11] ;
     memcpy(tmp, proto, protolen) ;
+    memcpy(tmp + protolen, "LOCALIP", 8) ;
+    x = getenv(tmp) ;
+    if (!x) strerr_dienotset(100, tmp) ;
+    if (!ip46_scan(x, &localip)) strerr_dieinvalid(100, tmp) ;
+    memcpy(tmp + protolen + 5, "PORT", 5) ;
+    x = getenv(tmp) ;
+    if (!x) strerr_dienotset(100, tmp) ;
+    if (!uint160_scan(x, &localport)) strerr_dieinvalid(100, tmp) ;
     memcpy(tmp + protolen, "REMOTEIP", 9) ;
     x = getenv(tmp) ;
     if (!x) strerr_dienotset(100, tmp) ;
@@ -180,17 +188,8 @@ int main (int argc, char const *const *argv)
   {
     char const *x = 0 ;
     char idbuf[S6NET_IDENT_ID_SIZE] ;
-    char fmt[IP46_FMT] ;
     char tmp[protolen + 11] ;
-    if (socket_local46(0, &localip, &localport) < 0)
-      strerr_diefu1sys(111, "socket_local") ;
-    fmt[ip46_fmt(fmt, &localip)] = 0 ;
     memcpy(tmp, proto, protolen) ;
-    memcpy(tmp + protolen, "LOCALIP", 8) ;
-    if (!env_addmodif(&modifs, tmp, fmt)) dienomem() ;
-    fmt[uint16_fmt(fmt, localport)] = 0 ;
-    memcpy(tmp + protolen + 5, "PORT", 5) ;
-    if (!env_addmodif(&modifs, tmp, fmt)) dienomem() ;
     memcpy(tmp + protolen, "REMOTEINFO", 11) ;
     if (flagident)
     {
@@ -215,7 +214,6 @@ int main (int argc, char const *const *argv)
       }
       else x = idbuf ;
     }
-
     if (!env_addmodif(&modifs, tmp, x)) dienomem() ;
   }
 

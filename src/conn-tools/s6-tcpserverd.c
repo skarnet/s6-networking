@@ -13,11 +13,11 @@
 #include <skalibs/uint16.h>
 #include <skalibs/uint32.h>
 #include <skalibs/types.h>
+#include <skalibs/ip46.h>
 #include <skalibs/allreadwrite.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr.h>
 #include <skalibs/fmtscan.h>
-#include <skalibs/diuint32.h>
 #include <skalibs/env.h>
 #include <skalibs/cspawn.h>
 #include <skalibs/djbunix.h>
@@ -30,7 +30,13 @@
 
 #define ABSOLUTE_MAXCONN 16384
 
-#define USAGE "s6-tcpserver4d [ -v verbosity ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] prog..."
+#define USAGE "s6-tcpserverd [ -v verbosity ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] prog..."
+
+static uint32_t maxconn = 40 ;
+static uint32_t localmaxconn = 40 ;
+static uint32_t verbosity = 1 ;
+static int cont = 1 ;
+static int is6 ;
 
 typedef struct pidi_s pidi, *pidi_ref ;
 struct pidi_s
@@ -39,21 +45,18 @@ struct pidi_s
   uint32_t i ;
 } ;
 
-static uint32_t maxconn = 40 ;
-static uint32_t localmaxconn = 40 ;
-static uint32_t verbosity = 1 ;
-static int cont = 1 ;
-
 static genset *pidis ;
 #define PIDI(i) genset_p(pidi, pidis, (i))
 #define numconn genset_n(pidis)
-static genset *ipnums ;
-#define IPNUM(i) genset_p(diuint32, ipnums, (i))
-static avltreen *by_ip ;
 static avltreen *by_pid ;
 
-static char fmtmaxconn[UINT32_FMT+1] = "/" ;
-static char fmtlocalmaxconn[UINT32_FMT+1] = "/" ;
+static genset *ipnums ;
+#define IP(i) (genset_p(char, ipnums, (i)) + 4)
+#define NUMP(i) ((uint32_t *)genset_p(char, ipnums, (i)))
+static avltreen *by_ip ;
+
+static char fmtmaxconn[UINT32_FMT + 1] = "/" ;
+static char fmtlocalmaxconn[UINT32_FMT + 1] = "/" ;
 
 
 static inline void dieusage ()
@@ -68,8 +71,7 @@ static inline void X (void)
 
 static void *bypid_dtok (uint32_t d, void *aux)
 {
-  genset *g = aux ;
-  return &genset_p(pidi, g, d)->pid ;
+  return &genset_p(pidi, (genset *)aux, d)->pid ;
 }
 
 static int bypid_cmp (void const *a, void const *b, void *aux)
@@ -82,21 +84,18 @@ static int bypid_cmp (void const *a, void const *b, void *aux)
 
 static void *byip_dtok (uint32_t d, void *aux)
 {
-  genset *g = aux ;
-  return &genset_p(diuint32, g, d)->left ;
+  return genset_p(char, (genset *)aux, d) + 4 ;
 }
 
 static int byip_cmp (void const *a, void const *b, void *aux)
 {
   (void)aux ;
-  uint32_t aa = *(uint32_t const *)a ;
-  uint32_t bb = *(uint32_t const *)b ;
-  return aa < bb ? -1 : aa > bb ;
+  return memcmp(a, b, is6 ? 16 : 4) ;
 }
 
-static inline void log_start (void)
+static inline void log_start (char const *fmtip, char const *fmtport)
 {
-  strerr_warni1x("starting") ;
+  strerr_warni4x("starting - bound to ip ", fmtip, " port ", fmtport) ;
 }
 
 static inline void log_exit (void)
@@ -111,41 +110,37 @@ static void log_status (void)
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
 
-static inline void log_deny (uint32_t ip, uint16_t port, uint32_t num)
+static inline void log_deny (char const *ip, uint16_t port, uint32_t num)
 {
-  char fmtip[UINT32_FMT] ;
+  char fmtip[IP46_FMT] ;
   char fmtport[UINT16_FMT] ;
   char fmtnum[UINT32_FMT] ;
-  fmtip[ip4_fmtu32(fmtip, ip)] = 0 ;
+  fmtip[is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip)] = 0 ;
   fmtport[uint16_fmt(fmtport, port)] = 0 ;
   fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
   strerr_warni7sys("deny ", fmtip, ":", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static inline void log_accept (pid_t pid, uint32_t ip, uint16_t port, uint32_t num)
+static inline void log_accept (pid_t pid, char const *ip, uint16_t port, uint32_t num)
 {
-  char fmtipport[IP4_FMT + UINT16_FMT + 1] ;
-  char fmtpid[PID_FMT] ;
+  char fmtip[IP46_FMT] ;
+  char fmtport[UINT16_FMT] ;
   char fmtnum[UINT32_FMT] ;
-  size_t n ;
-  n = ip4_fmtu32(fmtipport, ip) ;
-  fmtipport[n++] = ':' ;
-  n += uint16_fmt(fmtipport + n, port) ;
-  fmtipport[n] = 0 ;
+  char fmtpid[PID_FMT] ;
+  fmtip[is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip)] = 0 ;
+  fmtport[uint16_fmt(fmtport, port)] = 0 ;
   fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
   fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
-  strerr_warni7x("allow ", fmtipport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
+  strerr_warni9x("allow ", fmtip, ":", fmtport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static inline void log_close (pid_t pid, uint32_t ip, int w)
+static inline void log_close (pid_t pid, char const *ip, int w)
 {
   char fmtpid[PID_FMT] ;
-  char fmtip[IP4_FMT] = "?" ;
   char fmtw[UINT_FMT] ;
   fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
-  fmtip[ip4_fmtu32(fmtip, ip)] = 0 ;
   fmtw[uint_fmt(fmtw, WIFSIGNALED(w) ? WTERMSIG(w) : WEXITSTATUS(w))] = 0 ;
-  strerr_warni6x("end pid ", fmtpid, " ip ", fmtip, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
+  strerr_warni4x("end pid ", fmtpid, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
 }
 
 static int killthem_iter (void *data, void *aux)
@@ -173,12 +168,13 @@ static inline void wait_children (void)
     if (avltreen_search(by_pid, &pid, &d))
     {
       uint32_t i = PIDI(d)->i ;
-      uint32_t ip = IPNUM(i)->left ;
+      char ip[SKALIBS_IP_SIZE] ;
+      memcpy(ip, IP(i), is6 ? 16 : 4) ;
       avltreen_delete(by_pid, &pid) ;
       genset_delete(pidis, d) ;
-      if (!--IPNUM(i)->right)
+      if (!--*NUMP(i))
       {
-        avltreen_delete(by_ip, &ip) ;
+        avltreen_delete(by_ip, ip) ;
         genset_delete(ipnums, i) ;
       }
       if (verbosity >= 2)
@@ -207,7 +203,7 @@ static inline void handle_signals (void)
     case SIGHUP :
     {
       if (verbosity >= 2)
-        strerr_warni5x("received ", "SIGHUP,", " sending ", "SIGTERM+SIGCONT", " to all connections") ;
+        strerr_warni5x("received ", "SIGHUP,", " sending ", "SIGTERM and SIGCONT", " to all connections") ;
       killthem(SIGTERM) ;
       killthem(SIGCONT) ;
       break ;
@@ -215,7 +211,7 @@ static inline void handle_signals (void)
     case SIGQUIT :
     {
       if (verbosity >= 2)
-        strerr_warni6x("received ", "SIGQUIT,", " sending ", "SIGTERM+SIGCONT", " to all connections", " and quitting") ;
+        strerr_warni6x("received ", "SIGQUIT,", " sending ", "SIGTERM and SIGCONT", " to all connections", " and quitting") ;
       cont = 0 ;
       killthem(SIGTERM) ;
       killthem(SIGCONT) ;
@@ -233,28 +229,25 @@ static inline void handle_signals (void)
   }
 }
 
-static inline void new_connection (int s, uint32_t ip, uint16_t port, char const *const *argv, char const *const *envp, size_t envlen)
+static inline void new_connection (int s, char const *ip, uint16_t port, char const *const *argv, char const *const *envp, char *modifs, size_t m, size_t envlen)
 {
-  size_t m = 0 ;
   pid_t pid ;
   uint32_t d ;
-  uint32_t num = 0 ;
-  char fmt[47 + IP4_FMT + UINT16_FMT + UINT_FMT] ;
-
-  if (avltreen_search(by_ip, &ip, &d)) num = IPNUM(d)->right ;
+  uint32_t num = avltreen_search(by_ip, ip, &d) ? *NUMP(d) : 0 ;
   if (num >= localmaxconn)
   {
     log_deny(ip, port, num) ;
     return ;
   }
 
-  memcpy(fmt + m, "PROTO=TCP\0TCPREMOTEIP=", 22) ; m += 22 ;
-  m += ip4_fmtu32(fmt + m, ip) ;
-  fmt[m++] = 0 ;
-  memcpy(fmt + m, "TCPREMOTEPORT=", 14) ; m += 14 ;
-  m += uint16_fmt(fmt + m, port) ; fmt[m++] = 0 ;
-  memcpy(fmt + m, "TCPCONNNUM=", 11) ; m += 11 ;
-  m += uint_fmt(fmt + m, num) ; fmt[m++] = 0 ;
+  m += is6 ? ip6_fmt(modifs + m, ip) : ip4_fmt(modifs + m, ip) ;
+  modifs[m++] = 0 ;
+  memcpy(modifs + m, "TCPREMOTEPORT=", 14) ; m += 14 ;
+  m += uint16_fmt(modifs + m, port) ;
+  modifs[m++] = 0 ;
+  memcpy(modifs + m, "TCPCONNNUM=", 11) ; m += 11 ;
+  m += uint32_fmt(modifs + m, num) ;
+  modifs[m++] = 0 ;
 
   {
     cspawn_fileaction fa[2] =
@@ -262,22 +255,22 @@ static inline void new_connection (int s, uint32_t ip, uint16_t port, char const
       [0] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 0, [1] = s } } },
       [1] = { .type = CSPAWN_FA_COPY, .x = { .fd2 = { [0] = 1, [1] = 0 } } }
     } ;
-    char const *newenvp[envlen + 5] ;
-    env_mergen(newenvp, envlen + 5, envp, envlen, fmt, m, 4) ;
+    char const *newenvp[envlen + 7] ;
+    env_mergen(newenvp, envlen + 7, envp, envlen, modifs, m, 6) ;
     pid = cspawn(argv[0], argv, newenvp, CSPAWN_FLAGS_SELFPIPE_FINISH, fa, 2) ;
-  }
-  if (!pid)
-  {
-    if (verbosity) strerr_warnwu2sys("spawn ", argv[0]) ;
-    return ;
+    if (!pid)
+    {
+      if (verbosity) strerr_warnwu2sys("spawn ", argv[0]) ;
+      return ;
+    }
   }
 
-  if (num) IPNUM(d)->right++ ;
+  if (num) (*NUMP(d))++ ;
   else
   {
     d = genset_new(ipnums) ;
-    IPNUM(d)->left = ip ;
-    IPNUM(d)->right = 1 ;
+    *NUMP(d) = 1 ;
+    memcpy(IP(d), ip, is6 ? 16 : 4) ;
     avltreen_insert(by_ip, d) ;
   }
 
@@ -287,7 +280,7 @@ static inline void new_connection (int s, uint32_t ip, uint16_t port, char const
   avltreen_insert(by_pid, num) ;
   if (verbosity >= 2)
   {
-    log_accept(pid, ip, port, IPNUM(d)->right) ;
+    log_accept(pid, ip, port, *NUMP(d)) ;
     log_status() ;
   }
 }
@@ -296,7 +289,7 @@ int main (int argc, char const *const *argv)
 {
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ | IOPAUSE_EXCEPT } } ;
   int flag1 = 0 ;
-  PROG = "s6-tcpserver4d" ;
+  PROG = "s6-tcpserverd" ;
   {
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
@@ -348,7 +341,8 @@ int main (int argc, char const *const *argv)
   }
 
   {
-    diuint32 ipnum_storage[maxconn] ;
+   /* Yo dawg, I herd u like stack allocations */
+    char ipnum_storage[maxconn * (is6 ? 20 : 8)] ;
     uint32_t ipnum_freelist[maxconn] ;
     avlnode byip_storage[maxconn] ;
     uint32_t byip_freelist[maxconn] ;
@@ -361,8 +355,12 @@ int main (int argc, char const *const *argv)
     avltreen byip_info ;
     avltreen bypid_info ;
     size_t envlen = env_len((char const *const *)environ) ;
+    size_t m = 21 ;
+    char ip[SKALIBS_IP_SIZE] ;
+    uint16_t port ;
+    char modifs[sizeof("PROTO=TCP TCPLOCALIP= TCPLOCALPORT= TCPREMOTEIP= TCPREMOTEPORT= TCPCONNNUM=") + 2 * (IP46_FMT + UINT16_FMT) + UINT32_FMT] = "PROTO=TCP\0TCPLOCALIP=" ;
 
-    GENSET_init(&ipnum_info, diuint32, ipnum_storage, ipnum_freelist, maxconn) ;
+    genset_init(&ipnum_info, ipnum_storage, ipnum_freelist, is6 ? 20 : 8, maxconn) ;
     GENSET_init(&pidi_info, pidi, pidi_storage, pidi_freelist, maxconn) ;
     avltreen_init(&byip_info, byip_storage, byip_freelist, maxconn, &byip_dtok, &byip_cmp, &ipnum_info) ;
     avltreen_init(&bypid_info, bypid_storage, bypid_freelist, maxconn, &bypid_dtok, &bypid_cmp, &pidi_info) ;
@@ -371,51 +369,61 @@ int main (int argc, char const *const *argv)
     by_ip = &byip_info ;
     by_pid = &bypid_info ;
 
-    if (verbosity >= 2)
     {
-      fmtmaxconn[1+uint32_fmt(fmtmaxconn+1, maxconn)] = 0 ;
-      log_start() ;
-      log_status() ;
-    }
-
-    if (flag1)
-    {
-      uint16_t port ;
-      uint16_t m = 0 ;
-      char ip[4] ;
+      size_t iplen, portlen ;
+      char fmtip[IP4_FMT] ;
       char fmtport[UINT16_FMT] ;
-      if (socket_local4(0, ip, &port) == -1)
+      ip46 loc ;
+      if (socket_local46(0, &loc, &port) == -1)
+        strerr_diefu1sys(111, "get local socket information") ;
+      is6 = ip46_is6(&loc) ;
+      memcpy(ip, loc.ip, is6 ? 16 : 4) ;
+      iplen = is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip) ;
+      portlen = uint16_fmt(fmtport, port) ; 
+      memcpy(modifs + m, fmtip, iplen) ; m += iplen ;
+      memcpy(modifs + m, "\0TCPLOCALPORT=", 14) ; m += 14 ;
+      memcpy(modifs + m, fmtport, portlen) ; m += portlen ;
+      memcpy(modifs + m, "\0TCPREMOTEIP=", 13) ; m += 13 ;
+
+      if (verbosity >= 2)
       {
-        if (verbosity) strerr_warnwu1sys("socket_local4") ;
+        fmtmaxconn[1 + uint32_fmt(fmtmaxconn+1, maxconn)] = 0 ;
+        log_start(fmtip, fmtport) ;
+        log_status() ;
       }
-      else m = uint16_fmt(fmtport, port) ;
-      fmtport[m++] = '\n' ;
-      allwrite(1, fmtport, m) ;
-      close(1) ;
+
+      if (flag1)
+      {
+        fmtport[portlen] = '\n' ;
+        allwrite(1, fmtport, portlen + 1) ;
+        close(1) ;
+      }
     }
 
     while (cont)
     {
-      if (iopause_g(x, 1 + (numconn < maxconn), 0) < 0) strerr_diefu1sys(111, "iopause") ;
+      if (iopause_g(x, 1 + (numconn < maxconn), 0) == -1)
+        strerr_diefu1sys(111, "iopause") ;
+
       if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with selfpipe") ;
-      if (x[0].revents & IOPAUSE_READ)  { handle_signals() ; continue ; }
+      if (x[0].revents & IOPAUSE_READ)
+      {
+        handle_signals() ;
+        continue ;
+      }
       if (numconn < maxconn)
       {
         if (x[1].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with socket") ;
         if (x[1].revents & IOPAUSE_READ)
         {
-          char packedip[4] ;
-          uint16_t port ;
-          int fd = socket_accept4(x[1].fd, packedip, &port) ;
+          int fd = is6 ? socket_accept6(x[1].fd, ip, &port) : socket_accept4(x[1].fd, ip, &port) ;
           if (fd == -1)
           {
             if (verbosity) strerr_warnwu1sys("accept") ;
           }
           else
           {
-            uint32_t ip ;
-            uint32_unpack_big(packedip, &ip) ;
-            new_connection(fd, ip, port, argv, (char const *const *)environ, envlen) ;
+            new_connection(fd, ip, port, argv, (char const *const *)environ, modifs, m, envlen) ;
             fd_close(fd) ;
           }
         }

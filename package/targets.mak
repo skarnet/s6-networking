@@ -3,12 +3,8 @@ s6-getservbyname \
 s6-ident-client \
 s6-tcpclient \
 s6-tcpserver \
-s6-tcpserver4 \
-s6-tcpserver4d \
-s6-tcpserver4-socketbinder \
-s6-tcpserver6 \
-s6-tcpserver6d \
-s6-tcpserver6-socketbinder \
+s6-tcpserver-socketbinder \
+s6-tcpserverd \
 s6-tcpserver-access \
 s6-clockadd \
 s6-clockview \

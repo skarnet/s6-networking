@@ -13,13 +13,9 @@ src/conn-tools/s6-getservbyname.o src/conn-tools/s6-getservbyname.lo: src/conn-t
 src/conn-tools/s6-ident-client.o src/conn-tools/s6-ident-client.lo: src/conn-tools/s6-ident-client.c src/include/s6-networking/ident.h
 src/conn-tools/s6-tcpclient.o src/conn-tools/s6-tcpclient.lo: src/conn-tools/s6-tcpclient.c src/include/s6-networking/ident.h
 src/conn-tools/s6-tcpserver-access.o src/conn-tools/s6-tcpserver-access.lo: src/conn-tools/s6-tcpserver-access.c src/include/s6-networking/config.h src/include/s6-networking/ident.h
+src/conn-tools/s6-tcpserver-socketbinder.o src/conn-tools/s6-tcpserver-socketbinder.lo: src/conn-tools/s6-tcpserver-socketbinder.c
 src/conn-tools/s6-tcpserver.o src/conn-tools/s6-tcpserver.lo: src/conn-tools/s6-tcpserver.c src/include/s6-networking/config.h
-src/conn-tools/s6-tcpserver4-socketbinder.o src/conn-tools/s6-tcpserver4-socketbinder.lo: src/conn-tools/s6-tcpserver4-socketbinder.c
-src/conn-tools/s6-tcpserver4.o src/conn-tools/s6-tcpserver4.lo: src/conn-tools/s6-tcpserver4.c src/include/s6-networking/config.h
-src/conn-tools/s6-tcpserver4d.o src/conn-tools/s6-tcpserver4d.lo: src/conn-tools/s6-tcpserver4d.c
-src/conn-tools/s6-tcpserver6-socketbinder.o src/conn-tools/s6-tcpserver6-socketbinder.lo: src/conn-tools/s6-tcpserver6-socketbinder.c
-src/conn-tools/s6-tcpserver6.o src/conn-tools/s6-tcpserver6.lo: src/conn-tools/s6-tcpserver6.c src/include/s6-networking/config.h
-src/conn-tools/s6-tcpserver6d.o src/conn-tools/s6-tcpserver6d.lo: src/conn-tools/s6-tcpserver6d.c
+src/conn-tools/s6-tcpserverd.o src/conn-tools/s6-tcpserverd.lo: src/conn-tools/s6-tcpserverd.c
 src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_client.lo: src/libs6net/s6net_ident_client.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_error.o src/libs6net/s6net_ident_error.lo: src/libs6net/s6net_ident_error.c src/include/s6-networking/ident.h
 src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_get.lo: src/libs6net/s6net_ident_reply_get.c src/include/s6-networking/ident.h
@@ -124,18 +120,10 @@ s6-tcpserver: EXTRA_LIBS := -lskarnet
 s6-tcpserver: src/conn-tools/s6-tcpserver.o
 s6-tcpserver-access: EXTRA_LIBS := -ls6dns -ls6 -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o ${LIBS6NET}
-s6-tcpserver4: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserver4: src/conn-tools/s6-tcpserver4.o
-s6-tcpserver4-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserver4-socketbinder: src/conn-tools/s6-tcpserver4-socketbinder.o
-s6-tcpserver4d: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserver4d: src/conn-tools/s6-tcpserver4d.o
-s6-tcpserver6: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserver6: src/conn-tools/s6-tcpserver6.o
-s6-tcpserver6-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserver6-socketbinder: src/conn-tools/s6-tcpserver6-socketbinder.o
-s6-tcpserver6d: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserver6d: src/conn-tools/s6-tcpserver6d.o
+s6-tcpserver-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-tcpserver-socketbinder: src/conn-tools/s6-tcpserver-socketbinder.o
+s6-tcpserverd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
+s6-tcpserverd: src/conn-tools/s6-tcpserverd.o
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
 else

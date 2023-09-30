@@ -18,7 +18,7 @@
 
 <h1> What has changed in s6-networking </h1>
 
-<h2> in 2.5.1.4 </h2>
+<h2> in 2.6.0.0 </h2>
 
 <ul>
  <li> <a href="//skarnet.org/software/skalibs/">skalibs</a>
@@ -35,7 +35,24 @@ optional dependency bumped to 1.1.1w </li>
 optional dependency bumped to 3.7.0 </li>
  <li> <a href="s6-tcpserver-access.html">s6-tcpserver-access</a> does
 not print a warning on <tt>-v 2</tt> or more when it is run without
-the <tt>-i</tt> or </tt>-x</tt> option. </li>
+the <tt>-i</tt> or </tt>-x</tt> option. It is not needed anymore in
+order to export TCPLOCALIP and TCPLOCALPORT to the applications. </li>
+ <li> The tcpserver chain has been unified!
+<tt>s6-tcpserver4</tt>, <tt>s6-tcpserver6</tt>,
+<tt>s6-tcpserver4-socketbinder</tt>, <tt>s6-tcpserver6-socketbinder</tt>,
+<tt>s6-tcpserver4d</tt> and <tt>s6-tcpserver6d</tt> have all
+disappeared. Instead, there are just 3 programs:
+  <ul>
+   <li> <a href="s6-tcpserver-socketbinder.html">s6-tcpserver-socketbinder</a>,
+for socket binding </li>
+   <li> <a href="s6-tcpserverd.html">s6-tcpserverd</a>, the long-lived
+process. It now exports TCPLOCALIP and TCPLOCALPORT in addition to PROTO,
+TCPREMOTEIP, TCPREMOTEPORT and TCPCONNNUM. </li>
+   <li> <a href="s6-tcpserver.html">s6-tcpserver</a>, which still has
+the same interface except that the <tt>-4</tt> and <tt>-6</tt> options
+have been removed, and that is still a wrapper around the others. </li>
+  </ul>
+ </li>
 </ul>
 
 <h2> in 2.5.1.3 </h2>

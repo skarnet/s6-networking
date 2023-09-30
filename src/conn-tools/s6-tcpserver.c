@@ -13,7 +13,7 @@
 
 #include <s6-networking/config.h>
 
-#define USAGE "s6-tcpserver [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gid,gid,... ] [ -g gid ] [ -u uid ] [ -U ] ip port prog..."
+#define USAGE "s6-tcpserver [ -q | -Q | -v ] [ -d | -D ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gid,gid,... ] [ -g gid ] [ -u uid ] [ -U ] ip port prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv)
@@ -29,13 +29,12 @@ int main (int argc, char const *const *argv)
   unsigned int maxconn = 0 ;
   unsigned int localmaxconn = 0 ;
   unsigned int backlog = (unsigned int)-1 ;
-  unsigned int what = 0 ;
   PROG = "s6-tcpserver" ;
   {
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qQvDd1U46c:C:b:u:g:G:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQvDd1Uc:C:b:u:g:G:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -44,8 +43,6 @@ int main (int argc, char const *const *argv)
         case 'v' : verbosity = 2 ; break ;
         case 'D' : flagreuse = 0 ; break ;
         case 'd' : flagreuse = 1 ; break ;
-        case '4' : what = 4 ; break ;
-        case '6' : what = 6 ; break ;
         case 'c' : if (!uint0_scan(l.arg, &maxconn)) dieusage() ; if (!maxconn) maxconn = 1 ; break ;
         case 'C' : if (!uint0_scan(l.arg, &localmaxconn)) dieusage() ; if (!localmaxconn) localmaxconn = 1 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &backlog)) dieusage() ; break ;
@@ -61,19 +58,12 @@ int main (int argc, char const *const *argv)
     if (argc < 3) dieusage() ;
   }
 
-  if (!what)
-  {
-    ip46 ip ;
-    if (!ip46_scan(argv[0], &ip)) dieusage() ;
-    what = ip46_is6(&ip) ? 6 : 4 ;
-  }
-
   {
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 3 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
     char const *newargv[23 + argc] ;
-    newargv[m++] = what == 6 ? S6_NETWORKING_BINPREFIX "s6-tcpserver6-socketbinder" : S6_NETWORKING_BINPREFIX "s6-tcpserver4-socketbinder" ;
+    newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-socketbinder" ;
     if (!flagreuse) newargv[m++] = "-D" ;
     if (backlog != (unsigned int)-1)
     {
@@ -112,7 +102,7 @@ int main (int argc, char const *const *argv)
       }
       newargv[m++] = "--" ;
     }
-    newargv[m++] = what == 6 ? S6_NETWORKING_BINPREFIX "s6-tcpserver6d" : S6_NETWORKING_BINPREFIX "s6-tcpserver4d" ;
+    newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserverd" ;
     if (!verbosity) newargv[m++] = "-v0" ;
     else if (verbosity == 2) newargv[m++] = "-v2" ;
     if (flag1) newargv[m++] = "-1" ;

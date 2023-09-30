@@ -1,13 +1,9 @@
 s6-getservbyname		0755
 s6-ident-client			0755
 s6-tcpclient			0755
-s6-tcpserver4			0755
-s6-tcpserver4d			0755
-s6-tcpserver4-socketbinder	0755
-s6-tcpserver6			0755
-s6-tcpserver6d			0755
-s6-tcpserver6-socketbinder	0755
 s6-tcpserver			0755
+s6-tcpserver-socketbinder	0755
+s6-tcpserverd			0755
 s6-tcpserver-access		0755
 s6-clockadd			0700
 s6-clockview			0755
@@ -16,9 +12,9 @@ s6-taiclock			0755
 s6-taiclockd			0755
 s6-tlsclient			0755
 s6-tlsc				0755
+s6-ucspitlsc			0755
 s6-tlsc-io			0755
 s6-tlsserver			0755
 s6-tlsd				0755
-s6-tlsd-io			0755
-s6-ucspitlsc			0755
 s6-ucspitlsd			0755
+s6-tlsd-io			0755

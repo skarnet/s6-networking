@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Language" content="en" />
     <title>s6-networking: the s6-tcpserver program</title>
     <meta name="Description" content="s6-networking: the s6-tcpserver program" />
-    <meta name="Keywords" content="s6-networking s6-tcpserver tcpserver ucspi tcp server super-server" />
+    <meta name="Keywords" content="s6-networking s6-tcpserver tcpserver ucspi tcp server super-server ip ipv4 ipv6 TCP/IP" />
     <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
@@ -22,51 +22,119 @@
 <tt>s6-tcpserver</tt> is an
 <a href="https://cr.yp.to/proto/ucspi.txt">UCSPI tool</a> for
 TCP connections, i.e. a super-server. It accepts connections from
-clients, and forks a program to handle each connection.
+clients, and spawns a program to handle each connection.
 </p>
 
 <h2> Interface </h2>
 
 <pre>
-     s6-tcpserver [ -q | -Q | -v ] [ -4 | -6 ] [ -1 ] [ -c <em>maxconn</em> ] [ -C <em>localmaxconn</em> ] [ -b <em>backlog</em> ] [ -G <em>gidlist</em> ] [ -g <em>gid</em> ] [ -u <em>uid</em> ] [ -U ] <em>ip</em> <em>port</em> <em>prog...</em>
+     s6-tcpserver [ -q | -Q | -v ] [ -1 ] [ -c <em>maxconn</em> ] [ -C <em>localmaxconn</em> ] [ -b <em>backlog</em> ] [ -G <em>gidlist</em> ] [ -g <em>gid</em> ] [ -u <em>uid</em> ] [ -U ] <em>ip</em> <em>port</em> <em>prog...</em>
 </pre>
 
 <ul>
- <li> s6-tcpserver executes into
-<a href="s6-tcpserver4.html">s6-tcpserver4</a> or
-<a href="s6-tcpserver6.html">s6-tcpserver6</a> depending on whether
-<em>ip</em> is an IPv4 or IPv6 address. It modifies some of its
-option syntax to match s6-tcpserver4 and s6-tcpserver6's.</li>
- <li> s6-tcpserver4 or s6-tcpserver6 handles the connection itself. </li>
+ <li> s6-tcpserver binds to local IP address <em>ip</em> (which can be
+IPv4 or IPv6), port <em>port</em>. </li>
+ <li> It closes its stdin and stdout. </li>
+ <li> For every TCP connection to this address and port, it spawns a
+<em>prog...</em> child with stdin reading from the network socket and
+stdout writing to it. </li>
+ <li> Depending on the verbosity level, it logs what it does to stderr. </li>
+ <li> It runs until killed by a signal. Depending on the received
+signal, it may kill its children before exiting. </li>
+</ul>
+
+<h2> Environment variables </h2>
+
+<p>
+ For each connection, an instance of <em>prog...</em> is spawned with
+the following variables set:
+</p>
+
+<ul>
+ <li> PROTO: always set to TCP </li>
+ <li> TCPLOCALIP: set to the server's address </li>
+ <li> TCPLOCALPORT: set to the server's port </li>
+ <li> TCPREMOTEIP: set to the client's address </li>
+ <li> TCPREMOTEPORT: set to the client's port </li>
+ <li> TCPCONNNUM: set to the number of connections originating from
+the same IP address </li>
 </ul>
 
 <h2> Options </h2>
 
 <ul>
- <li> <tt>-q</tt>&nbsp;: be quiet. This is converted into <tt>-v&nbsp;0</tt>
-for s6-tcpserver4 or s6-tcpserver6. </li>
- <li> <tt>-Q</tt>&nbsp;: be normally quiet. This is converted into <tt>-v&nbsp;1</tt>
-for s6-tcpserver4 or s6-tcpserver6. This is the default. </li>
- <li> <tt>-v</tt>&nbsp;: be verbose. This is converted into <tt>-v&nbsp;2</tt>
-for s6-tcpserver4 or s6-tcpserver6. </li>
- <li> <tt>-4</tt>&nbsp;: IPv4 only.  Interpret <em>ip</em> as IPv4; if it is
-invalid, exit 100. </li>
- <li> <tt>-6</tt>&nbsp;: IPv6 only.  Interpret <em>ip</em> as IPv6; if it is
-invalid, exit 100. If neither the <tt>-4</tt> nor the <tt>-6</tt> option is
-given, s6-tcpserver will parse <em>ip</em> to determine its family. </li>
- <li> Every other option is passed verbatim to s6-tcpserver4 or s6-tcpserver6. </li>
+ <li> <tt>-q</tt>&nbsp;: be quiet. Only print fatal error messages to stderr. </li>
+ <li> <tt>-Q</tt>&nbsp;: be normally quiet. Print warnings and fatal
+error messages to stderr. This is the default. </li>
+ <li> <tt>-v</tt>&nbsp;: be verbose. Additionally to fatal errors and
+warnings, also print status and connection information for every client. </li>
+ <li> <tt>-1</tt>&nbsp;: write <em>port</em> to stdout, before
+closing it, right after binding and listening to the network socket.
+If stdout is suitably redirected, this can be used by monitoring
+programs to check when the server is ready to accept connections. </li>
+ <li> <tt>-c&nbsp;<em>maxconn</em></tt>&nbsp;: accept at most
+<em>maxconn</em> concurrent connections. Default is 40. It is
+impossible to set it higher than 1000. </li>
+ <li> <tt>-C&nbsp;<em>localmaxconn</em></tt>&nbsp;: accept at most
+<em>localmaxconn</em> connections from the same IP address.
+Default is 40. It is impossible to set it higher than <em>maxconn</em>. </li>
+ <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of
+<em>backlog</em> backlog connections on the socket. Extra
+connection attempts will rejected by the kernel. </li>
+ <li> <tt>-G&nbsp;<em>gidlist</em></tt>&nbsp;: change s6-tcpserver's
+supplementary group list to <em>gidlist</em> after binding the socket.
+This is only valid when run as root. <em>gidlist</em> must be a
+comma-separated list of numerical group IDs. </li>
+ <li> <tt>-g&nbsp;<em>gid</em></tt>&nbsp;: change s6-tcpserver's group id
+to <em>gid</em> after binding the socket. This is only valid when run
+as root. </li>
+ <li> <tt>-u&nbsp;<em>uid</em></tt>&nbsp;: change s6-tcpserver's user id
+to <em>uid</em> after binding the socket. This is only valid when run
+as root. </li>
+ <li> <tt>-U</tt>&nbsp;: change s6-tcpserver's user id, group id and
+supplementary group list
+according to the values of the UID, GID and GIDLIST environment variables
+after binding the socket. This is only valid when run as root.
+This can be used with the
+<a href="//skarnet.org/software/s6/s6-envuidgid.html">s6-envuidgid</a>
+program to easily script a service that binds to a privileged socket
+then drops its privileges to those of a named non-root account. </li>
+</ul>
+
+<h2> Signals </h2>
+
+<ul>
+ <li> SIGTERM: exit. </li>
+ <li> SIGHUP: send a SIGTERM and a SIGCONT to all children. </li>
+ <li> SIGQUIT: send a SIGTERM and a SIGCONT to all children, then exit. </li>
+ <li> SIGABRT: send a SIGKILL to all children, then exit. </li>
 </ul>
 
 <h2> Notes </h2>
 
 <ul>
- <li> s6-tcpserver executes either into s6-tcpserver4, which only serves
-IPv4, or into s6-tcpserver6, which only serves IPv6. It will not bind to every
-available IP address of the machine whether they are v4 or v6; on the
-other hand, it can bind to every available IPv4 address (if <em>ip</em>
-is <tt>0.0.0.0</tt>) or to every available IPv6 address (if <em>ip</em>
-is <tt>::</tt>). Two instances of s6-tcpserver can cover every
-available address. </li>
+ <li> Unlike its ancestor
+<a href="https://cr.yp.to/ucspi-tcp/tcpserver.html">tcpserver</a>,
+s6-tcpserver performs just the bare minimum: the point is to have a
+very small and very fast process to serve connections with the least
+possible overhead. Features such as access control and DNS resolution are
+provided via the <a href="s6-tcpserver-access.html">s6-tcpserver-access</a>
+program. </li>
+ <li> s6-tcpserver is actually a wrapper that rewrites itself into a
+command line running
+  <ul>
+   <li> <a href="s6-tcpserver-socketbinder.html">s6-tcpserver-socketbinder</a>,
+that binds the socket and listens to it </li>
+   <li> <a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>,
+that drops privileges </li>
+   <li> <a href="s6-tcpserverd.html">s6-tcpserverd</a>, the long-lived process
+that actually accepts the connections. So if you see in your <tt>ps</tt> output
+that the name of the process is <tt>s6-tcpserverd</tt>, that's why. </li>
+  </ul>
+ <li> s6-tcpserver treats IPv4 and IPv6 separately. If you want to listen on
+<em>all</em> the addresses of a machine no matter whether v4 or v6, then you
+need to run <em>two</em> s6-tcpserver processes: one on <tt>0.0.0.0</tt> and
+and one on <tt>::</tt>. </li>
 </ul>
 
 </body>

@@ -3,9 +3,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>s6-networking: the s6-tcpserver6-socketbinder program</title>
-    <meta name="Description" content="s6-networking: the s6-tcpserver6-socketbinder program" />
-    <meta name="Keywords" content="s6-networking s6-tcpserver6-socketbinder tcpserver ucspi inet ipv6 socket bind listen" />
+    <title>s6-networking: the s6-tcpserver-socketbinder program</title>
+    <meta name="Description" content="s6-networking: the s6-tcpserver-socketbinder program" />
+    <meta name="Keywords" content="s6-networking s6-tcpserver-socketbinder tcpserver ucspi inet ipv4 ipv6 socket bind listen TCP/IP" />
     <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
   </head>
 <body>
@@ -16,22 +16,22 @@
 <a href="//skarnet.org/">skarnet.org</a>
 </p>
 
-<h1> The <tt>s6-tcpserver6-socketbinder</tt> program </h1>
+<h1> The <tt>s6-tcpserver-socketbinder</tt> program </h1>
 
 <p>
-<tt>s6-tcpserver6-socketbinder</tt> binds an INET domain
-socket to an IPv6 address and port, then executes a program.
+<tt>s6-tcpserver-socketbinder</tt> binds an INET domain
+socket to an IPv4 or IPv6 address and port, then executes a program.
 </p>
 
 <h2> Interface </h2>
 
 <pre>
-     s6-tcpserver6-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] [ -B ] <em>ip</em> <em>port</em> <em>prog...</em>
+     s6-tcpserver-socketbinder [ -d | -D ] [ -b <em>backlog</em> ] [ -M | -m ] [ -B ] <em>ip</em> <em>port</em> <em>prog...</em>
 </pre>
 
 <ul>
- <li> s6-tcpserver6-socketbinder creates an TCP socket
-and binds it to IPv6 address <em>ip</em>, port <em>port</em>.
+ <li> s6-tcpserver-socketbinder creates a TCP socket
+and binds it to IP address <em>ip</em>, port <em>port</em>.
 It prepares the socket to accept connections by calling
 <a href="https://pubs.opengroup.org/onlinepubs/9699919799/functions/listen.html">listen()</a>. </li>
  <li> It then execs into <em>prog...</em> with the open socket
@@ -48,15 +48,15 @@ and is generally used with server programs. This is the default. </li>
  <li> <tt>-D</tt>&nbsp;: disallow instant rebinding to the same path. </li>
  <li> <tt>-b&nbsp;<em>backlog</em></tt>&nbsp;: set a maximum of
 <em>backlog</em> backlog connections on the socket - extra
-connection attempts will rejected by the kernel. The default is SOMAXCONN,
-i.e. the maximum number allowed by the system. If <em>backlog</em>
+connection attempts will rejected by the kernel. The default is the maximum
+number allowed by the system. If <em>backlog</em>
 is 0, then the socket will be created, but it <strong>will not be
 listening</strong>. </li>
  <li> <tt>-M</tt>&nbsp;: create a TCP socket. This is the default. </li>
  <li> <tt>-m</tt>&nbsp;: create a UDP socket. Note
 that by default UDP sockets are not connection-mode, and <tt>listen()</tt>
 will fail - so you should always give the <tt>-b0</tt> option to
-s6-tcpserver6-socketbinder along with <tt>-m</tt>. </li>
+s6-tcpserver-socketbinder along with <tt>-m</tt>. </li>
  <li> <tt>-B</tt>&nbsp;: create a blocking socket. Default is non-blocking. </li>
 </ul>
 
@@ -64,18 +64,22 @@ s6-tcpserver6-socketbinder along with <tt>-m</tt>. </li>
 
 <ul>
  <li> The socket is provided <strong>non-blocking by default</strong>. </li>
- <li> s6-tcpserver6-socketbinder is part of a set of basic blocks used to
-build a flexible TCP/IPv6 super-server. It normally should be given a
+ <li> s6-tcpserver-socketbinder is part of a set of basic blocks used to
+build a flexible TCP/IP super-server. It normally should be given a
 command line crafted to make it execute into
-<a href="s6-tcpserver6d.html">s6-tcpserver6d</a> to accept connections
+<a href="s6-tcpserverd.html">s6-tcpserverd</a> to accept connections
 from clients, or into a program such as
 <a href="//skarnet.org/software/s6/s6-applyuidgid.html">s6-applyuidgid</a>
 to drop privileges before doing so. </li>
- <li> The <a href="s6-tcpserver6.html">s6-tcpserver6</a> program does
+ <li> The <a href="s6-tcpserver.html">s6-tcpserver</a> program does
 exactly this. It implements
-a full TCP/IPv6 super-server by building a command line starting with
-s6-tcpserver6-socketbinder and ending with s6-tcpserver6d followed by the
+a full TCP/IP super-server by building a command line starting with
+s6-tcpserver-socketbinder and ending with s6-tcpserverd followed by the
 application program, and executing into it. </li>
+ <li> For s6-tcpserver-socketbinder, <tt>::</tt> means "all IPv6 addresses",
+and <tt>0.0.0.0</tt> means "all IPv4 addresses". It does not provide a way
+to bind a socket to all addresses regardless of protocol; instead, you
+should use two sockets, one for IPv4 and one for IPv6. </li>
 </ul>
 
 </body>
