@@ -367,7 +367,7 @@ int main (int argc, char const *const *argv)
 
     {
       size_t iplen, portlen ;
-      char fmtip[IP4_FMT] ;
+      char fmtip[IP46_FMT] ;
       char fmtport[UINT16_FMT] ;
       ip46 loc ;
       if (socket_local46(0, &loc, &port) == -1)
