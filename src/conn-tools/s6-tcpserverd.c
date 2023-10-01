@@ -95,17 +95,20 @@ static int byip_cmp (void const *a, void const *b, void *aux)
 
 static inline void log_start (char const *fmtip, char const *fmtport)
 {
+  if (verbosity < 2) return ;
   strerr_warni4x("starting - bound to ip ", fmtip, " port ", fmtport) ;
 }
 
 static inline void log_exit (void)
 {
+  if (verbosity < 2) return ;
   strerr_warni1x("exiting") ;
 }
 
 static void log_status (void)
 {
   char fmt[UINT_FMT] ;
+  if (verbosity < 2) return ;
   fmt[uint_fmt(fmt, numconn)] = 0 ;
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
@@ -115,6 +118,7 @@ static inline void log_deny (char const *ip, uint16_t port, uint32_t num)
   char fmtip[IP46_FMT] ;
   char fmtport[UINT16_FMT] ;
   char fmtnum[UINT32_FMT] ;
+  if (!verbosity) return ;
   fmtip[is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip)] = 0 ;
   fmtport[uint16_fmt(fmtport, port)] = 0 ;
   fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
@@ -127,6 +131,7 @@ static inline void log_accept (pid_t pid, char const *ip, uint16_t port, uint32_
   char fmtport[UINT16_FMT] ;
   char fmtnum[UINT32_FMT] ;
   char fmtpid[PID_FMT] ;
+  if (verbosity < 2) return ;
   fmtip[is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip)] = 0 ;
   fmtport[uint16_fmt(fmtport, port)] = 0 ;
   fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
@@ -134,13 +139,16 @@ static inline void log_accept (pid_t pid, char const *ip, uint16_t port, uint32_
   strerr_warni9x("allow ", fmtip, ":", fmtport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static inline void log_close (pid_t pid, char const *ip, int w)
+static inline void log_close (pid_t pid, char const *ip, int w, uint32_t num)
 {
   char fmtpid[PID_FMT] ;
   char fmtw[UINT_FMT] ;
+  char fmtnum[UINT32_FMT] ;
+  if (verbosity < 2) return ;
   fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
   fmtw[uint_fmt(fmtw, WIFSIGNALED(w) ? WTERMSIG(w) : WEXITSTATUS(w))] = 0 ;
-  strerr_warni4x("end pid ", fmtpid, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw) ;
+  fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
+  strerr_warni7x("end pid ", fmtpid, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
 static int killthem_iter (void *data, void *aux)
@@ -154,36 +162,23 @@ static void killthem (int sig)
   genset_iter(pidis, &killthem_iter, &sig) ;
 }
 
-static inline void wait_children (void)
+static inline void end_connection (pid_t pid, int wstat)
 {
-  for (;;)
+  uint32_t d, i, num ;
+  char ip[SKALIBS_IP_SIZE] ;
+  if (!avltreen_search(by_pid, &pid, &d)) return ;
+  i = PIDI(d)->i ;
+  memcpy(ip, IP(i), is6 ? 16 : 4) ;
+  avltreen_delete(by_pid, &pid) ;
+  genset_delete(pidis, d) ;
+  num = --*NUMP(i) ;
+  if (!num)
   {
-    uint32_t d ;
-    int wstat ;
-    pid_t pid = wait_nohang(&wstat) ;
-    if (pid < 0)
-      if (errno != ECHILD) strerr_diefu1sys(111, "wait_nohang") ;
-      else break ;
-    else if (!pid) break ;
-    if (avltreen_search(by_pid, &pid, &d))
-    {
-      uint32_t i = PIDI(d)->i ;
-      char ip[SKALIBS_IP_SIZE] ;
-      memcpy(ip, IP(i), is6 ? 16 : 4) ;
-      avltreen_delete(by_pid, &pid) ;
-      genset_delete(pidis, d) ;
-      if (!--*NUMP(i))
-      {
-        avltreen_delete(by_ip, ip) ;
-        genset_delete(ipnums, i) ;
-      }
-      if (verbosity >= 2)
-      {
-        log_close(pid, ip, wstat) ;
-        log_status() ;
-      }
-    }
+    avltreen_delete(by_ip, ip) ;
+    genset_delete(ipnums, i) ;
   }
+  log_close(pid, ip, wstat, num) ;
+  log_status() ;
 }
 
 static inline void handle_signals (void)
@@ -192,39 +187,42 @@ static inline void handle_signals (void)
   {
     case -1 : strerr_diefu1sys(111, "read selfpipe") ;
     case 0 : return ;
-    case SIGCHLD : wait_children() ; break ;
+    case SIGCHLD :
+      for (;;)
+      {
+        int wstat ;
+        pid_t pid = wait_nohang(&wstat) ;
+        if (pid == -1)
+          if (errno != ECHILD) strerr_diefu1sys(111, "wait_nohang") ;
+          else break ;
+        else if (!pid) break ;
+        end_connection(pid, wstat) ;
+      }
+      break ;
     case SIGTERM :
-    {
       if (verbosity >= 2)
         strerr_warni3x("received ", "SIGTERM,", " quitting") ;
       cont = 0 ;
       break ;
-    }
     case SIGHUP :
-    {
       if (verbosity >= 2)
         strerr_warni5x("received ", "SIGHUP,", " sending ", "SIGTERM and SIGCONT", " to all connections") ;
       killthem(SIGTERM) ;
       killthem(SIGCONT) ;
       break ;
-    }
     case SIGQUIT :
-    {
       if (verbosity >= 2)
         strerr_warni6x("received ", "SIGQUIT,", " sending ", "SIGTERM and SIGCONT", " to all connections", " and quitting") ;
       cont = 0 ;
       killthem(SIGTERM) ;
       killthem(SIGCONT) ;
       break ;
-    }
     case SIGABRT :
-    {
       if (verbosity >= 2)
         strerr_warni6x("received ", "SIGABRT,", " sending ", "SIGKILL", " to all connections", " and quitting") ;
       cont = 0 ;
       killthem(SIGKILL) ;
       break ;
-    }
     default : X() ;
   }
 }
@@ -278,11 +276,8 @@ static inline void new_connection (int s, char const *ip, uint16_t port, char co
   PIDI(num)->pid = pid ;
   PIDI(num)->i = d ;
   avltreen_insert(by_pid, num) ;
-  if (verbosity >= 2)
-  {
-    log_accept(pid, ip, port, *NUMP(d)) ;
-    log_status() ;
-  }
+  log_accept(pid, ip, port, *NUMP(d)) ;
+  log_status() ;
 }
 
 int main (int argc, char const *const *argv)
@@ -337,7 +332,8 @@ int main (int argc, char const *const *argv)
       sigaddset(&set, SIGABRT) ;
       if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
     }
-    fmtlocalmaxconn[1+uint32_fmt(fmtlocalmaxconn+1, localmaxconn)] = 0 ;
+    fmtmaxconn[1 + uint32_fmt(fmtmaxconn + 1, maxconn)] = 0 ;
+    fmtlocalmaxconn[1 + uint32_fmt(fmtlocalmaxconn + 1, localmaxconn)] = 0 ;
   }
 
   {
@@ -385,12 +381,8 @@ int main (int argc, char const *const *argv)
       memcpy(modifs + m, fmtport, portlen) ; m += portlen ;
       memcpy(modifs + m, "\0TCPREMOTEIP=", 13) ; m += 13 ;
 
-      if (verbosity >= 2)
-      {
-        fmtmaxconn[1 + uint32_fmt(fmtmaxconn+1, maxconn)] = 0 ;
-        log_start(fmtip, fmtport) ;
-        log_status() ;
-      }
+      log_start(fmtip, fmtport) ;
+      log_status() ;
 
       if (flag1)
       {
@@ -430,6 +422,6 @@ int main (int argc, char const *const *argv)
       }
     }
   }
-  if (verbosity >= 2) log_exit() ;
+  log_exit() ;
   return 0 ;
 }
