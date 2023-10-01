@@ -151,15 +151,30 @@ static inline void log_close (pid_t pid, char const *ip, int w, uint32_t num)
   strerr_warni7x("end pid ", fmtpid, WIFSIGNALED(w) ? " signal " : " exitcode ", fmtw, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
-static int killthem_iter (void *data, void *aux)
+static int send_termcont_iter (void *data, void *aux)
 {
-  kill(((pidi *)data)->pid, *(int *)aux) ;
+  (void)aux ;
+  pid_t pid = ((pidi *)data)->pid ;
+  kill(pid, SIGTERM) ;
+  kill(pid, SIGCONT) ;
   return 1 ;
 }
 
-static void killthem (int sig)
+static int send_kill_iter (void *data, void *aux)
 {
-  genset_iter(pidis, &killthem_iter, &sig) ;
+  (void)aux ;
+  kill(((pidi *)data)->pid, SIGKILL) ;
+  return 1 ;
+}
+
+static inline void send_termcont (void)
+{
+  genset_iter(pidis, &send_termcont_iter, 0) ;
+}
+
+static inline void send_kill (void)
+{
+  genset_iter(pidis, &send_kill_iter, 0) ;
 }
 
 static inline void end_connection (pid_t pid, int wstat)
@@ -207,21 +222,19 @@ static inline void handle_signals (void)
     case SIGHUP :
       if (verbosity >= 2)
         strerr_warni5x("received ", "SIGHUP,", " sending ", "SIGTERM and SIGCONT", " to all connections") ;
-      killthem(SIGTERM) ;
-      killthem(SIGCONT) ;
+      send_termcont() ;
       break ;
     case SIGQUIT :
       if (verbosity >= 2)
         strerr_warni6x("received ", "SIGQUIT,", " sending ", "SIGTERM and SIGCONT", " to all connections", " and quitting") ;
       cont = 0 ;
-      killthem(SIGTERM) ;
-      killthem(SIGCONT) ;
+      send_termcont() ;
       break ;
     case SIGABRT :
       if (verbosity >= 2)
         strerr_warni6x("received ", "SIGABRT,", " sending ", "SIGKILL", " to all connections", " and quitting") ;
       cont = 0 ;
-      killthem(SIGKILL) ;
+      send_kill() ;
       break ;
     default : X() ;
   }
@@ -397,27 +410,19 @@ int main (int argc, char const *const *argv)
       if (iopause_g(x, 1 + (numconn < maxconn), 0) == -1)
         strerr_diefu1sys(111, "iopause") ;
 
-      if (x[0].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with selfpipe") ;
-      if (x[0].revents & IOPAUSE_READ)
+      if (x[0].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT)) { handle_signals() ; continue ; }
+      if (numconn >= maxconn) continue ;
+      if (x[1].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT))
       {
-        handle_signals() ;
-        continue ;
-      }
-      if (numconn < maxconn)
-      {
-        if (x[1].revents & IOPAUSE_EXCEPT) strerr_dief1x(111, "trouble with socket") ;
-        if (x[1].revents & IOPAUSE_READ)
+        int fd = is6 ? socket_accept6(x[1].fd, ip, &port) : socket_accept4(x[1].fd, ip, &port) ;
+        if (fd == -1)
         {
-          int fd = is6 ? socket_accept6(x[1].fd, ip, &port) : socket_accept4(x[1].fd, ip, &port) ;
-          if (fd == -1)
-          {
-            if (verbosity) strerr_warnwu1sys("accept") ;
-          }
-          else
-          {
-            new_connection(fd, ip, port, argv, (char const *const *)environ, modifs, m, envlen) ;
-            fd_close(fd) ;
-          }
+          if (verbosity) strerr_warnwu1sys("accept") ;
+        }
+        else
+        {
+          new_connection(fd, ip, port, argv, (char const *const *)environ, modifs, m, envlen) ;
+          fd_close(fd) ;
         }
       }
     }
