@@ -379,26 +379,27 @@ int main (int argc, char const *const *argv)
     by_pid = &bypid_info ;
 
     {
-      size_t iplen, portlen ;
-      char fmtip[IP46_FMT] ;
-      char fmtport[UINT16_FMT] ;
+      size_t ippos, portpos, portlen ;
       ip46 loc ;
       if (socket_local46(0, &loc, &port) == -1)
         strerr_diefu1sys(111, "get local socket information") ;
       is6 = ip46_is6(&loc) ;
       memcpy(ip, loc.ip, is6 ? 16 : 4) ;
-      iplen = is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip) ;
-      portlen = uint16_fmt(fmtport, port) ; 
-      memcpy(modifs + m, fmtip, iplen) ; m += iplen ;
+      ippos = m ;
+      m += is6 ? ip6_fmt(modifs + m, ip) : ip4_fmt(modifs + m, ip) ;
       memcpy(modifs + m, "\0TCPLOCALPORT=", 14) ; m += 14 ;
-      memcpy(modifs + m, fmtport, portlen) ; m += portlen ;
+      portpos = m ;
+      m += uint16_fmt(modifs + m, port) ;
+      portlen = m - portpos ;
       memcpy(modifs + m, "\0TCPREMOTEIP=", 13) ; m += 13 ;
 
-      log_start(fmtip, fmtport) ;
+      log_start(modifs + ippos, modifs + portpos) ;
       log_status() ;
 
       if (flag1)
       {
+        char fmtport[UINT16_FMT] ;
+        memcpy(fmtport, modifs + portpos, portlen) ;
         fmtport[portlen] = '\n' ;
         allwrite(1, fmtport, portlen + 1) ;
         close(1) ;
