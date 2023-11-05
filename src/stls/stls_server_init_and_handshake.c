@@ -107,7 +107,7 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain const *tto, uin
 
   sctx = tls_server() ;
   if (!sctx) strerr_diefu1sys(111, "tls_server") ;
-  if (tls_configure(sctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
+  if (tls_configure(sctx, cfg) < 0) diectx(97, sctx, "tls_configure") ;
   tls_config_free(cfg) ;
   if (tls_accept_fds(sctx, &ctx, fds[0], fds[1]) < 0)
     diectx(97, sctx, "tls_accept_fds") ;
