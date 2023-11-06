@@ -46,7 +46,7 @@ static void logit (pid_t pid, ip46 const *ip, int h)
   fmtip[ip46_fmt(fmtip, ip)] = 0 ;
   fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
   if (h) strerr_warni5x("allow", " pid ", fmtpid, " ip ", fmtip) ;
-  else strerr_warni5sys("deny", " pid ", fmtpid, " ip ", fmtip) ;
+  else strerr_warni5x("deny", " pid ", fmtpid, " ip ", fmtip) ;
 }
 
 static inline void log_accept (pid_t pid, ip46 const *ip)
@@ -176,11 +176,11 @@ int main (int argc, char const *const *argv)
       strerr_diefu6sys(111, "check ", rulestypestr[rulestype], " ruleset for ", "IP", " in ", rules) ;
     case S6_ACCESSRULES_ALLOW : break ;
     case S6_ACCESSRULES_DENY :
-      if (verbosity >= 2) { errno = EACCES ; log_deny(getpid(), &remoteip) ; }
+      if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
       return 1 ;
     case S6_ACCESSRULES_NOTFOUND :
       if (flagdnslookup) break ;
-      if (verbosity >= 2) { errno = ENOENT ; log_deny(getpid(), &remoteip) ; }
+      if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
       return 1 ;
     default: X() ;
   }
@@ -361,10 +361,10 @@ int main (int argc, char const *const *argv)
         strerr_diefu6sys(111, "check ", rulestypestr[rulestype], " ruleset for ", "reverse DNS", " in ", rules) ;
       case S6_ACCESSRULES_ALLOW : break ;
       case S6_ACCESSRULES_DENY :
-        if (verbosity >= 2) { errno = EACCES ; log_deny(getpid(), &remoteip) ; }
+        if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
         return 1 ;
       case S6_ACCESSRULES_NOTFOUND :
-        if (verbosity >= 2) { errno = ENOENT ; log_deny(getpid(), &remoteip) ; }
+        if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
         return 1 ;
       default : X() ;
     }
