@@ -5,7 +5,7 @@ In 2.6.0.0
 
  - Bugfixes.
  - s6-tcpserver has been unified! no ipv4 and ipv6 separation anymore.
-   * the only programs in the superserver chain are now s6-tcpserver,
+   * The only programs in the superserver chain are now s6-tcpserver,
 s6-tcpserver-socketbinder, and s6-tcpserverd.
    * s6-tcpserver-access still exists, should now run under s6-tcpserverd,
 still invoked once per connection. Doesn't spam the log anymore when
