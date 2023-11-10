@@ -1,6 +1,7 @@
 /* ISC license. */
 
-#include <stddef.h>
+#include <string.h>
+#include <stdlib.h>
 
 #include <skalibs/posixplz.h>
 #include <skalibs/bytestr.h>
@@ -8,6 +9,12 @@
 #include <skalibs/exec.h>
 
 #include "s6tls-internal.h"
+
+static int startswith (void const *a, void const *b)
+{
+  char const *bb = *(char const *const *)b ;
+  return strncmp(a, bb, strlen(bb)) ;
+}
 
 void s6tls_clean_and_exec (char const *const *argv, uint32_t options, char const *modif, size_t modiflen)
 {
@@ -17,25 +24,20 @@ void s6tls_clean_and_exec (char const *const *argv, uint32_t options, char const
     {
       "CADIR=",
       "CAFILE=",
-      "KEYFILE=",
-      "CERTFILE=",
-      "TLS_UID=",
-      "TLS_GID=",
-      "KEYFILE:",
       "CERTFILE:",
-      0
+      "CERTFILE=",
+      "KEYFILE:",
+      "KEYFILE=",
+      "TLS_GID=",
+      "TLS_UID="
     } ;
     char const *const *envp = (char const *const *)environ ;
     size_t m = 0 ;
     size_t n = env_len(envp) ;
     char const *newenvp[n + 1] ;
     for (; *envp ; envp++)
-    {
-      char const *const *var = toclean ;
-      for (; *var ; var++)
-        if (str_start(*envp, *var)) break ;
-      if (!*var) newenvp[m++] = *envp ;
-    }
+      if (!bsearch(*envp, toclean, sizeof(toclean)/sizeof(char const *), sizeof(char const *), &startswith))
+        newenvp[m++] = *envp ;
     newenvp[m] = 0 ;
     xmexec_fm(argv, newenvp, m, modif, modiflen) ;
   }

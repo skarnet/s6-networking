@@ -17,10 +17,10 @@ int main (int argc, char const *const *argv)
   unsigned int verbosity = 1 ;
   unsigned int kimeout = 0 ;
   unsigned int snilevel = 0 ;
-  int p[4][2] = { [3] = { [0] = 0, [1] = 1 } } ;
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
   pid_t pid ;
+  int p[8] = { [6] = 0, [7] = 1 } ;
   char const *newargv[S6TLS_PREP_IO_ARGC] ;
   char buf[S6TLS_PREP_IO_BUFLEN] ;
   PROG = "s6-tlsd" ;
@@ -48,10 +48,10 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
 
-  if (pipe(p[0]) == -1 || pipe(p[1]) == -1 || pipe(p[2]) == -1)
+  if (pipe(p) == -1 || pipe(p+2) == -1 || pipe(p+4) == -1)
     strerr_diefu1sys(111, "create pipe") ;
   s6tls_prep_tlsdio(newargv, buf, p, coptions, verbosity, kimeout, snilevel) ;
-  pid = s6tls_io_spawn(newargv, p) ;
+  pid = s6tls_io_spawn(newargv, p, 0) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", newargv[0]) ;
   s6tls_sync_and_exec_app(argv, p, pid, poptions) ;
 }

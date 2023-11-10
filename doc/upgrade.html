@@ -18,6 +18,18 @@
 
 <h1> What has changed in s6-networking </h1>
 
+<h2> in 2.7.0.0 </h2>
+
+<ul>
+ <li> <a href="s6-tlsc-io.html">s6-tlsc-io</a> has changed
+interfaces: now it uses stdin/stdout as the <em>local</em>
+side, and the descriptors given as arguments as the <em>remote</em>
+side. This allows users to invoke it directly when it is relevant. </li>
+ <li> Consequently, <a href="s6-tlsc.html">s6-tlsc</a> and
+<a href="s6-ucpistlsc.html">s6-ucspitlsc</a> have changed how they invoke
+<a href="s6-tlsc-io.html">s6-tlsc-io</a>. </li>
+</ul>
+
 <h2> in 2.6.0.0 </h2>
 
 <ul>

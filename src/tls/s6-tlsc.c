@@ -18,7 +18,7 @@ int main (int argc, char const *const *argv)
 {
   unsigned int verbosity = 1 ;
   unsigned int kimeout = 0 ;
-  int p[4][2] = { [3] = { [0] = 6, [1] = 7 } } ;
+  int p[8] = { [6] = 6, [7] = 7 } ;
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
   pid_t pid ;
@@ -46,15 +46,15 @@ int main (int argc, char const *const *argv)
         case '6' :
         {
           unsigned int fd ;
-          if (!uint0_scan(l.arg, &fd)) dieusage() ;
-          p[3][0] = fd ;
+          if (!uint0_scan(l.arg, &fd) || fd < 3) dieusage() ;
+          p[6] = fd ;
           break ;
         }
         case '7' :
         {
           unsigned int fd ;
-          if (!uint0_scan(l.arg, &fd)) dieusage() ;
-          p[3][1] = fd ;
+          if (!uint0_scan(l.arg, &fd) || fd < 3) dieusage() ;
+          p[7] = fd ;
           break ;
         }
         default : dieusage() ;
@@ -62,16 +62,14 @@ int main (int argc, char const *const *argv)
     }
     argc -= l.ind ; argv += l.ind ;
   }
-  if (!argc) dieusage() ;
-
+  if (!argc || p[6] == p[7]) dieusage() ;
   fd_sanitize() ;
-  if (fcntl(p[3][0], F_GETFD) == -1 || fcntl(p[3][1], F_GETFD) == -1)
+  if (fcntl(p[6], F_GETFD) == -1 || fcntl(p[7], F_GETFD) == -1)
     strerr_diefu1sys(111, "check network fds") ;
-
-  if (pipe(p[0]) == -1 || pipe(p[1]) == -1 || pipe(p[2]) == -1)
+  if (pipe(p) == -1 || pipe(p+2) == -1 || pipe(p+4) == -1)
     strerr_diefu1sys(111, "pipe") ;
   s6tls_prep_tlscio(newargv, buf, p, coptions, verbosity, kimeout, servername) ;
-  pid = s6tls_io_spawn(newargv, p) ;
+  pid = s6tls_io_spawn(newargv, p, 1) ;
   if (!pid) strerr_diefu2sys(111, "spawn ", newargv[0]) ;
   s6tls_sync_and_exec_app(argv, p, pid, poptions) ;
 }

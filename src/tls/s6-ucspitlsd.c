@@ -17,18 +17,18 @@
 #define USAGE "s6-ucspitlsd [ -S | -s ] [ -Y | -y ] [ -k snilevel ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
-static inline void child (int [4][2], uint32_t, unsigned int, unsigned int, unsigned int, pid_t) gccattr_noreturn ;
-static inline void child (int p[4][2], uint32_t options, unsigned int verbosity, unsigned int kimeout, unsigned int snilevel, pid_t pid)
+static inline void child (int *, uint32_t, unsigned int, unsigned int, unsigned int, pid_t) gccattr_noreturn ;
+static inline void child (int *p, uint32_t options, unsigned int verbosity, unsigned int kimeout, unsigned int snilevel, pid_t pid)
 {
   ssize_t r ;
   char const *newargv[S6TLS_PREP_IO_ARGC] ;
   char buf[S6TLS_PREP_IO_BUFLEN] ;
   char c ;
   PROG = "s6-ucspitlsd" ;
-  close(p[2][0]) ;
-  close(p[0][1]) ;
-  close(p[1][0]) ;
-  r = read(p[2][1], &c, 1) ;
+  close(p[4]) ;
+  close(p[1]) ;
+  close(p[2]) ;
+  r = read(p[5], &c, 1) ;
   if (r < 0) strerr_diefu1sys(111, "read from control socket") ;
   if (!r)
   {
@@ -43,11 +43,11 @@ static inline void child (int p[4][2], uint32_t options, unsigned int verbosity,
   switch (c)
   {
     case 'y' :
-      close(p[2][1]) ;
-      p[2][1] = 0 ; /* we know 0 is open so it's a suitable invalid value */
+      close(p[5]) ;
+      p[5] = 0 ; /* we know 0 is open so it's a suitable invalid value */
       break ;
     case 'Y' :
-      fd_shutdown(p[2][1], 0) ;
+      fd_shutdown(p[5], 0) ;
       break ;
     default :
       strerr_dief1x(100, "unrecognized command on control socket") ;
@@ -67,9 +67,9 @@ int main (int argc, char const *const *argv)
   unsigned int verbosity = 1 ;
   unsigned int kimeout = 0 ;
   unsigned int snilevel = 0 ;
-  int p[4][2] = { [3] = { [0] = -1, [1] = -1 } } ;
   uint32_t coptions = 0 ;
   uint32_t poptions = 1 ;
+  int p[6] ;
   pid_t pid ;
 
   PROG = "s6-ucspitlsd (parent)" ;
@@ -97,8 +97,8 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
 
-  if (ipc_pair_b(p[2]) == -1) strerr_diefu1sys(111, "ipc_pair") ;
-  if (pipe(p[0]) == -1 || pipe(p[1]) == -1) strerr_diefu1sys(111, "pipe") ;
+  if (pipe(p) == -1 || pipe(p+2) == -1) strerr_diefu1sys(111, "pipe") ;
+  if (ipc_pair_b(p+4) == -1) strerr_diefu1sys(111, "ipc_pair") ;
   pid = getpid() ;
 
   switch (fork())

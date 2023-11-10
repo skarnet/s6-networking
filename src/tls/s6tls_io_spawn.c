@@ -5,15 +5,15 @@
 
 #include "s6tls-internal.h"
 
-pid_t s6tls_io_spawn (char const *const *argv, int const p[4][2])
+pid_t s6tls_io_spawn (char const *const *argv, int const *p, int isc)
 {
   cspawn_fileaction fa[5] =
   {
-    [0] = { .type = CSPAWN_FA_CLOSE, .x = { .fd = p[0][1] } },
-    [1] = { .type = CSPAWN_FA_CLOSE, .x = { .fd = p[1][0] } },
-    [2] = { .type = CSPAWN_FA_CLOSE, .x = { .fd = p[2][0] } },
-    [3] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 0, [1] = p[3][0] } } },
-    [4] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 1, [1] = p[3][1] } } }
+    { .type = CSPAWN_FA_CLOSE, .x = { .fd = p[1] } },
+    { .type = CSPAWN_FA_CLOSE, .x = { .fd = p[2] } },
+    { .type = CSPAWN_FA_CLOSE, .x = { .fd = p[4] } },
+    { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { 0, p[0] } } },
+    { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { 1, p[3] } } }
   } ;
-  return cspawn(argv[0], argv, (char const *const *)environ, 0, fa, 5) ;
+  return cspawn(argv[0], argv, (char const *const *)environ, 0, fa, isc ? 5 : 3) ;
 }

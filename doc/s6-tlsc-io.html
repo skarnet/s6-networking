@@ -42,14 +42,14 @@ the options given when configuring s6-networking.
 </pre>
 
 <ul>
- <li> s6-tlsc-io expects to have an open connection it
-can talk to on its standard input and output. It also expects to read
-cleartext data from file descriptor <em>fdr</em> and write cleartext
-data to file descriptor <em>fdw</em>. </li>
+ <li> s6-tlsc-io expects to read cleartext data to stdin, and write
+cleartext data to stdout. It also expects descriptors <em>fdr</em> and
+<em>fdw</em> to be open (typically connected to the network), to
+respectively read ciphertext from and write ciphertext to. </li>
  <li> It initiates a TLS handshake over the network connection,
 expecting a TLS server on the other side. </li>
- <li> Then it acts as a full duplex tunnel, decrypting and transmitting
-data from stdin to <em>fdw</em>, and encrypting and transmitting data
+ <li> Then it acts as a full duplex tunnel, encrypting and transmitting
+data from stdin to <em>fdw</em>, and decrypting and transmitting data
 from <em>fdr</em> to stdout. </li>
  <li> When it cannot transmit any more data from/to the local application
 because connections have closed, <tt>s6-tlsc-io</tt> exits. </li>

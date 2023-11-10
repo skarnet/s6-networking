@@ -69,7 +69,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   char const *servername = 0 ;
   tain tto ;
-  int fds[4] = { 0, 1, 0, 1 } ;
+  int fds[4] = { 0, 1, 6, 7 } ;
   unsigned int verbosity = 1 ;
   unsigned int notif = 0 ;
   uint32_t preoptions = 0 ;
@@ -103,9 +103,9 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     unsigned int u ;
     if (!uint0_scan(argv[0], &u)) dieusage() ;
-    fds[0] = u ;
+    fds[2] = u ;
     if (!uint0_scan(argv[1], &u)) dieusage() ;
-    fds[1] = u ;
+    fds[3] = u ;
   }
 
   if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
