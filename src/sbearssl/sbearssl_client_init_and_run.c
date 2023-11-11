@@ -29,9 +29,10 @@ void sbearssl_client_init_and_run (int *fds, tain const *tto, uint32_t preoption
     union br_skey_u key ;
     br_ssl_client_context cc ;
     sbearssl_x509_small_context xc ;
+    unsigned char bufi[BR_SSL_BUFSIZE_INPUT] ;
+    unsigned char bufo[BR_SSL_BUFSIZE_OUTPUT] ;
     br_x509_certificate chain[chainlen ? chainlen : 1] ;
     br_x509_trust_anchor btas[n] ;
-    unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
 
     for (size_t i = 0 ; i < chainlen ; i++)
       sbearssl_cert_to(genalloc_s(sbearssl_cert, &certs) + i, chain + i, storage.s) ;
@@ -79,9 +80,9 @@ void sbearssl_client_init_and_run (int *fds, tain const *tto, uint32_t preoption
     }
 
     br_ssl_engine_add_flags(&cc.eng, BR_OPT_NO_RENEGOTIATION) ;
-    random_buf((char *)buf, 32) ;
-    br_ssl_engine_inject_entropy(&cc.eng, buf, 32) ;
-    br_ssl_engine_set_buffer(&cc.eng, buf, sizeof(buf), 1) ;
+    random_buf((char *)bufi, 32) ;
+    br_ssl_engine_inject_entropy(&cc.eng, bufi, 32) ;
+    br_ssl_engine_set_buffers_bidi(&cc.eng, bufi, sizeof(bufi), bufo, sizeof(bufo)) ;
     if (!br_ssl_client_reset(&cc, servername, 0))
       strerr_diefu2x(97, "reset client context: ", sbearssl_error_str(br_ssl_engine_last_error(&cc.eng))) ;
 

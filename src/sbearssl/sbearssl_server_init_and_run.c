@@ -77,14 +77,15 @@ void sbearssl_server_init_and_run (int *fds, tain const *tto, uint32_t preoption
     stralloc tastorage = STRALLOC_ZERO ;
     genalloc tas = GENALLOC_ZERO ;  /* sbearssl_ta */
     size_t n = preoptions & 1 ? sbearssl_get_tas(&tas, &tastorage) : 0 ;
-    unsigned char buf[BR_SSL_BUFSIZE_BIDI] ;
+    unsigned char bufi[BR_SSL_BUFSIZE_INPUT] ;
+    unsigned char bufo[BR_SSL_BUFSIZE_OUTPUT] ;
     br_x509_trust_anchor btas[n ? n : 1] ;
 
     sbearssl_sctx_init_full_generic(&sc) ;
     sbearssl_sctx_set_policy_sni(&sc, &pol) ;
-    random_buf((char *)buf, 32) ;
-    br_ssl_engine_inject_entropy(&sc.eng, buf, 32) ;
-    br_ssl_engine_set_buffer(&sc.eng, buf, sizeof(buf), 1) ;
+    random_buf((char *)bufi, 32) ;
+    br_ssl_engine_inject_entropy(&sc.eng, bufi, 32) ;
+    br_ssl_engine_set_buffers_bidi(&sc.eng, bufi, sizeof(bufi), bufo, sizeof(bufo)) ;
 
     {
       uint32_t flags = BR_OPT_ENFORCE_SERVER_PREFERENCES | BR_OPT_NO_RENEGOTIATION ;

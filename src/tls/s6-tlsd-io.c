@@ -70,7 +70,7 @@ int main (int argc, char const *const *argv)
   unsigned int verbosity = 1 ;
   unsigned int notif = 0 ;
   uint32_t preoptions = 0 ;
-  uint32_t options = 1 ;
+  uint32_t options = 0 ;
 
   PROG = "s6-tlsd-io" ;
   {
@@ -84,8 +84,8 @@ int main (int argc, char const *const *argv)
       {
         case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
         case 'd' : if (!uint0_scan(l.arg, &notif)) dieusage() ; break ;
-        case 'S' : options &= ~1 ; break ;
-        case 's' : options |= 1 ; break ;
+        case 'S' : options |= 1 ; break ;
+        case 's' : options &= ~1 ; break ;
         case 'Y' : preoptions |= 1 ; preoptions &= ~2 ; break ;
         case 'y' : preoptions |= 3 ; break ;
         case 'K' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;

@@ -104,9 +104,9 @@ static void send_closenotify (struct tls *ctx, int const *fds)
     iopause_g(&x, 1, 0) ;
 }
 
-static void closeit (struct tls *ctx, int *fds, int brutal)
+static void closeit (struct tls *ctx, int *fds, int closenotify)
 {
-  if (brutal) fd_shutdown(fds[3], 1) ;
+  if (!closenotify) fd_shutdown(fds[3], 1) ;
   else if (fds[2] >= 0) send_closenotify(ctx, fds) ;
   fd_close(fds[3]) ; fds[3] = -1 ;
 }
@@ -243,7 +243,7 @@ void stls_run (struct tls *ctx, int *fds, uint32_t options, unsigned int verbosi
       if (r < 0)
       {
         if (r == -1) strerr_warnwu2x("read from peer: ", tls_error(ctx)) ;
-        if (options & 1) fd_shutdown(fds[2], 0) ;
+        if (!(options & 1)) fd_shutdown(fds[2], 0) ;
         /*
            XXX: We need a way to detect when we've received a close_notify,
            because then we need to trigger a write and then shut the engine
