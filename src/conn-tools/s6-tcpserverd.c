@@ -113,7 +113,7 @@ static void log_status (void)
   strerr_warni3x("status: ", fmt, fmtmaxconn) ;
 }
 
-static inline void log_deny (char const *ip, uint16_t port, uint32_t num)
+static inline void log_reject (char const *ip, uint16_t port, uint32_t num)
 {
   char fmtip[IP46_FMT] ;
   char fmtport[UINT16_FMT] ;
@@ -122,7 +122,7 @@ static inline void log_deny (char const *ip, uint16_t port, uint32_t num)
   fmtip[is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip)] = 0 ;
   fmtport[uint16_fmt(fmtport, port)] = 0 ;
   fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
-  strerr_warni7sys("deny ", fmtip, ":", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
+  strerr_warni7sys("reject ", fmtip, "_", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
 static inline void log_accept (pid_t pid, char const *ip, uint16_t port, uint32_t num)
@@ -136,7 +136,7 @@ static inline void log_accept (pid_t pid, char const *ip, uint16_t port, uint32_
   fmtport[uint16_fmt(fmtport, port)] = 0 ;
   fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
   fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
-  strerr_warni9x("allow ", fmtip, ":", fmtport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
+  strerr_warni9x("accept ", fmtip, "_", fmtport, " pid ", fmtpid, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
 static inline void log_close (pid_t pid, char const *ip, int w, uint32_t num)
@@ -247,7 +247,7 @@ static inline void new_connection (int s, char const *ip, uint16_t port, char co
   uint32_t num = avltreen_search(by_ip, ip, &d) ? *NUMP(d) : 0 ;
   if (num >= localmaxconn)
   {
-    log_deny(ip, port, num) ;
+    log_reject(ip, port, num) ;
     return ;
   }
 
