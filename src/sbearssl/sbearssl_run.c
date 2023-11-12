@@ -16,10 +16,10 @@
 #include "sbearssl-internal.h"
 
 
- /* declared in bearssl's inner.h */
+ /* declared in bearssl's src/inner.h */
 extern void br_ssl_engine_fail (br_ssl_engine_context *, int) ;
 
- /* XXX: breaks encapsulation; see make_ready_in() in src/ssl/ssl_engine.c in bearssl */
+ /* XXX: breaks encapsulation; see make_ready_in() in bearssl's src/ssl/ssl_engine.c */
 static int br_ssl_engine_in_isempty (br_ssl_engine_context *ctx)
 {
   return !ctx->iomode || (ctx->iomode == 3 && !ctx->ixa && !ctx->ixb) ;
@@ -50,15 +50,8 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
     strerr_diefu1sys(111, "set fds non-blocking") ;
   tain_add_g(&deadline, tto) ;
 
-  while (x[0].fd >= 0 || x[1].fd >= 0 || x[3].fd >= 0)
+  while ((x[0].fd >= 0 || x[1].fd >= 0 || x[3].fd >= 0) && !(state & BR_SSL_CLOSED))
   {
-    if (state & BR_SSL_CLOSED)
-    {
-      int r = br_ssl_engine_last_error(ctx) ;
-      if (r) strerr_dief4x(98, "the TLS engine closed the connection ", handshake_done ? "after" : "during", " the handshake: ", sbearssl_error_str(r)) ;
-      else break ;
-    }
-
 
    /* Preparation */
 
@@ -202,7 +195,7 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
             fd_close(x[1].fd) ;
             x[1].fd = -1 ;
           }
-          if (!br_ssl_engine_in_isempty(ctx))
+          if (!handshake_done || !br_ssl_engine_in_isempty(ctx))
             br_ssl_engine_fail(ctx, BR_ERR_IO) ;
           break ;
         }
@@ -210,6 +203,39 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
       }
       state = br_ssl_engine_current_state(ctx) ;
     }
+
+
+   /* Detect ill-timed broken pipes */
+
+    if (x[1].fd >= 0 && x[1].revents & IOPAUSE_EXCEPT && !(state & BR_SSL_RECVAPP))
+    {
+      fd_close(x[1].fd) ;
+      x[1].fd = -1 ;
+      if (x[2].fd >= 0)
+      {
+        fd_close(x[2].fd) ;
+        x[2].fd = -1 ;
+        if (!br_ssl_engine_in_isempty(ctx)) br_ssl_engine_fail(ctx, BR_ERR_IO) ;
+      }
+    }
+
+    if (x[3].fd >= 0 && x[3].revents & IOPAUSE_EXCEPT && !(state & BR_SSL_SENDREC))
+    {
+      fd_close(x[3].fd) ;
+      x[3].fd = -1 ;
+      if (x[0].fd >= 0)
+      {
+        fd_close(x[0].fd) ;
+        x[0].fd = -1 ;
+      }
+    }
+
+  }  /* end of main loop */
+
+  if (state & BR_SSL_CLOSED)
+  {
+    int r = br_ssl_engine_last_error(ctx) ;
+    if (r) strerr_dief4x(98, "the TLS engine closed the connection ", handshake_done ? "after" : "during", " the handshake: ", sbearssl_error_str(r)) ;
   }
 
   _exit(0) ;

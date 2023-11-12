@@ -66,7 +66,7 @@ static inline void doit (int *fds, tain const *tto, uint32_t preoptions, uint32_
 int main (int argc, char const *const *argv)
 {
   tain tto ;
-  int fds[4] = { 0, 1, 0, 1 } ;
+  int fds[4] = { [2] = 0, [3] = 1 } ;
   unsigned int verbosity = 1 ;
   unsigned int notif = 0 ;
   uint32_t preoptions = 0 ;

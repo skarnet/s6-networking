@@ -69,11 +69,11 @@ int main (int argc, char const *const *argv, char const *const *envp)
 {
   char const *servername = 0 ;
   tain tto ;
-  int fds[4] = { 0, 1, 6, 7 } ;
+  int fds[4] = { 0, 1 } ;
   unsigned int verbosity = 1 ;
   unsigned int notif = 0 ;
   uint32_t preoptions = 0 ;
-  uint32_t options = 2 ;
+  uint32_t options = 0 ;
 
   PROG = "s6-tlsc-io" ;
   {
