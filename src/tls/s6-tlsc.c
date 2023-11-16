@@ -11,7 +11,7 @@
 
 #include "s6tls-internal.h"
 
-#define USAGE "s6-tlsc [ -S | -s ]  [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -k servername ] [ -Z | -z ] [ -6 fdr ] [ -7 fdw ] prog..."
+#define USAGE "s6-tlsc [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -k servername ] [ -Z | -z ] [ -6 fdr ] [ -7 fdw ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 int main (int argc, char const *const *argv)
@@ -30,14 +30,16 @@ int main (int argc, char const *const *argv)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "SsYyv:K:k:Zz6:7:", &l) ;
+      int opt = subgetopt_r(argc, argv, "SsJjyYv:K:k:Zz6:7:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
-        case 'S' : coptions &= ~4 ; break ;
-        case 's' : coptions |= 4 ; break ;
-        case 'Y' : coptions &= ~1 ; break ;
+        case 'S' : coptions |= 4 ; break ;
+        case 's' : coptions &= ~4 ; break ;
+        case 'J' : coptions |= 2 ; break ;
+        case 'j' : coptions &= ~2 ; break ;
         case 'y' : coptions |= 1 ; break ;
+        case 'Y' : coptions &= ~1 ; break ;
         case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
         case 'K' : if (!uint0_scan(l.arg, &kimeout)) dieusage() ; break ;
         case 'k' : servername = l.arg ; break ;

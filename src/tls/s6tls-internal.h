@@ -9,7 +9,7 @@
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
 
-#define S6TLS_PREP_IO_ARGC 15
+#define S6TLS_PREP_IO_ARGC 16
 #define S6TLS_PREP_IO_BUFLEN (5 * UINT_FMT)
 
 extern pid_t s6tls_io_spawn (char const *const *argv, int const *, int) ;

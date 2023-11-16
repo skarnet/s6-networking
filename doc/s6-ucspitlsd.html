@@ -36,7 +36,7 @@ TLS stack in the server itself.
 <h2> Interface </h2>
 
 <pre>
-     s6-ucspitlsd [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k snilevel ] [ -- ] <em>prog...</em>
+     s6-ucspitlsd [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k snilevel ] [ -- ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -146,6 +146,9 @@ before execing <em>prog...</em>. This is the default. </li>
 and break the connection when <em>prog</em> sends EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
+ <li> <tt>-J</tt>&nbsp;: make <a href="s6-tlsd-io.html">s6-tlsd-io</a>
+exit with a nonzero code if the peer sends EOF without a close_notify first </li>
+ <li> <tt>-j</tt>&nbsp;: treat EOF from the peer as a normal exit condition </li>
  <li> <tt>-Y</tt>&nbsp;: Request an optional client certificate. </li>
  <li> <tt>-y</tt>&nbsp;: Request a mandatory client certificate.
 The default, with neither the <tt>-Y</tt> nor the <tt>-y</tt> option,

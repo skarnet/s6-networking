@@ -38,7 +38,7 @@ the options given when configuring s6-networking.
 <h2> Interface </h2>
 
 <pre>
-     s6-tlsd-io [ -S | -s ] [ -Y | -y ] [ -v <em>verbosity</em> ] [ -K <em>kimeout</em> ] [ -k <em>snilevel</em> ] [ -d <em>notif</em> ] [ -- ] <em>fdr</em> <em>fdw</em>
+     s6-tlsd-io [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -v <em>verbosity</em> ] [ -K <em>kimeout</em> ] [ -k <em>snilevel</em> ] [ -d <em>notif</em> ] [ -- ] <em>fdr</em> <em>fdw</em>
 </pre>
 
 <ul>
@@ -210,6 +210,10 @@ no effect. </li>
 and break the connection when receiving a local EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
+ <li> <tt>-J</tt>&nbsp;: treat EOF from the peer without a prior close_notify
+as an error: print a fatal error message and exit 98. </li>
+ <li> <tt>-j</tt>&nbsp;: treat EOF from the peer without a prior close_notify
+as a normal exit condition. This is the default. </li>
  <li> <tt>-Y</tt>&nbsp;: Request a client certificate.
 The certificate is optional: if the client gives none, the connection
 proceeds. </li>

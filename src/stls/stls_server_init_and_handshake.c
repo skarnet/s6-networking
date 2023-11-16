@@ -86,6 +86,7 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain const *tto, uin
     {
       if (tls_config_set_ca_path(cfg, x) < 0)
         diecfg(cfg, "tls_config_set_ca_path") ;
+      strerr_warnw1x("some versions of libtls do not work with CADIR, if you experience problems with client certificate verification then try using CAFILE instead") ;
     }
     else
     {
@@ -109,7 +110,7 @@ struct tls *stls_server_init_and_handshake (int const *fds, tain const *tto, uin
   if (!sctx) strerr_diefu1sys(111, "tls_server") ;
   if (tls_configure(sctx, cfg) < 0) diectx(97, sctx, "tls_configure") ;
   tls_config_free(cfg) ;
-  if (tls_accept_fds(sctx, &ctx, fds[0], fds[1]) < 0)
+  if (tls_accept_fds(sctx, &ctx, fds[0], fds[1]) == -1)
     diectx(97, sctx, "tls_accept_fds") ;
   /* We can't free sctx, ctx has pointers into it! Stupid API. We let sctx leak. */
   /* tls_free(sctx) ; */

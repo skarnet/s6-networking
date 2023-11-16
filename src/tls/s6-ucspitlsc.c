@@ -15,7 +15,7 @@
 #include <s6-networking/config.h>
 #include "s6tls-internal.h"
 
-#define USAGE "s6-ucspitlsc [ -S | -s ] [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] [ -k servername ] [ -6 fdr ] [ -7 fdw ] prog..."
+#define USAGE "s6-ucspitlsc [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -v verbosity ] [ -K timeout ] [ -Z | -z ] [ -k servername ] [ -6 fdr ] [ -7 fdw ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 
 static inline void child (int *, uint32_t, unsigned int, unsigned int, char const *, pid_t) gccattr_noreturn ;
@@ -80,14 +80,16 @@ int main (int argc, char const *const *argv, char const *const *envp)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "SsYyv:K:Zzk:6:7:", &l) ;
+      int opt = subgetopt_r(argc, argv, "SsJjyYv:K:Zzk:6:7:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
         case 'S' : coptions |= 4 ; break ;
         case 's' : coptions &= ~4 ; break ;
-        case 'Y' : coptions |= 1 ; coptions &= ~2 ; break ;
-        case 'y' : coptions |= 3 ; break ;
+        case 'J' : coptions |= 2 ; break ;
+        case 'j' : coptions &= ~2 ; break ;
+        case 'y' : coptions |= 1 ; break ;
+        case 'Y' : coptions &= ~1 ; break ;
         case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
         case 'K' : if (!uint0_scan(l.arg, &kimeout)) dieusage() ; break ;
         case 'Z' : poptions &= ~1 ; break ;

@@ -177,6 +177,7 @@ certificates, you probably still want TCP access rules.
  <li> <tt>-Z</tt>, <tt>-z</tt>&nbsp;: keep or remove the <a href="s6-tlsd-io.html">s6-tlsd-io</a>-specific
 variables from the application's environment </li>
  <li> <tt>-S</tt>, <tt>-s</tt>&nbsp;: use close_notify or EOF to signal the end of a TLS connection </li>
+ <li> <tt>-J</tt>, <tt>-j</tt>&nbsp;: exit nonzero with an error message when the peer fails to close_notify, or ignore it </li>
  <li> <tt>-Y</tt>, <tt>-y</tt>&nbsp;: request an optional or a mandatory client certificate </li>
  <li> <tt>-K <em>kimeout</em></tt>&nbsp;: set a timeout for the TLS handshake </li>
  <li> <tt>-k <em>snilevel</em></tt>&nbsp;: support SNI-based certificate chains </li>

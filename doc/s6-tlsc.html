@@ -29,7 +29,7 @@ TLS/SSL.
 <h2> Interface </h2>
 
 <pre>
-     s6-tlsc [ -S | -s ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k <em>servername</em> ] [ -6 <em>rfd</em> ] [ -7 <em>wfd</em> ] [ -- ] <em>prog...</em>
+     s6-tlsc [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -Z | -z ] [ -v <em>verbosity</em> ] [ -K kimeout ] [ -k <em>servername</em> ] [ -6 <em>rfd</em> ] [ -7 <em>wfd</em> ] [ -- ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -126,6 +126,9 @@ before execing <em>prog...</em>. This is the default. </li>
 and break the connection when <em>prog</em> sends EOF. </li>
  <li> <tt>-s</tt>&nbsp;: transmit EOF by half-closing the TCP
 connection without using <tt>close_notify</tt>. This is the default. </li>
+ <li> <tt>-J</tt>&nbsp;: make <a href="s6-tlsc-io.html">s6-tlsc-io</a>
+exit with a nonzero code if the peer sends EOF without a close_notify first </li>
+ <li> <tt>-j</tt>&nbsp;: treat EOF from the peer as a normal exit condition </li>
  <li> <tt>-Y</tt>&nbsp;: Do not send a client certificate. This is the default. </li>
  <li> <tt>-y</tt>&nbsp;: Send a client certificate. </li>
  <li> <tt>-k&nbsp;<em>servername</em></tt>&nbsp;: use Server Name

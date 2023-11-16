@@ -68,14 +68,9 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
     }
     else x[0].events = 0 ;
 
-    if (x[1].fd >= 0)
-      x[1].events = IOPAUSE_EXCEPT | (state & BR_SSL_RECVAPP ? IOPAUSE_WRITE : 0) ;
-
-    if (x[2].fd >= 0 && state & BR_SSL_RECVREC) x[2].events = IOPAUSE_READ ;
-    else x[2].events = 0 ;
-
-    if (x[3].fd >= 0)
-      x[3].events = IOPAUSE_EXCEPT | (state & BR_SSL_SENDREC ? IOPAUSE_WRITE : 0) ;
+    x[1].events = x[1].fd >= 0 ? IOPAUSE_EXCEPT | (state & BR_SSL_RECVAPP ? IOPAUSE_WRITE : 0) : 0 ;
+    x[2].events = x[2].fd >= 0 && state & BR_SSL_RECVREC) ? IOPAUSE_READ : 0 ;
+    x[3].events = x[3].fd >= 0 ? IOPAUSE_EXCEPT | (state & BR_SSL_SENDREC ? IOPAUSE_WRITE : 0) : 0 ;
 
 
    /* Wait for events */
@@ -187,6 +182,8 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
         }
         else if (!r)
         {
+          if (handshake_done && options & 2)
+            strerr_dief1x(98, "remote closed connection without a close_notify") ;
           fd_shutdown(x[2].fd, 0) ;
           fd_close(x[2].fd) ;
           x[2].fd = -1 ;

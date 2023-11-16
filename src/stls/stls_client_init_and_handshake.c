@@ -50,7 +50,7 @@ struct tls *stls_client_init_and_handshake (int const *fds, tain const *tto, uin
     {
       if (tls_config_set_ca_path(cfg, x) < 0)
         diecfg(cfg, "tls_config_set_ca_path") ;
-      strerr_warnw1x("some versions of libtls do not work with CADIR, try using CAFILE instead") ;
+      strerr_warnw1x("some versions of libtls do not work with CADIR, if you experience problems with server certificate verification then try using CAFILE instead") ;
     }
     else strerr_diefu1x(100, "get trust anchor list: neither CADIR nor CAFILE is set") ;
   }
@@ -73,7 +73,7 @@ struct tls *stls_client_init_and_handshake (int const *fds, tain const *tto, uin
   if (!ctx) strerr_diefu1sys(111, "tls_client") ;
   if (tls_configure(ctx, cfg) < 0) diectx(97, ctx, "tls_configure") ;
 
-  if (tls_connect_fds(ctx, fds[0], fds[1], servername) < 0)
+  if (tls_connect_fds(ctx, fds[0], fds[1], servername) == -1)
     diectx(97, ctx, "tls_connect_fds") ;
   tls_config_free(cfg) ;
   stls_handshake(ctx, tto) ;
