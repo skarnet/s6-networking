@@ -270,7 +270,7 @@ typedef int sbearssl_handshake_cbfunc (br_ssl_engine_context *, sbearssl_handsha
 typedef sbearssl_handshake_cbfunc *sbearssl_handshake_cbfunc_ref ;
 
 extern int sbearssl_send_environment (br_ssl_engine_context *, sbearssl_handshake_cbarg *) ;
-extern void sbearssl_run (br_ssl_engine_context *, int const *, tain const *, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
+extern void sbearssl_run (br_ssl_engine_context *, int *, tain const *, uint32_t, unsigned int, sbearssl_handshake_cbfunc_ref, sbearssl_handshake_cbarg *) gccattr_noreturn ;
 
 
  /* Generic server policy class and server-side SNI implementation */
