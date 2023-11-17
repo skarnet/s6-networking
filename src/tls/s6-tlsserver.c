@@ -15,7 +15,7 @@
 #define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
 "s6-tcpserver options: [ -q | -Q | -v ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
 "s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
-"s6-tlsd options: [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ] [ -k snilevel ]"
+"s6-tlsd options: [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ] [ -k snilevel ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
 
@@ -45,6 +45,7 @@ struct options_s
   unsigned int flagp : 1 ;
   unsigned int rulesx : 1 ;
   unsigned int flagS : 1 ;
+  unsigned int flagJ : 1 ;
   unsigned int flagy : 1 ;
   unsigned int flagY : 1 ;
   unsigned int flagZ : 1 ;
@@ -75,6 +76,7 @@ struct options_s
   .flagp = 0, \
   .rulesx = 0, \
   .flagS = 0, \
+  .flagJ = 0, \
   .flagy = 0, \
   .flagY = 0, \
   .flagZ = 0, \
@@ -89,7 +91,7 @@ int main (int argc, char const *const *argv)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qQv1c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsYyK:Zzk:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQv1c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsJjYyK:Zzk:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -121,6 +123,8 @@ int main (int argc, char const *const *argv)
         case 'x' : o.rules = l.arg ; o.rulesx = 1 ; break ;
         case 'S' : o.flagS = 1 ; break ;
         case 's' : o.flagS = 0 ; break ;
+        case 'J' : o.flagJ = 1 ; break ;
+        case 'j' : o.flagJ = 0 ; break ;
         case 'Y' : o.flagY = 1 ; o.flagy = 0 ; break ;
         case 'y' : o.flagy = 1 ; o.flagY = 0 ; break ;
         case 'K' : if (!uint0_scan(l.arg, &o.kimeout)) dieusage() ; break ;
@@ -138,7 +142,7 @@ int main (int argc, char const *const *argv)
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 6 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
-    char const *newargv[49 + argc] ;
+    char const *newargv[50 + argc] ;
     int doaccess = o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1)
@@ -216,6 +220,7 @@ int main (int argc, char const *const *argv)
       newargv[m++] = fmt ;
     }
     if (o.flagS) newargv[m++] = "-S" ;
+    if (o.flagJ) newargv[m++] = "-J" ;
     if (o.flagy) newargv[m++] = "-y" ;
     else if (o.flagY) newargv[m++] = "-Y" ;
     if (o.kimeout)

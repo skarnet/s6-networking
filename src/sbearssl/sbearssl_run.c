@@ -25,22 +25,13 @@ static int br_ssl_engine_in_isempty (br_ssl_engine_context *ctx)
   return !ctx->iomode || (ctx->iomode == 3 && !ctx->ixa && !ctx->ixb) ;
 }
 
-static void close_sendrec (br_ssl_engine_context *ctx, int *fd, int closenotify)
-{
-  if (closenotify) br_ssl_engine_close(ctx) ;
-  else
-  {
-    fd_shutdown(*fd, 1) ;
-    fd_close(*fd) ;
-    *fd = -1 ;
-  }
-}
 
 void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, uint32_t options, unsigned int verbosity, sbearssl_handshake_cbfunc_ref cb, sbearssl_handshake_cbarg *cbarg)
 {
   iopause_fd x[4] = { { .fd = fds[0], .revents = 0 }, { .fd = fds[1], .revents = 0 }, { .fd = fds[2] }, { .fd = fds[3] } } ;
   unsigned int state = br_ssl_engine_current_state(ctx) ;
   int handshake_done = 0 ;
+  int closing = 0 ;
   tain deadline ;
 
   if (ndelay_on(x[0].fd) == -1
@@ -66,10 +57,10 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
         deadline = tain_infinite ;
       }
     }
-    else x[0].events = 0 ;
+    else x[0].events = IOPAUSE_EXCEPT ;
 
     x[1].events = x[1].fd >= 0 ? IOPAUSE_EXCEPT | (state & BR_SSL_RECVAPP ? IOPAUSE_WRITE : 0) : 0 ;
-    x[2].events = x[2].fd >= 0 && state & BR_SSL_RECVREC) ? IOPAUSE_READ : 0 ;
+    x[2].events = x[2].fd >= 0 && state & BR_SSL_RECVREC ? IOPAUSE_READ : 0 ;
     x[3].events = x[3].fd >= 0 ? IOPAUSE_EXCEPT | (state & BR_SSL_SENDREC ? IOPAUSE_WRITE : 0) : 0 ;
 
 
@@ -86,7 +77,7 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
 
    /* Flush to local */
 
-    if (x[1].revents && state & BR_SSL_RECVAPP)
+    if (x[1].revents & IOPAUSE_WRITE)
     {
       size_t len ;
       for (;;)
@@ -109,10 +100,27 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
       }
       state = br_ssl_engine_current_state(ctx) ;
     }
+    else if (x[1].revents & IOPAUSE_EXCEPT)
+    {
+      fd_close(x[1].fd) ;
+      x[1].fd = -1 ;
+      if (x[2].fd >= 0)
+      {
+        fd_shutdown(x[2].fd, 0) ;
+        fd_close(x[2].fd) ;
+        x[2].fd = -1 ;
+        if (!br_ssl_engine_in_isempty(ctx))
+        {
+          br_ssl_engine_fail(ctx, BR_ERR_IO) ;
+          state = br_ssl_engine_current_state(ctx) ;
+        }
+      }
+    }
+
 
    /* Flush to remote */
 
-    if (x[3].revents && state & BR_SSL_SENDREC)
+    if (x[3].revents & IOPAUSE_WRITE)
     {
       size_t len ;
       for (;;)
@@ -129,9 +137,33 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
         br_ssl_engine_sendrec_ack(ctx, w) ;
       }
       if (x[0].fd == -1 && !len)
-        close_sendrec(ctx, &x[3].fd, options & 1) ;
+      {
+        if (options & 1 && !closing)
+        {
+          br_ssl_engine_close(ctx) ;
+          closing = 1 ;
+        }
+        else
+        {
+          fd_shutdown(x[3].fd, 1) ;
+          fd_close(x[3].fd) ;
+          x[3].fd = -1 ;
+        }
+      }
       state = br_ssl_engine_current_state(ctx) ;
     }
+    else if (x[3].revents & IOPAUSE_EXCEPT)
+    {
+      fd_shutdown(x[3].fd, 1) ;
+      fd_close(x[3].fd) ;
+      x[3].fd = -1 ;
+      if (x[0].fd >= 0)
+      {
+        fd_close(x[0].fd) ;
+        x[0].fd = -1 ;
+      }
+    }
+
 
    /* Fill from local */
 
@@ -154,7 +186,19 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
             fd_close(x[0].fd) ;
             x[0].fd = -1 ;
             if (!br_ssl_engine_sendrec_buf(ctx, &len))
-              close_sendrec(ctx, &x[3].fd, options & 1) ;
+            {
+              if (options & 1 && !closing)
+              {
+                br_ssl_engine_close(ctx) ;
+                closing = 1 ;
+              }
+              else
+              {
+                fd_shutdown(x[3].fd, 1) ;
+                fd_close(x[3].fd) ;
+                x[3].fd = -1 ;
+              }
+            }
           }
           break ;
         }
@@ -201,32 +245,6 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
       state = br_ssl_engine_current_state(ctx) ;
     }
 
-
-   /* Detect ill-timed broken pipes */
-
-    if (x[1].fd >= 0 && x[1].revents & IOPAUSE_EXCEPT && !(state & BR_SSL_RECVAPP))
-    {
-      fd_close(x[1].fd) ;
-      x[1].fd = -1 ;
-      if (x[2].fd >= 0)
-      {
-        fd_close(x[2].fd) ;
-        x[2].fd = -1 ;
-        if (!br_ssl_engine_in_isempty(ctx)) br_ssl_engine_fail(ctx, BR_ERR_IO) ;
-      }
-    }
-
-    if (x[3].fd >= 0 && x[3].revents & IOPAUSE_EXCEPT && !(state & BR_SSL_SENDREC))
-    {
-      fd_close(x[3].fd) ;
-      x[3].fd = -1 ;
-      if (x[0].fd >= 0)
-      {
-        fd_close(x[0].fd) ;
-        x[0].fd = -1 ;
-      }
-    }
-
   }  /* end of main loop */
 
   if (state & BR_SSL_CLOSED)
@@ -234,6 +252,5 @@ void sbearssl_run (br_ssl_engine_context *ctx, int const *fds, tain const *tto, 
     int r = br_ssl_engine_last_error(ctx) ;
     if (r) strerr_dief4x(98, "the TLS engine closed the connection ", handshake_done ? "after" : "during", " the handshake: ", sbearssl_error_str(r)) ;
   }
-
   _exit(0) ;
 }

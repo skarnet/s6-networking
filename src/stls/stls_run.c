@@ -21,7 +21,7 @@ struct stls_buffer_s
 {
   buffer b ;
   char buf[STLS_BUFSIZE] ;
-  uint8_t flags ;  /* 0x1: flush/fill wants opposite IO; 0x2: close_notify initiated */
+  uint8_t flags ;  /* 0x1: flush/fill wants opposite IO; 0x2: want close */
 } ;
 
 
@@ -121,18 +121,17 @@ static int tls_fill (struct tls *ctx, stls_buffer *b)
   r = tls_allread(ctx, v[1].iov_base, v[1].iov_len, &w) ;
   buffer_wseek(&b[1].b, w) ;
  out:
-  if (r == -1) return 1 ;
-  if (r) b[0].flags |= 1 ; else b[0].flags &= ~1 ;
-  return 0 ;
+  if (r == 1) b[0].flags |= 1 ; else b[0].flags &= ~1 ;
+  return r == -1 ;
 }
 
-static int tls_close_nb (struct tls *ctx, stls_buffer *b)
+static int tls_tryclose (struct tls *ctx, stls_buffer *b)
 {
   switch (tls_close(ctx))
   {
-    case 0 : b[0].flags &= ~2 ; b[1].flags &= ~2 ; b[1].flags |= 4 ; return 1 ;
-    case TLS_WANT_POLLIN : b[0].flags &= ~2 ; b[1].flags |= 2 ; break ;
-    case TLS_WANT_POLLOUT : b[0].flags |= 2 ; b[1].flags &= ~2 ; break ;
+    case 0 : b[0].flags &= ~2 ; return 1 ;
+    case TLS_WANT_POLLIN : b[1].flags |= 1 ; break ;
+    case TLS_WANT_POLLOUT : b[0].flags |= 2 ; break ;
     default : strerr_diefu2x(98, "tls_close: ", tls_error(ctx)) ;
   }
   return 0 ;
@@ -161,7 +160,7 @@ void stls_run (struct tls *ctx, int const *fds, uint32_t options, unsigned int v
     x[0].events = x[0].fd >= 0 && buffer_isreadable(&b[0].b) ? IOPAUSE_READ : 0 ;
     x[1].events = x[1].fd >= 0 && buffer_iswritable(&b[1].b) ? IOPAUSE_WRITE : 0 ;
     x[2].events = x[2].fd >= 0 && (buffer_isreadable(&b[1].b) || (b[1].flags & 1 && buffer_iswritable(&b[0].b))) ? IOPAUSE_READ : 0 ;
-    x[3].events = x[3].fd >= 0 && (buffer_iswritable(&b[0].b) || (b[0].flags & 1 && buffer_isreadable(&b[1].b))) ? IOPAUSE_WRITE : 0 ;
+    x[3].events = x[3].fd >= 0 && (buffer_iswritable(&b[0].b) || (b[0].flags & 1 && buffer_isreadable(&b[1].b)) || b[0].flags & 2) ? IOPAUSE_WRITE : 0 ;
 
     if (iopause_g(x, 4, 0) == -1) strerr_diefu1sys(111, "iopause") ;
 
@@ -187,23 +186,14 @@ void stls_run (struct tls *ctx, int const *fds, uint32_t options, unsigned int v
     if (x[3].revents)
     {
       if (buffer_len(&b[0].b)) tls_flush(ctx, b) ;  /* normal write */
-      if ((b[0].flags & 1 && tls_fill(ctx, b))  /* peer sent close_notify and it just completed */
-       || (b[0].flags & 2 && tls_close_nb(ctx, b)))  /*  we send close_notify and it instantly succeeds */
+      if (b[0].flags & 1 && tls_fill(ctx, b))
+        strerr_dief1x(98, "tls_read returned 0 during a renegotiation?") ;
+      if (x[0].fd == -1 && buffer_isempty(&b[0].b)
+       && (!(options & 1) || tls_tryclose(ctx, b)))
       {
-        if (buffer_isempty(&b[1].b)) break ;
-        fd_close(x[3].fd) ; x[3].fd = -1 ;
-        fd_close(x[2].fd) ; x[2].fd = -1 ;
-        if (x[0].fd >= 0) { fd_close(x[0].fd) ; x[0].fd = -1 ; }
-        continue ;
-      }
-      if (x[0].fd == -1 && buffer_isempty(&b[0].b))
-      {
-        if (!(options & 1) || tls_close_nb(ctx, b))
-        {
-          fd_shutdown(x[3].fd, 1) ;
-          fd_close(x[3].fd) ;
-          x[3].fd = -1 ;
-        }
+        fd_shutdown(x[3].fd, 1) ;
+        fd_close(x[3].fd) ;
+        x[3].fd = -1 ;
       }
     }
 
@@ -221,7 +211,7 @@ void stls_run (struct tls *ctx, int const *fds, uint32_t options, unsigned int v
         x[0].fd = -1 ;
         if (buffer_isempty(&b[0].b))
         {
-          if (!(options & 1) || tls_close_nb(ctx, b))
+          if (!(options & 1) || tls_tryclose(ctx, b))
           {
             fd_shutdown(x[3].fd, 1) ;
             fd_close(x[3].fd) ;
@@ -238,38 +228,24 @@ void stls_run (struct tls *ctx, int const *fds, uint32_t options, unsigned int v
     {
       if (buffer_isreadable(&b[1].b) && tls_fill(ctx, b))
       {  /* connection closed */
+        if (options & 2 && !tls_eof_got_close_notify(ctx))
+          strerr_dief1x(98, "remote closed connection without a close_notify") ;
         fd_shutdown(x[2].fd, 0) ;
         fd_close(x[2].fd) ;
         x[2].fd = -1 ;
         if (buffer_isempty(&b[1].b))
         {
-          if (tls_eof_got_close_notify(ctx)) break ;
           fd_close(x[1].fd) ;
           x[1].fd = -1 ;
         }
-        if (options & 2)
+        if (x[3].fd >= 0 && options & 1 && tls_tryclose(ctx, b))
         {
-          if (!tls_eof_got_close_notify(ctx))
-            strerr_dief1x(98, "remote closed connection without a close_notify") ;
-          else if (x[3].fd >= 0)
-          {
-            fd_shutdown(x[3].fd, 1) ;
-            fd_close(x[3].fd) ;
-            x[3].fd = -1 ;
-          }
+          fd_shutdown(x[3].fd, 1) ;
+          fd_close(x[3].fd) ;
+          x[3].fd = -1 ;
         }
       }
-      else
-      {  /* normal case */
-        if (b[1].flags & 1) tls_flush(ctx, b) ;
-        if (b[1].flags & 2 && tls_close_nb(ctx, b))
-        {
-          if (buffer_isempty(&b[1].b)) break ;
-          if (x[3].fd >= 0) { fd_close(x[3].fd) ; x[3].fd = -1 ; }
-          if (x[0].fd >= 0) { fd_close(x[0].fd) ; x[0].fd = -1 ; }
-          fd_close(x[2].fd) ; x[2].fd = -1 ;
-        }
-      }
+      else if (b[1].flags & 1) tls_flush(ctx, b) ;
     }
   }
   _exit(0) ;

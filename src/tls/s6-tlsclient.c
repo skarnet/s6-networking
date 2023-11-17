@@ -13,7 +13,7 @@
 
 #define USAGE "s6-tlsclient [ options ] host port prog...\n" \
 "s6-tcpclient options: [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h | -H ] [ -n | -N ] [ -t timeout ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ]\n" \
-"s6-tlsc options: [ -S | -s ] [ -Y | -y ] [ -K timeout ] [ -k servername ] [ -Z | -z ]"
+"s6-tlsc options: [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -k servername ] [ -Z | -z ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
 
@@ -36,6 +36,7 @@ struct options_s
   unsigned int flagr : 1 ;
   unsigned int flagN : 1 ;
   unsigned int flagS : 1 ;
+  unsigned int flagJ : 1 ;
   unsigned int flagy : 1 ;
   unsigned int flagZ : 1 ;
   unsigned int doxy : 1 ;
@@ -59,6 +60,7 @@ struct options_s
   .flagr = 0, \
   .flagN = 0, \
   .flagS = 0, \
+  .flagJ = 0, \
   .flagy = 0, \
   .flagZ = 0, \
   .doxy = 0 \
@@ -72,7 +74,7 @@ int main (int argc, char const *const *argv)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsYyK:k:Zz", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsJjYyK:k:Zz", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -109,6 +111,8 @@ int main (int argc, char const *const *argv)
         case 'p' : if (!uint160_scan(l.arg, &o.localport)) dieusage() ; break ;
         case 'S' : o.flagS = 1 ; break ;
         case 's' : o.flagS = 0 ; break ;
+        case 'J' : o.flagJ = 1 ; break ;
+        case 'j' : o.flagJ = 0 ; break ;
         case 'Y' : o.flagy = 0 ; break ;
         case 'y' : o.flagy = 1 ; break ;
         case 'K' : if (!uint0_scan(l.arg, &o.kimeout)) dieusage() ; break ;
@@ -133,7 +137,7 @@ int main (int argc, char const *const *argv)
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 4 + UINT16_FMT + IP46_FMT] ;
-    char const *newargv[31 + argc] ;
+    char const *newargv[32 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpclient" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag4) newargv[m++] = "-4" ;
@@ -182,6 +186,7 @@ int main (int argc, char const *const *argv)
     newargv[m++] = *argv++ ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsc" ;
     if (o.flagS) newargv[m++] = "-S" ;
+    if (o.flagJ) newargv[m++] = "-J" ;
     if (o.flagy) newargv[m++] = "-y" ;
     if (o.kimeout)
     {

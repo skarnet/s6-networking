@@ -25,9 +25,9 @@ void s6tls_prep_tlscio (char const **argv, char *buf, int const *p, uint32_t opt
     n += uint_fmt(buf + n, p[5]) ;
     buf[n++] = 0 ;
   }
-  argv[m++] = options & 4 ? "-S" : "-s" ;
-  argv[m++] = options & 2 ? "-J" : "-j" ;
-  argv[m++] = options & 1 ? "-y" : "-Y" ;
+  if (options & 4) argv[m++] = "-S" ;
+  if (options & 2) argv[m++] = "-J" ;
+  if (options & 1) argv[m++] = "-y" ;
   if (kimeout)
   {
     argv[m++] = "-K" ;
