@@ -28,7 +28,7 @@ then executes into a program.
 <h2> Interface </h2>
 
 <pre>
-     s6-tcpclient [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h | -H ] [ -n | -N ] [ -t <em>timeout</em> ] [ -l <em>localname</em> ] [ -T <em>timeoutconn</em> ] [ -i <em>localip</em> ] [ -p <em>localport</em> ] <em>host</em> <em>port</em> <em>prog...</em>
+     s6-tcpclient [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h ] [ -H ] [ -n | -N ] [ -t <em>timeout</em> ] [ -l <em>localname</em> ] [ -T <em>timeoutconn</em> ] [ -i <em>localip</em> ] [ -p <em>localport</em> ] <em>host</em> <em>port</em> <em>prog...</em>
 </pre>
 
 <ul>
@@ -98,10 +98,13 @@ IDENT protocol. This is obsolete and unreliable, and should only be used for
 compatibility with legacy programs. </li>
  <li> <tt>-R</tt>&nbsp;: do not use the IDENT protocol. This is the
 default. </li>
- <li> <tt>-h</tt>&nbsp;: try and obtain the remote host name via DNS.
-This is the default. </li>
- <li> <tt>-H</tt>&nbsp;: do not try and obtain the remote host name
-via DNS. </li>
+ <li> <tt>-h</tt>&nbsp;: Consult the <tt>/etc/hosts</tt> database before
+performing DNS queries. The default, when this option is not given, is to
+ignore <tt>/etc/hosts</tt>. The <tt>-H</tt> option overrides <tt>-h</tt> and
+voids any kind of lookup. </li>
+ <li> <tt>-H</tt>&nbsp;: do not try and obtain the local or remote host names
+via DNS. The default, when this option is not given, is to look up the
+local and remote host IPs in the DNS database to get the corresponding names. </li>
  <li> <tt>-n</tt>&nbsp;: qualify <em>host</em> when resolving it to
 find suitable IP addresses. This is the default. </li>
  <li> <tt>-N</tt>&nbsp;: do not qualify <em>host</em>. </li>

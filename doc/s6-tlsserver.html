@@ -164,8 +164,9 @@ certificates, you probably still want TCP access rules.
  <li> <tt>-d</tt>, <tt>-D</tt>&nbsp;: enable or disable Nagle's algorithm </li>
  <li> <tt>-r</tt>, <tt>-R</tt>&nbsp;: enable or disable IDENT lookups </li>
  <li> <tt>-p</tt>, <tt>-P</tt>&nbsp;: enable or disable paranoid DNS cross-checking </li>
- <li> <tt>-h</tt>, <tt>-H</tt>&nbsp;: enable or disable DNS lookups </li>
- <li> <tt>-l <em>localname</em></tt>&nbsp;: get the local name from the command line, not from DNS </li>
+ <li> <tt>-H</tt>&nbsp;: disable DNS lookups </li>
+ <li> <tt>-h</tt>&nbsp;: consult <tt>/etc/hosts</tt> before DNS </li>
+ <li> <tt>-l <em>localname</em></tt>&nbsp;: get the local name from the command line, don't look it up </li>
  <li> <tt>-B <em>banner</em></tt>&nbsp;: initial server-side banner </li>
  <li> <tt>-t <em>timeout</em></tt>&nbsp;: set a timeout for all the lookups </li>
  <li> <tt>-i <em>rulesdir</em></tt>, <tt>-x <em>rulesfile</em></tt>&nbsp;: TCP access control </li>

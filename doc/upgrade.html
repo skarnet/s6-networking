@@ -30,6 +30,13 @@ side. This allows users to invoke it directly when it is relevant. </li>
 <a href="s6-tlsc-io.html">s6-tlsc-io</a>. </li>
  <li> The <tt>-K</tt> option to TLS programs has slightly changed semantics:
 it now indicates a timeout for the whole handshake. </li>
+ <li> The <tt>-h</tt> option to
+<a href="s6-tcpclient.html">s6-tcpclient</a>,
+<a href="s6-tcpserver-access.html">s6-tcpserver-access</a>,
+<a href="s6-tlsclient.html">s6-tlsclient</a>, and
+<a href="s6-tlsserver.html">s6-tlsserver</a>, has changed semantics.
+Previously it was a no-op except to cancel a prior <tt>-H</tt> option.
+Now it means that DNS lookups should also include <tt>/etc/hosts</tt>. </li>
 </ul>
 
 <h2> in 2.6.0.0 </h2>

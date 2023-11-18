@@ -12,7 +12,7 @@
 #include <s6-networking/config.h>
 
 #define USAGE "s6-tlsclient [ options ] host port prog...\n" \
-"s6-tcpclient options: [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h | -H ] [ -n | -N ] [ -t timeout ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ]\n" \
+"s6-tcpclient options: [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h ] [ -H ] [ -n | -N ] [ -t timeout ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ]\n" \
 "s6-tlsc options: [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -k servername ] [ -Z | -z ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -33,6 +33,7 @@ struct options_s
   unsigned int flag6 : 1 ;
   unsigned int flagD : 1 ;
   unsigned int flagH : 1 ;
+  unsigned int flagh : 1 ;
   unsigned int flagr : 1 ;
   unsigned int flagN : 1 ;
   unsigned int flagS : 1 ;
@@ -57,6 +58,7 @@ struct options_s
   .flag6 = 0, \
   .flagD = 0, \
   .flagH = 0, \
+  .flagh = 0, \
   .flagr = 0, \
   .flagN = 0, \
   .flagS = 0, \
@@ -86,7 +88,7 @@ int main (int argc, char const *const *argv)
         case 'D' : o.flagD = 1 ; break ;
         case 'd' : o.flagD = 0 ; break ;
         case 'H' : o.flagH = 1 ; break ;
-        case 'h' : o.flagH = 0 ; break ;
+        case 'h' : o.flagh = 1 ; break ;
         case 'R' : o.flagr = 0 ; break ;
         case 'r' : o.flagr = 1 ; break ;
         case 'n' : o.flagN = 0 ; break ;
@@ -137,13 +139,14 @@ int main (int argc, char const *const *argv)
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 4 + UINT16_FMT + IP46_FMT] ;
-    char const *newargv[32 + argc] ;
+    char const *newargv[33 + argc] ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpclient" ;
     if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
     if (o.flag4) newargv[m++] = "-4" ;
     if (o.flag6) newargv[m++] = "-6" ;
     if (o.flagD) newargv[m++] = "-D" ;
     if (o.flagH) newargv[m++] = "-H" ;
+    if (o.flagh) newargv[m++] = "-h" ;
     if (o.flagr) newargv[m++] = "-r" ;
     if (o.flagN) newargv[m++] = "-N" ;
     if (o.timeout)

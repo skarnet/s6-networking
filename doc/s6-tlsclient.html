@@ -130,8 +130,9 @@ generally work: the defaults are sensible.
  <li> <tt>-4</tt>, <tt>-6</tt>&nbsp;: stick to IPv4 or IPv6 addresses </li>
  <li> <tt>-d</tt>, <tt>-D</tt>&nbsp;: enable or disable Nagle's algorithm </li>
  <li> <tt>-r</tt>, <tt>-R</tt>&nbsp;: enable or disable IDENT lookup </li>
- <li> <tt>-h</tt>, <tt>-H</tt>&nbsp;: enable or disable DNS lookups </li>
- <li> <tt>-l <em>localname</em></tt>&nbsp;: get the local name from the command line, not from a DNS lookup </li>
+ <li> <tt>-H</tt>&nbsp;: disable DNS lookups </li>
+ <li> <tt>-h</tt>&nbsp;: consult <tt>/etc/hosts</tt> before DNS </li>
+ <li> <tt>-l <em>localname</em></tt>&nbsp;: get the local name from the command line, don't look it up </li>
  <li> <tt>-n</tt>, <tt>-N</tt>&nbsp;: qualify the host or not when resolving it </li>
  <li> <tt>-t <em>timeout</em></tt>&nbsp;: global timeout on the connection attempt </li>
  <li> <tt>-i <em>localip</em></tt>, <tt>-p <em>localport</em></tt>&nbsp;: force local socket parameters </li>

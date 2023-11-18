@@ -14,7 +14,7 @@
 
 #define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
 "s6-tcpserver options: [ -q | -Q | -v ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
-"s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
+"s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
 "s6-tlsd options: [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ] [ -k snilevel ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -41,6 +41,7 @@ struct options_s
   unsigned int flagw : 1 ;
   unsigned int flagD : 1 ;
   unsigned int flagH : 1 ;
+  unsigned int flagh : 1 ;
   unsigned int flagr : 1 ;
   unsigned int flagp : 1 ;
   unsigned int rulesx : 1 ;
@@ -72,6 +73,7 @@ struct options_s
   .flagw = 0, \
   .flagD = 0, \
   .flagH = 0, \
+  .flagh = 0, \
   .flagr = 0, \
   .flagp = 0, \
   .rulesx = 0, \
@@ -111,7 +113,7 @@ int main (int argc, char const *const *argv)
         case 'D' : o.flagD = 1 ; break ;
         case 'd' : o.flagD = 0 ; break ;
         case 'H' : o.flagH = 1 ; break ;
-        case 'h' : o.flagH = 0 ; break ;
+        case 'h' : o.flagh = 1 ; break ;
         case 'R' : o.flagr = 0 ; break ;
         case 'r' : o.flagr = 1 ; break ;
         case 'P' : o.flagp = 0 ; break ;
@@ -142,7 +144,7 @@ int main (int argc, char const *const *argv)
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 6 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
-    char const *newargv[50 + argc] ;
+    char const *newargv[51 + argc] ;
     int doaccess = o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1)
@@ -187,6 +189,7 @@ int main (int argc, char const *const *argv)
       if (o.flagw) newargv[m++] = "-w" ;
       if (o.flagD) newargv[m++] = "-D" ;
       if (o.flagH) newargv[m++] = "-H" ;
+      if (o.flagh) newargv[m++] = "-h" ;
       if (o.flagr) newargv[m++] = "-r" ;
       if (o.flagp) newargv[m++] = "-p" ;
       if (o.localname)

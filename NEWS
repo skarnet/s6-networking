@@ -1,5 +1,16 @@
 Changelog for s6-networking.
 
+In 2.7.0.0
+----------
+
+ - Bugfixes.
+ - Better API for s6-tlsc-io: now "s6-tlsc-io 6 7" = s6-ioconnect with TLS.
+ - The -K option for TLS programs now determines the handshake timeout.
+ - /etc/hosts support added.
+ - The -h option for s6-tcpclient and s6-tcpserver-access now indicates
+/etc/hosts should be consulted before DNS.
+
+
 In 2.6.0.0
 ----------
 

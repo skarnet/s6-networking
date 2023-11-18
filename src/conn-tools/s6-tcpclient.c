@@ -21,13 +21,15 @@
 
 #include <s6-networking/ident.h>
 
+ /* XXX: this file is super ugly and full of tech debt */
+
 #ifdef SKALIBS_IPV6_ENABLED
-# define USAGE "s6-tcpclient [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h | -H ] [ -n | -N ] [ -t timeoutinfo ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog..."
-# define TFLAGS_DEFAULT { 0, 0, { 2, 58 }, IP46_ZERO, 0, 1, 0, 0, 1, 0, 1, 1 }
+# define USAGE "s6-tcpclient [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h ] [ -H ] [ -n | -N ] [ -t timeoutinfo ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog..."
+# define TFLAGS_DEFAULT { 0, 0, { 2, 58 }, IP46_ZERO, 0, 1, 0, 0, 1, 0, 1, 0, 1 }
 # define OPTSTRING "qQv46dDrRhHnNt:l:T:i:p:"
 #else
-# define USAGE "s6-tcpclient [ -q | -Q | -v ] [ -d | -D ] [ -r | -R ] [ -h | -H ] [ -n | -N ] [ -t timeoutinfo ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog..."
-# define TFLAGS_DEFAULT { 0, 0, { 2, 58 }, IP46_ZERO, 0, 1, 1, 0, 1, 1 }
+# define USAGE "s6-tcpclient [ -q | -Q | -v ] [ -d | -D ] [ -r | -R ] [ -h ] [ -H ] [ -n | -N ] [ -t timeoutinfo ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog..."
+# define TFLAGS_DEFAULT { 0, 0, { 2, 58 }, IP46_ZERO, 0, 1, 1, 0, 1, 0, 1 }
 # define OPTSTRING "qQvdDrRhHnNt:l:T:i:p:"
 #endif
 
@@ -52,6 +54,7 @@ struct tflags_s
   unsigned int delay : 1 ;
   unsigned int remoteinfo : 1 ;
   unsigned int remotehost : 1 ;
+  unsigned int hosts : 1 ;
   unsigned int qualif : 1 ;
 } ;
 
@@ -60,7 +63,7 @@ static tain deadline ;
 int main (int argc, char const *const *argv)
 {
   int s ;
-  int localip = 0;
+  int haslocalip = 0 ;
   tflags flags = TFLAGS_DEFAULT ;
   uint16_t remoteport ;
   PROG = "s6-tcpclient" ;
@@ -83,7 +86,7 @@ int main (int argc, char const *const *argv)
         case 'D' : flags.delay = 0 ; break ;
         case 'r' : flags.remoteinfo = 1 ; break ;
         case 'R' : flags.remoteinfo = 0 ; break ;
-        case 'h' : flags.remotehost = 1 ; break ;
+        case 'h' : flags.hosts = 1 ; break ;
         case 'H' : flags.remotehost = 0 ; break ;
         case 'n' : flags.qualif = 1 ; break ;
         case 'N' : flags.qualif = 0 ; break ;
@@ -102,7 +105,7 @@ int main (int argc, char const *const *argv)
           if (!uint0_scan(l.arg + n + 1, &flags.timeoutconn[1])) usage() ;
           break ;
         }
-        case 'i' : if (!ip46_scan(l.arg, &flags.localip)) usage() ; localip = 1 ; break ;
+        case 'i' : if (!ip46_scan(l.arg, &flags.localip)) usage() ; haslocalip = 1 ; break ;
         case 'p' : if (!uint160_scan(l.arg, &flags.localport)) usage() ; break ;
         default : usage() ;
       }
@@ -118,7 +121,10 @@ int main (int argc, char const *const *argv)
   tain_now_set_stopwatch_g() ;
   if (flags.timeout) tain_addsec_g(&deadline, flags.timeout) ;
   else tain_add_g(&deadline, &tain_infinite_relative) ;
-  if (!s6dns_init()) strerr_diefu1sys(111, "init DNS") ; 
+
+  if (flags.remotehost || !flags.localname)
+    if (!s6dns_init_options(flags.hosts)) strerr_diefu1sys(111, "init DNS") ; 
+
   {
     ip46 ip[2][MAXIP] ;
     unsigned int j = 0 ;
@@ -162,7 +168,13 @@ int main (int argc, char const *const *argv)
           {
             genalloc ips = STRALLOC_ZERO ;
             size_t i = 0 ;
-            if (s6dns_resolve_aaaaa_g(&ips, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
+            int r = 0 ;
+            if (flags.hosts)
+            {
+              r = flags.qualif ? s6dns_hosts_aaaaa_q(argv[0], &ips) : s6dns_hosts_aaaaa_noq(argv[0], &ips) ;
+              if (r == -1) strerr_diefu3sys(111, "look up ", argv[0], " in hosts database") ;
+            }
+            if (!r && s6dns_resolve_aaaaa_g(&ips, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
               strerr_diefu4x(111, "resolve ", argv[0], ": ", s6dns_constants_error_str(errno)) ;
             n[0] = genalloc_len(ip46, &ips) ;
             if (n[0] >= MAXIP) n[0] = MAXIP ;
@@ -174,15 +186,19 @@ int main (int argc, char const *const *argv)
         {
           char ip6[MAXIP << 4] ;
           if (ip6_scanlist(ip6, MAXIP, argv[0], &n[0]))
-          {
-            size_t i = 0 ;
-            for (; i < n[0] ; i++) ip46_from_ip6(&ip[0][i], ip6 + (i << 4)) ;
-          }
+            for (size_t i = 0 ; i < n[0] ; i++)
+              ip46_from_ip6(&ip[0][i], ip6 + (i << 4)) ;
           else
           {
             stralloc ip6s = STRALLOC_ZERO ;
             size_t i = 0 ;
-            if (s6dns_resolve_aaaa_g(&ip6s, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
+            int r = 0 ;
+            if (flags.hosts)
+            {
+              r = flags.qualif ? s6dns_hosts_aaaa_q(argv[0], &ip6s) : s6dns_hosts_aaaa_noq(argv[0], &ip6s) ;
+              if (r == -1) strerr_diefu3sys(111, "look up ", argv[0], " in hosts database") ;
+            }
+            if (!r && s6dns_resolve_aaaa_g(&ip6s, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
               strerr_diefu4x(111, "resolve ", argv[0], ": ", s6dns_constants_error_str(errno)) ;
             n[0] = ip6s.len >> 4 ;
             if (n[0] >= MAXIP) n[0] = MAXIP ;
@@ -195,15 +211,19 @@ int main (int argc, char const *const *argv)
         {
           char ip4[MAXIP << 2] ;
           if (ip4_scanlist(ip4, MAXIP, argv[0], &n[0]))
-          {
-            size_t i = 0 ;
-            for (; i < n[0] ; i++) ip46_from_ip4(&ip[0][i], ip4 + (i << 2)) ;
-          }
+            for (size_t i = 0 ; i < n[0] ; i++)
+              ip46_from_ip4(&ip[0][i], ip4 + (i << 2)) ;
           else
           {
             stralloc ip4s = STRALLOC_ZERO ;
             size_t i = 0 ;
-            if (s6dns_resolve_a_g(&ip4s, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
+            int r = 0 ;
+            if (flags.hosts)
+            {
+              r = flags.qualif ? s6dns_hosts_a_q(argv[0], &ip4s) : s6dns_hosts_a_noq(argv[0], &ip4s) ;
+              if (r == -1) strerr_diefu3sys(111, "look up ", argv[0], " in hosts database") ;
+            }
+            if (!r && s6dns_resolve_a_g(&ip4s, argv[0], strlen(argv[0]), flags.qualif, &deadline) <= 0)
               strerr_diefu4x(111, "resolve ", argv[0], ": ", s6dns_constants_error_str(errno)) ;
             n[0] = ip4s.len >> 2 ;
             if (n[0] >= MAXIP) n[0] = MAXIP ;
@@ -228,7 +248,7 @@ int main (int argc, char const *const *argv)
       {
         tain localdeadline ;
 #ifdef SKALIBS_IPV6_ENABLED
-        if(!localip) flags.localip.is6 = ip46_is6(&ip[j][i]);
+        if (!haslocalip) flags.localip.is6 = ip46_is6(&ip[j][i]) ;
 #endif
         s = socket_tcp46(ip46_is6(&flags.localip));
         if (s < 0) strerr_diefu1sys(111, "create socket") ;
@@ -284,6 +304,37 @@ int main (int argc, char const *const *argv)
     {
       if (!env_mexec("TCPLOCALHOST", flags.localname)) dienomem() ;
     }
+
+    if (flags.hosts)
+    {
+      stralloc sa = STRALLOC_ZERO ;
+      genalloc ga = GENALLOC_ZERO ;
+      if (!flags.localname)
+      {
+        int r = s6dns_hosts_name(flags.localip.ip, &sa, &ga, ip46_is6(&flags.localip)) ;
+        if (r == -1) strerr_diefu3sys(111, "look up name for ", "local", " ip in hosts database") ;
+        if (r)
+        {
+          if (!env_mexec("TCPLOCALHOST", sa.s + genalloc_s(size_t, &ga)[0])) dienomem() ;
+          genalloc_setlen(size_t, &ga, 0) ;
+          sa.len = 0 ;
+          flags.localname = "" ;
+        }
+      }
+      if (flags.remotehost)
+      {
+        int r = s6dns_hosts_name(remoteip.ip, &sa, &ga, ip46_is6(&remoteip)) ;
+        if (r == -1) strerr_diefu3sys(111, "look up name for ", "remote", " ip in hosts database") ;
+        if (r)
+        {
+          if (!env_mexec("TCPREMOTEHOST", sa.s + genalloc_s(size_t, &ga)[0])) dienomem() ;
+          flags.remotehost = 0 ;
+        }
+      }
+      genalloc_free(size_t, &ga) ;
+      stralloc_free(&sa) ;
+    }
+
 
  /* DNS resolution for TCPLOCALHOST and TCPREMOTEHOST */
 

@@ -30,7 +30,7 @@ just like tcpwrappers' <tt>tcpd</tt> program.
 <h2> Interface </h2>
 
 <pre>
-     s6-tcpserver-access [ -v <em>verbosity</em> ] [ -W | -w ] [ -D | -d ] [ -H | -h ] [ -R | -r ] [ -P | -p ] [ -l <em>localname</em> ] [ -B <em>banner</em> ] [ -t <em>timeout</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
+     s6-tcpserver-access [ -v <em>verbosity</em> ] [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l <em>localname</em> ] [ -B <em>banner</em> ] [ -t <em>timeout</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -106,8 +106,14 @@ drop the connection. </li>
 flag on the network socket. </li>
  <li> <tt>-d</tt>&nbsp;: enable Nagle's algorithm. This is the default. </li>
  <li> <tt>-H</tt>&nbsp;: disable DNS lookups for the ${PROTO}LOCALHOST and
-${PROTO}REMOTEHOST environment variables. </li>
- <li> <tt>-h</tt>&nbsp;: enable DNS lookups. This is the default. </li>
+${PROTO}REMOTEHOST environment variables. The default, when this option
+is not given, is to try and read them from DNS. </li>
+ <li> <tt>-h</tt>&nbsp;: consult <tt>/etc/hosts</tt> before DNS. The default,
+when this option is not given, is to ignore <tt>/etc/hosts</tt>. Note 1:
+the <tt>-H</tt> option overrides this one, no DNS lookups means that the
+hosts database won't be consulted either. Note 2: if a name is obtained
+via the hosts database instead of DNS, any <tt>-p</tt> checks will be
+disabled for it. </li>
  <li> <tt>-R</tt>&nbsp;: disable IDENT lookups for the ${PROTO}REMOTEINFO
 environment variable. This is the default. </li>
  <li> <tt>-r</tt>&nbsp;: enable IDENT lookups. This should only be done
