@@ -135,6 +135,11 @@ that the name of the process is <tt>s6-tcpserverd</tt>, that's why. </li>
 <em>all</em> the addresses of a machine no matter whether v4 or v6, then you
 need to run <em>two</em> s6-tcpserver processes: one on <tt>0.0.0.0</tt> and
 and one on <tt>::</tt>. </li>
+ <li> The option to make s6-tcpserver verbose is <tt>-v</tt>, without an
+argument. This is different from the <a href="s6-tcpserverd.html">s6-tcpserverd</a>
+interface, where that would be <tt>-v 2</tt>. The difference exists because
+s6-tcpserver follows the <a href="https://cr.yp.to/proto/ucspi.txt">UCSPI tool</a>
+interface, whereas s6-tcpserverd has no such constraint. </li>
 </ul>
 
 </body>

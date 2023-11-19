@@ -107,6 +107,14 @@ the listening socket. That program is normally
 which creates the socket itself; but it can be a different one if the
 socket is to be retrieved by another means, for instance by fd-passing
 from a fd-holding daemon (some people call this "socket activation"). </li>
+ <li> The option to make s6-tcpserverd verbose is <tt>-v 2</tt>, where the
+verbosity level is given as an argument, 0 being quiet, 1 normal and 2 verbose.
+This is different from the <a href="s6-tcpserver.html">s6-tcpserver</a>
+interface, where <tt>-v</tt> without an argument would indicate extra verbosity.
+The difference exists because
+s6-tcpserver follows the <a href="https://cr.yp.to/proto/ucspi.txt">UCSPI tool</a>
+interface, whereas s6-tcpserverd has no such constraint, and giving the
+verbosity level as a number is a better interface. </li>
 </ul>
 
 </body>

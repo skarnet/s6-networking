@@ -4,9 +4,10 @@ In 2.7.0.0
 ----------
 
  - Bugfixes.
- - Better API for s6-tlsc-io: now "s6-tlsc-io 6 7" = s6-ioconnect with TLS.
- - The -K option for TLS programs now determines the handshake timeout.
- - /etc/hosts support added.
+ - Better API for s6-tlsc-io: now "s6-tlsc-io 6 7" is the equivalent
+of s6-ioconnect with TLS, and can be used interactively as a client
+program to talk to TLS-tunneled services.
+ - The -K option for TLS programs now set a timeout for the whole handshake.
  - The -h option for s6-tcpclient and s6-tcpserver-access now indicates
 /etc/hosts should be consulted before DNS.
 

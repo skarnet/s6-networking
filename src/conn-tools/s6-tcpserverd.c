@@ -122,7 +122,7 @@ static inline void log_reject (char const *ip, uint16_t port, uint32_t num)
   fmtip[is6 ? ip6_fmt(fmtip, ip) : ip4_fmt(fmtip, ip)] = 0 ;
   fmtport[uint16_fmt(fmtport, port)] = 0 ;
   fmtnum[uint32_fmt(fmtnum, num)] = 0 ;
-  strerr_warni7sys("reject ", fmtip, "_", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
+  strerr_warni7x("reject ", fmtip, "_", fmtport, " count ", fmtnum, fmtlocalmaxconn) ;
 }
 
 static inline void log_accept (pid_t pid, char const *ip, uint16_t port, uint32_t num)

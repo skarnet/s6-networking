@@ -33,19 +33,18 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fd, tain const *tto, uint32_
   int handshake_done = 0 ;
   int closing = 0 ;
   tain deadline ;
+  tain_add_g(&deadline, tto) ;
 
   if (ndelay_on(fd[0]) == -1
    || ndelay_on(fd[1]) == -1
    || ndelay_on(fd[2]) == -1
    || ndelay_on(fd[3]) == -1)
     strerr_diefu1sys(111, "set fds non-blocking") ;
-  tain_add_g(&deadline, tto) ;
 
-  while (fd[0] >= 0 || fd[1] >= 0 || fd[3] >= 0)
+  while ((fd[0] >= 0 || fd[1] >= 0 || fd[3] >= 0) && !(state & BR_SSL_CLOSED))
   {
     uint8_t y[4] ;
     uint8_t j = 0 ;
-
 
    /* Preparation */
 
@@ -64,10 +63,10 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fd, tain const *tto, uint32_
     }
     else y[0] = 4 ;
 
-    if (fd[1] >= 0 && state & BR_SSL_RECVAPP)
+    if (fd[1] >= 0)
     {
       x[j].fd = fd[1] ;
-      x[j].events = IOPAUSE_WRITE ;
+      x[j].events = state & BR_SSL_RECVAPP ? IOPAUSE_WRITE : 0 ;
       y[1] = j++ ;
     }
     else y[1] = 4 ;
@@ -80,15 +79,13 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fd, tain const *tto, uint32_
     }
     else y[2] = 4 ;
 
-    if (fd[3] >= 0 && state & BR_SSL_SENDREC)
+    if (fd[3] >= 0)
     {
       x[j].fd = fd[3] ;
-      x[j].events = IOPAUSE_WRITE ;
+      x[j].events = state & BR_SSL_SENDREC ? IOPAUSE_WRITE : 0 ;
       y[3] = j++ ;
     }
     else y[3] = 4 ;
-
-    if (!j) break ;
 
    /* Wait for events */
 
