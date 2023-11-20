@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <errno.h>
+
 #include <skalibs/types.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/strerr.h>
@@ -10,6 +11,7 @@
 #include <skalibs/djbunix.h>
 #include <skalibs/ip46.h>
 #include <skalibs/unix-timed.h>
+
 #include <s6-networking/ident.h>
 
 #define USAGE "s6-ident-client [ -t timeout ] ra rp la lp"
