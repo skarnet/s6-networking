@@ -175,6 +175,12 @@ separate closing of both ways. EOF allows full-duplex until the
 very end, but is insecure if the application protocol does not
 know in advance how many bytes it should get. Modern application
 protocols should all work with EOF. </li>
+   <li> bit 1 tells the engine whether (if set) or not (if clear) to
+be sensitive to close_notify if on the <em>receiving</em> side of them.
+If set, if the peer closes the connection without sending a close_notify,
+the process will exit 98 with a fatal error message. If clear, the EOF
+will be transmitted and the engine will continue serving the other half
+of the connection until it's closed as well, and the process wil exit 0. </li>
   </ul> </li>
  <li> <em>tto</em> is a pointer to a
   <a href="//skarnet.org/software/skalibs/libstddjb/tai.html">tain_t</a>

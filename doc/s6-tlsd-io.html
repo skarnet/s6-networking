@@ -89,11 +89,8 @@ call. </li>
 </ul>
 
 <p>
- As a server, <tt>s6-tlsd-io</tt> can be conservative in its
-choice of protocols. It is currently not very conservative
-when using the BearSSL backend; it could become more so in
-the future, by defining a custom server profile that supports
-only TLS-1.2 but with several algorithms and cipher suites.
+ As a server, <tt>s6-tlsd-io</tt> is conservative in its choice of protocols.
+It only supports TLS versions 1.2 and higher as supported by the backend, to avoid downgrade attacks.
 </p>
 
 <h2> Environment variables </h2>

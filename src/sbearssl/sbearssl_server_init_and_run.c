@@ -82,6 +82,7 @@ void sbearssl_server_init_and_run (int *fds, tain const *tto, uint32_t preoption
     br_x509_trust_anchor btas[n ? n : 1] ;
 
     sbearssl_sctx_init_full_generic(&sc) ;
+    if (!(preoptions & 16)) br_ssl_engine_set_versions(&sc.eng, BR_TLS12, BR_TLS12) ;
     sbearssl_sctx_set_policy_sni(&sc, &pol) ;
     random_buf((char *)bufi, 32) ;
     br_ssl_engine_inject_entropy(&sc.eng, bufi, 32) ;

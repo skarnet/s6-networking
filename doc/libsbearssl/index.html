@@ -22,8 +22,8 @@
 
 <p>
  <tt>libsbearssl</tt> is a support library for the
-<a href="../s6-tlsc.html">s6-tlsc</a> and
-<a href="../s6-tlsd.html">s6-tlsd</a> executables when they're built
+<a href="../s6-tlsc-io.html">s6-tlsc-io</a> and
+<a href="../s6-tlsd-io.html">s6-tlsd-io</a> executables when they're built
 against the <a href="https://bearssl.org/">BearSSL</a>
 backend. Among other things, it offers interfaces to read private
 keys and certificates from a Unix filesystem, which BearSSL does
@@ -533,7 +533,7 @@ DN of the end entity after validation. <em>eltstatus</em> must point to a
 user-supplied <tt>uint8_t</tt>, which after validation encodes the status
 of DN extraction: bit 7 of <em>eltstatus</em> is set if there was an issue during extraction (in
 which case the contents of <em>*eedn</em> are meaningless) and clear if
-everything went well, and bits 0 to 6 are set iff the corresponding element
+everything went well, and bits 0 to 5 are set iff the corresponding element
 of the DN is present, by increasing order C, ST, L, O, OU and CN.
 </p>
 
@@ -603,8 +603,12 @@ a high-level function missing from BearSSL: it fully initializes a
 and all the hashes provided by BearSSL with a good degradation order,
 supporting TLS 1.0 to TLS 1.2, etc. What it doesn't set: the engine buffer,
 the certificate policy, the optional engine flags, and the optional client
-certificate validation.
+certificate validation. If the user wishes to be more conservative with the
+TLS versions, they can use the
+<a href="https://bearssl.org/apidoc/bearssl__ssl_8h.html#aca341c90ed49000ec1560101d6794e07">br_ssl_engine_set_versions()</a>
+call on <em>&amp;sc&rarr;eng</em> afterwards.
 </p>
+
 
 <h4> <code> void sbearssl_sctx_set_policy_sni (br_ssl_server_context *sc, sbearssl_sni_policy_context *pol) </code> </h4>
 
@@ -725,6 +729,11 @@ server for client authentication. </li>
    <li> Bit 0: if clear, no close_notify is performed and the engine
 will transmit EOF as received. If set, close_notify will be performed to
 end the TLS connection. </li>
+   <li> Bit 1: if clear, on reception of an EOF from the peer without a
+preceding close_notify, the EOF will be transmitted to the local program,
+and the connection will eventually end normally, with the process exiting 0.
+If set, if the peer closes the connection without sending a close_notify,
+the process will exit 98 with a fatal error message. </li>
   </ul> </li>
  <li> <em>verbosity</em> defines the engine's verbosity: the
 higher the more verbose. This parameter is currently ignored. </li>
