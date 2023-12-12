@@ -46,7 +46,7 @@ int ntp_exchange (int s, ip46 const *ip, uint16_t port, tain *stamps, tain const
   r = socket_sendnb46_g(s, query, 48, ip, port, deadline) ;
   if (r < 0) return 0 ;
   if (r < 48) return (errno = EPIPE, 0) ;
-  r = socket_recvnb46_g(s, answer, 48, &dummyip, &dummyport, deadline) ;
+  r = socket_recvnb46_g(s, answer, 48, &dummyip, &dummyport, ip46_is6(ip), deadline) ;
   if (r < 0) return 0 ;
   if (r < 48) return (errno = EPROTO, 0) ;
   if (((answer[0] & 7) != 2) && ((answer[0] & 7) != 4)) return (errno = EPROTO, 0) ;

@@ -19,6 +19,7 @@ int main (int argc, char const *const *argv)
   ip46 ip = IP46_ZERO ;
   uint16_t port = 4014 ;
   subgetopt l = SUBGETOPT_ZERO ;
+  int is6 ;
   PROG = "s6-taiclockd" ;
   for (;;)
   {
@@ -38,10 +39,11 @@ int main (int argc, char const *const *argv)
   if (socket_bind46_reuse(s, &ip, port) < 0)
     strerr_diefu1sys(111, "socket_bind_reuse") ;
 
+  is6 = ip46_is6(&ip) ;
   for (;;)
   {
     char packet[256] ;
-    ssize_t r = socket_recv46(s, packet, 256, &ip, &port) ;
+    ssize_t r = socket_recv46(s, packet, 256, &ip, &port, is6) ;
     if ((r >= 20) && !memcmp(packet, "ctai", 4))
     {
       tain now ;

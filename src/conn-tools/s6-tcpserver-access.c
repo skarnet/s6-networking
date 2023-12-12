@@ -60,6 +60,7 @@ static inline void log_deny (pid_t pid, ip46 const *ip)
   logit(pid, ip, 0) ;
 }
 
+#define PROGNAME "s6-tcpserver-access"
 
 int main (int argc, char const *const *argv)
 {
@@ -79,7 +80,9 @@ int main (int argc, char const *const *argv)
   int flagfatal = 1, flagnodelay = 0, flagdnslookup = 1, flaghosts = 0,
     flagident = 0, flagparanoid = 0, e = 0 ;
   uint16_t remoteport, localport ;
-  PROG = "s6-tcpserver-access" ;
+  char progbuf[sizeof(PROGNAME) + sizeof(": pid ") + PID_FMT] = PROGNAME ": pid " ;
+  memcpy(progbuf + sizeof(PROGNAME ": pid ") - 1 + pid_fmt(progbuf + sizeof(PROGNAME ": pid ") - 1, getpid()), ": ", 3) ;
+  PROG = PROGNAME ;
   {
     unsigned int timeout = 0 ;
     subgetopt l = SUBGETOPT_ZERO ;
@@ -146,6 +149,7 @@ int main (int argc, char const *const *argv)
     if (!uint160_scan(x, &remoteport)) strerr_dieinvalid(100, tmp) ;
   }
 
+  PROG = progbuf ;
   if (flagnodelay)
   {
     if (socket_tcpnodelay(1) < 0)
@@ -259,7 +263,11 @@ int main (int argc, char const *const *argv)
       if (r == -1)
       {
         if (verbosity >= 2) strerr_warnwu3sys("look up ", "remote", " ip in hosts database") ;
-        if (flagfatal) { e = 111 ; goto reject ; }
+        if (flagfatal)
+        {
+          e = 111 ;
+          goto reject ;
+        }
       }
       if (r)
       {
@@ -275,7 +283,11 @@ int main (int argc, char const *const *argv)
         if (r == -1)
         {
           if (verbosity >= 2) strerr_warnwu3sys("look up ", "local", " ip in hosts database") ;
-          if (flagfatal) { e = 111 ; goto reject ; }
+          if (flagfatal)
+          {
+            e = 111 ;
+            goto reject ;
+          }
         }
         if (r) localname = sa.s + genalloc_s(size_t, &ga)[0] ;
       }
@@ -311,7 +323,7 @@ int main (int argc, char const *const *argv)
       if (verbosity >= 3) strerr_warnwu2x("resolve IP addresses: ", s6dns_constants_error_str(errno)) ;
       if (flagfatal)
       {
-        e = 111 ;
+        e = errno == ENOENT ? 1 : 111 ;
         goto reject ;
       }
     }
@@ -355,7 +367,7 @@ int main (int argc, char const *const *argv)
             if (verbosity >= 3) strerr_warnwu4x("(paranoidly) resolve ", remotebuf, ": ", s6dns_constants_error_str(errno)) ;
             if (flagfatal)
             {
-              e = errno == ETIMEDOUT ? 99 : 111 ;
+              e = errno == ETIMEDOUT ? 99 : errno == ENOENT ? 1 : 111 ;
               goto reject ;
             }
             remotelen = 0 ;

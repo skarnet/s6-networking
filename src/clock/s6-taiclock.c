@@ -37,7 +37,7 @@ int tain_exchange (int s, ip46 const *ip, uint16_t port, tain *serversays, tain 
   r = socket_sendnb46_g(s, query, N, ip, port, deadline) ;
   if (r < 0) return 0 ;
   if (r < N) return (errno = EPIPE, 0) ;
-  r = socket_recvnb46_g(s, answer, N, &dummyip, &dummyport, deadline) ;
+  r = socket_recvnb46_g(s, answer, N, &dummyip, &dummyport, ip46_is6(ip), deadline) ;
   if (r < 0) return 0 ;
   if (r < N) return (errno = EPROTO, 0) ;
   if (memcmp(answer, "stai", 4)) return (errno = EPROTO, 0) ;
