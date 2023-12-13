@@ -81,7 +81,7 @@ int main (int argc, char const *const *argv)
     flagident = 0, flagparanoid = 0, e = 0 ;
   uint16_t remoteport, localport ;
   char progbuf[sizeof(PROGNAME) + sizeof(": pid ") + PID_FMT] = PROGNAME ": pid " ;
-  memcpy(progbuf + sizeof(PROGNAME ": pid ") - 1 + pid_fmt(progbuf + sizeof(PROGNAME ": pid ") - 1, getpid()), ": ", 3) ;
+  progbuf[sizeof(PROGNAME ": pid ") - 1 + pid_fmt(progbuf + sizeof(PROGNAME ": pid ") - 1, getpid())] = 0 ;
   PROG = PROGNAME ;
   {
     unsigned int timeout = 0 ;
