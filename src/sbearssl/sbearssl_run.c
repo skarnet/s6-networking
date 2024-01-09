@@ -87,6 +87,8 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fd, tain const *tto, uint32_
     }
     else y[3] = 4 ;
 
+    if (!j || (j == 1 && !x[0].events) || (j == 2 && !x[0].events && !x[1].events)) break ;
+
    /* Wait for events */
 
     switch (iopause_g(x, j, &deadline))
