@@ -263,8 +263,8 @@ static inline void new_connection (int s, char const *ip, uint16_t port, char co
   {
     cspawn_fileaction fa[2] =
     {
-      [0] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 0, [1] = s } } },
-      [1] = { .type = CSPAWN_FA_COPY, .x = { .fd2 = { [0] = 1, [1] = 0 } } }
+      [0] = { .type = CSPAWN_FA_MOVE, .x = { .fd2 = { [0] = 1, [1] = s } } },
+      [1] = { .type = CSPAWN_FA_COPY, .x = { .fd2 = { [0] = 0, [1] = 1 } } }
     } ;
     char const *newenvp[envlen + 7] ;
     env_mergen(newenvp, envlen + 7, envp, envlen, modifs, m, 6) ;
@@ -322,12 +322,7 @@ int main (int argc, char const *const *argv)
     }
     if (coe(0) == -1 || ndelay_on(0) == -1)
       strerr_diefu1sys(111, "set socket flags") ;
-    if (flag1)
-    {
-      if (fcntl(1, F_GETFD) < 0)
-        strerr_dief1sys(100, "called with option -1 but stdout said") ;
-    }
-    else close(1) ;
+    if (!fd_ensure_open(1, 1)) strerr_diefu1sys(111, "sanitize stdout") ;
     if (!maxconn) maxconn = 1 ;
     if (maxconn > ABSOLUTE_MAXCONN) maxconn = ABSOLUTE_MAXCONN ;
     if (localmaxconn > maxconn) localmaxconn = maxconn ;
@@ -402,8 +397,8 @@ int main (int argc, char const *const *argv)
         memcpy(fmtport, modifs + portpos, portlen) ;
         fmtport[portlen] = '\n' ;
         allwrite(1, fmtport, portlen + 1) ;
-        close(1) ;
       }
+      close(1) ;
     }
 
     while (cont)
