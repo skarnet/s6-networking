@@ -318,7 +318,7 @@ int main (int argc, char const *const *argv)
       blob[1].options = S6DNS_O_RECURSIVE ;
       data[1].rtype = S6DNS_T_PTR ;
     }
-    if (!localname && !remotelen && !s6dns_resolven_parse_g(blob + !!localname, !localname + !remotelen, &infinite))
+    if (!(localname && remotelen) && !s6dns_resolven_parse_g(blob + !!localname, !localname + !remotelen, &infinite))
     {
       if (verbosity >= 3) strerr_warnwu2x("resolve IP addresses: ", s6dns_constants_error_str(errno)) ;
       if (flagfatal)
