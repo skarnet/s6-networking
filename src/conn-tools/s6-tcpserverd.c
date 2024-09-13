@@ -296,8 +296,13 @@ static inline void new_connection (int s, char const *ip, uint16_t port, char co
 int main (int argc, char const *const *argv)
 {
   iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ | IOPAUSE_EXCEPT } } ;
-  int flag1 = 0 ;
+  size_t m = 21 ;
+  uint16_t port ;
+  char ip[SKALIBS_IP_SIZE] ;
+  char modifs[sizeof("PROTO=TCP TCPLOCALIP= TCPLOCALPORT= TCPREMOTEIP= TCPREMOTEPORT= TCPCONNNUM=") + 2 * (IP46_FMT + UINT16_FMT) + UINT32_FMT] = "PROTO=TCP\0TCPLOCALIP=" ;
+  uint8_t flag1 = 0 ;
   PROG = "s6-tcpserverd" ;
+
   {
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
@@ -314,35 +319,64 @@ int main (int argc, char const *const *argv)
       }
     }
     argc -= l.ind ; argv += l.ind ;
-    if (!argc || !*argv[0]) dieusage() ;
-    {
-      struct stat st ;
-      if (fstat(0, &st) < 0) strerr_diefu1sys(111, "fstat stdin") ;
-      if (!S_ISSOCK(st.st_mode)) strerr_dief1x(100, "stdin is not a socket") ;
-    }
-    if (coe(0) == -1 || ndelay_on(0) == -1)
-      strerr_diefu1sys(111, "set socket flags") ;
-    if (!fd_ensure_open(1, 1)) strerr_diefu1sys(111, "sanitize stdout") ;
-    if (!maxconn) maxconn = 1 ;
-    if (maxconn > ABSOLUTE_MAXCONN) maxconn = ABSOLUTE_MAXCONN ;
-    if (localmaxconn > maxconn) localmaxconn = maxconn ;
-
-    x[0].fd = selfpipe_init() ;
-    if (x[0].fd == -1) strerr_diefu1sys(111, "create selfpipe") ;
-    if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
-    {
-      sigset_t set ;
-      sigemptyset(&set) ;
-      sigaddset(&set, SIGCHLD) ;
-      sigaddset(&set, SIGTERM) ;
-      sigaddset(&set, SIGHUP) ;
-      sigaddset(&set, SIGQUIT) ;
-      sigaddset(&set, SIGABRT) ;
-      if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
-    }
-    fmtmaxconn[1 + uint32_fmt(fmtmaxconn + 1, maxconn)] = 0 ;
-    fmtlocalmaxconn[1 + uint32_fmt(fmtlocalmaxconn + 1, localmaxconn)] = 0 ;
   }
+
+  if (!argc || !*argv[0]) dieusage() ;
+  {
+    struct stat st ;
+    if (fstat(0, &st) < 0) strerr_diefu1sys(111, "fstat stdin") ;
+    if (!S_ISSOCK(st.st_mode)) strerr_dief1x(100, "stdin is not a socket") ;
+  }
+  if (coe(0) == -1 || ndelay_on(0) == -1)
+    strerr_diefu1sys(111, "set socket flags") ;
+  if (!fd_ensure_open(1, 1)) strerr_diefu1sys(111, "sanitize stdout") ;
+  if (!maxconn) maxconn = 1 ;
+  if (maxconn > ABSOLUTE_MAXCONN) maxconn = ABSOLUTE_MAXCONN ;
+  if (localmaxconn > maxconn) localmaxconn = maxconn ;
+
+  x[0].fd = selfpipe_init() ;
+  if (x[0].fd == -1) strerr_diefu1sys(111, "create selfpipe") ;
+  if (!sig_altignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
+  {
+    sigset_t set ;
+    sigemptyset(&set) ;
+    sigaddset(&set, SIGCHLD) ;
+    sigaddset(&set, SIGTERM) ;
+    sigaddset(&set, SIGHUP) ;
+    sigaddset(&set, SIGQUIT) ;
+    sigaddset(&set, SIGABRT) ;
+    if (!selfpipe_trapset(&set)) strerr_diefu1sys(111, "trap signals") ;
+  }
+  fmtmaxconn[1 + uint32_fmt(fmtmaxconn + 1, maxconn)] = 0 ;
+  fmtlocalmaxconn[1 + uint32_fmt(fmtlocalmaxconn + 1, localmaxconn)] = 0 ;
+
+  {
+    size_t ippos, portpos, portlen ;
+    ip46 loc ;
+    if (socket_local46(0, &loc, &port) == -1)
+      strerr_diefu1sys(111, "get local socket information") ;
+    is6 = ip46_is6(&loc) ;
+    memcpy(ip, loc.ip, is6 ? 16 : 4) ;
+    ippos = m ;
+    m += is6 ? ip6_fmt(modifs + m, ip) : ip4_fmt(modifs + m, ip) ;
+    memcpy(modifs + m, "\0TCPLOCALPORT=", 14) ; m += 14 ;
+    portpos = m ;
+    m += uint16_fmt(modifs + m, port) ;
+    portlen = m - portpos ;
+    memcpy(modifs + m, "\0TCPREMOTEIP=", 13) ; m += 13 ;
+
+    log_start(modifs + ippos, modifs + portpos) ;
+
+    if (flag1)
+    {
+      char fmtport[UINT16_FMT] ;
+      memcpy(fmtport, modifs + portpos, portlen) ;
+      fmtport[portlen] = '\n' ;
+      allwrite(1, fmtport, portlen + 1) ;
+    }
+    close(1) ;
+  }
+
 
   {
    /* Yo dawg, I herd u like stack allocations */
@@ -359,10 +393,6 @@ int main (int argc, char const *const *argv)
     avltreen byip_info ;
     avltreen bypid_info ;
     size_t envlen = env_len((char const *const *)environ) ;
-    size_t m = 21 ;
-    char ip[SKALIBS_IP_SIZE] ;
-    uint16_t port ;
-    char modifs[sizeof("PROTO=TCP TCPLOCALIP= TCPLOCALPORT= TCPREMOTEIP= TCPREMOTEPORT= TCPCONNNUM=") + 2 * (IP46_FMT + UINT16_FMT) + UINT32_FMT] = "PROTO=TCP\0TCPLOCALIP=" ;
 
     genset_init(&ipnum_info, ipnum_storage, ipnum_freelist, is6 ? 20 : 8, maxconn) ;
     GENSET_init(&pidi_info, pidi, pidi_storage, pidi_freelist, maxconn) ;
@@ -372,34 +402,7 @@ int main (int argc, char const *const *argv)
     pidis = &pidi_info ;
     by_ip = &byip_info ;
     by_pid = &bypid_info ;
-
-    {
-      size_t ippos, portpos, portlen ;
-      ip46 loc ;
-      if (socket_local46(0, &loc, &port) == -1)
-        strerr_diefu1sys(111, "get local socket information") ;
-      is6 = ip46_is6(&loc) ;
-      memcpy(ip, loc.ip, is6 ? 16 : 4) ;
-      ippos = m ;
-      m += is6 ? ip6_fmt(modifs + m, ip) : ip4_fmt(modifs + m, ip) ;
-      memcpy(modifs + m, "\0TCPLOCALPORT=", 14) ; m += 14 ;
-      portpos = m ;
-      m += uint16_fmt(modifs + m, port) ;
-      portlen = m - portpos ;
-      memcpy(modifs + m, "\0TCPREMOTEIP=", 13) ; m += 13 ;
-
-      log_start(modifs + ippos, modifs + portpos) ;
-      log_status() ;
-
-      if (flag1)
-      {
-        char fmtport[UINT16_FMT] ;
-        memcpy(fmtport, modifs + portpos, portlen) ;
-        fmtport[portlen] = '\n' ;
-        allwrite(1, fmtport, portlen + 1) ;
-      }
-      close(1) ;
-    }
+    log_status() ;
 
     while (cont)
     {

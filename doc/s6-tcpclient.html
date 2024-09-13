@@ -80,15 +80,11 @@ the current connection (very unreliable). Else unset. </li>
  <li> <tt>-q</tt>&nbsp;: be quiet. </li>
  <li> <tt>-Q</tt>&nbsp;: be normally verbose. This is the default. </li>
  <li> <tt>-v</tt>&nbsp;: be verbose. </li>
- <li> <tt>-4</tt>&nbsp;: (only valid if the underlying skalibs has
-IPv6 support) Interpret <em>host</em> as an IPv4 address or make A
-queries to determine its addresses. </li>
+ <li> <tt>-4</tt>&nbsp;: Interpret <em>host</em> as an IPv4 address or make A
+queries to determine its addresses. Do not attempt IPv6. </li>
  <li> <tt>-6</tt>&nbsp;: (only valid if the underlying skalibs has
 IPv6 support) Interpret <em>host</em> as an IPv6 address or make
-AAAA queries to determine its addresses. This option and the previous
-one are not mutually exclusive: if both are given, both IPv6 and
-IPv4 addresses will be tried and IPv6 addresses will be given priority.
-If neither option is given, only IPv4 address will be tried. </li>
+AAAA queries to determine its addresses. Do not attempt IPv4. </li>
  <li> <tt>-d</tt>&nbsp;: don't use the TCP_NODELAY socket option. This
 is the default. </li>
  <li> <tt>-D</tt>&nbsp;: use the TCP_NODELAY socket option, which disables

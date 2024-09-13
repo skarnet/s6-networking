@@ -25,12 +25,12 @@
 
 #ifdef SKALIBS_IPV6_ENABLED
 # define USAGE "s6-tcpclient [ -q | -Q | -v ] [ -4 | -6 ] [ -d | -D ] [ -r | -R ] [ -h ] [ -H ] [ -n | -N ] [ -t timeoutinfo ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog..."
-# define TFLAGS_DEFAULT { 0, 0, { 2, 58 }, IP46_ZERO, 0, 1, 0, 0, 1, 0, 1, 0, 1 }
 # define OPTSTRING "qQv46dDrRhHnNt:l:T:i:p:"
+# define FLAGIP6_DEFAULT 1
 #else
-# define USAGE "s6-tcpclient [ -q | -Q | -v ] [ -d | -D ] [ -r | -R ] [ -h ] [ -H ] [ -n | -N ] [ -t timeoutinfo ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog..."
-# define TFLAGS_DEFAULT { 0, 0, { 2, 58 }, IP46_ZERO, 0, 1, 1, 0, 1, 0, 1 }
+# define USAGE "s6-tcpclient [ -q | -Q | -v ] [ -4 ] [ -d | -D ] [ -r | -R ] [ -h ] [ -H ] [ -n | -N ] [ -t timeoutinfo ] [ -l localname ] [ -T timeoutconn ] [ -i localip ] [ -p localport ] host port prog..."
 # define OPTSTRING "qQvdDrRhHnNt:l:T:i:p:"
+# define FLAGIP6_DEFAULT 0
 #endif
 
 #define usage() strerr_dieusage(100, USAGE)
@@ -47,16 +47,30 @@ struct tflags_s
   ip46 localip ;
   uint16_t localport ;
   unsigned int verbosity : 2 ;
-#ifdef SKALIBS_IPV6_ENABLED
   unsigned int ip4 : 1 ;
   unsigned int ip6 : 1 ;
-#endif
   unsigned int delay : 1 ;
   unsigned int remoteinfo : 1 ;
   unsigned int remotehost : 1 ;
   unsigned int hosts : 1 ;
   unsigned int qualif : 1 ;
 } ;
+#define TFLAGS_DEFAULT \
+{ \
+  .localname = 0,\
+  .timeout = 0,\
+  .timeoutconn = { 2, 58 }, \
+  .localip = IP46_ZERO, \
+  .localport = 0, \
+  .verbosity = 1, \
+  .ip4 = 1, \
+  .ip6 = FLAGIP6_DEFAULT, \
+  .delay = 1, \
+  .remoteinfo = 0, \
+  .remotehost = 1, \
+  .hosts = 0, \
+  .qualif = 1 \
+}
 
 static tain deadline ;
 
@@ -78,9 +92,9 @@ int main (int argc, char const *const *argv)
         case 'q' : if (flags.verbosity) flags.verbosity-- ; break ;
         case 'Q' : flags.verbosity = 1 ; break ;
         case 'v' : flags.verbosity++ ; break ;
+        case '4' : flags.ip4 = 1 ; flags.ip6 = 0 ; break ;
 #ifdef SKALIBS_IPV6_ENABLED
-        case '4' : flags.ip4 = 1 ; break ;
-        case '6' : flags.ip6 = 1 ; break ;
+        case '6' : flags.ip6 = 1 ; flags.ip4 = 0 ; break ;
 #endif
         case 'd' : flags.delay = 1 ; break ;
         case 'D' : flags.delay = 0 ; break ;
@@ -113,9 +127,6 @@ int main (int argc, char const *const *argv)
     argc -= l.ind ; argv += l.ind ;
   }
   if (argc < 3) usage() ;
-#ifdef SKALIBS_IPV6_ENABLED
-  if (!flags.ip6) flags.ip4 = 1 ;
-#endif
   if (!uint160_scan(argv[1], &remoteport))
     strerr_dief2x(100, "invalid port number: ", argv[1]) ;
   tain_now_set_stopwatch_g() ;
