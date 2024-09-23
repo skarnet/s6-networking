@@ -77,7 +77,7 @@ int main (int argc, char const *const *argv)
   size_t protolen ;
   s6_accessrules_result_t accepted ;
   ip46 remoteip, localip ;
-  int flagfatal = 1, flagnodelay = 0, flagdnslookup = 1, flaghosts = 0,
+  int flagfatal = 0, flagnodelay = 0, flagdnslookup = 1, flaghosts = 0,
     flagident = 0, flagparanoid = 0, e = 0 ;
   uint16_t remoteport, localport ;
   char progbuf[sizeof(PROGNAME) + sizeof(": pid ") + PID_FMT] = PROGNAME ": pid " ;
