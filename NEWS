@@ -4,6 +4,7 @@ In 2.7.0.4
 ----------
 
  - Bugfixes.
+ - Install static libraries in /usr/lib by default.
 
 
 In 2.7.0.3
