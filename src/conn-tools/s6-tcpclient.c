@@ -69,7 +69,7 @@ struct tflags_s
   .remoteinfo = 0, \
   .remotehost = 1, \
   .hosts = 0, \
-  .qualif = 1 \
+  .qualif = 0 \
 }
 
 static tain deadline ;
