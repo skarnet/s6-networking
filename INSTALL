@@ -17,8 +17,8 @@ Build Instructions
         libretls version 3.8.1 or later: https://git.causal.agency/libretls/about/
 
  This software will run on any operating system that implements
-POSIX.1-2008, available at:
-  https://pubs.opengroup.org/onlinepubs/9699919799/
+POSIX.1-2024, available at:
+  https://pubs.opengroup.org/onlinepubs/9799919799/
 
 
 * Standard usage
