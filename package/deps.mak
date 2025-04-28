@@ -100,70 +100,73 @@ src/tls/s6tls_prep_tlsdio.o src/tls/s6tls_prep_tlsdio.lo: src/tls/s6tls_prep_tls
 src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_sync_and_exec_app.lo: src/tls/s6tls_sync_and_exec_app.c src/tls/s6tls-internal.h
 src/tls/s6tls_ucspi_exec_app.o src/tls/s6tls_ucspi_exec_app.lo: src/tls/s6tls_ucspi_exec_app.c src/tls/s6tls-internal.h
 
-s6-clockadd: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
-s6-clockadd: src/clock/s6-clockadd.o
-s6-clockview: EXTRA_LIBS := -lskarnet ${SYSCLOCK_LIB}
-s6-clockview: src/clock/s6-clockview.o
-s6-sntpclock: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-sntpclock: src/clock/s6-sntpclock.o
-s6-taiclock: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-taiclock: src/clock/s6-taiclock.o
-s6-taiclockd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-taiclockd: src/clock/s6-taiclockd.o
-s6-getservbyname: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-getservbyname: src/conn-tools/s6-getservbyname.o
-s6-ident-client: EXTRA_LIBS := -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-ident-client: src/conn-tools/s6-ident-client.o ${LIBS6NET}
-s6-tcpclient: EXTRA_LIBS := -ls6dns -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-tcpclient: src/conn-tools/s6-tcpclient.o ${LIBS6NET}
-s6-tcpserver: EXTRA_LIBS := -lskarnet
-s6-tcpserver: src/conn-tools/s6-tcpserver.o
-s6-tcpserver-access: EXTRA_LIBS := -ls6dns -ls6 -lskarnet ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o ${LIBS6NET}
-s6-tcpserver-socketbinder: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserver-socketbinder: src/conn-tools/s6-tcpserver-socketbinder.o
-s6-tcpserverd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-tcpserverd: src/conn-tools/s6-tcpserverd.o
+s6-clockadd: EXTRA_LIBS := ${SYSCLOCK_LIB}
+s6-clockadd: src/clock/s6-clockadd.o -lskarnet
+s6-clockview: EXTRA_LIBS := ${SYSCLOCK_LIB}
+s6-clockview: src/clock/s6-clockview.o -lskarnet
+s6-sntpclock: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-sntpclock: src/clock/s6-sntpclock.o -lskarnet
+s6-taiclock: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-taiclock: src/clock/s6-taiclock.o -lskarnet
+s6-taiclockd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-taiclockd: src/clock/s6-taiclockd.o -lskarnet
+s6-getservbyname: EXTRA_LIBS := ${SOCKET_LIB}
+s6-getservbyname: src/conn-tools/s6-getservbyname.o -lskarnet
+s6-ident-client: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-ident-client: src/conn-tools/s6-ident-client.o ${LIBS6NET} -lskarnet
+s6-tcpclient: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-tcpclient: src/conn-tools/s6-tcpclient.o ${LIBS6NET} -ls6dns -lskarnet
+s6-tcpserver: EXTRA_LIBS :=
+s6-tcpserver: src/conn-tools/s6-tcpserver.o -lskarnet
+s6-tcpserver-access: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-tcpserver-access: src/conn-tools/s6-tcpserver-access.o ${LIBS6NET} -ls6dns -ls6 -lskarnet
+s6-tcpserver-socketbinder: EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserver-socketbinder: src/conn-tools/s6-tcpserver-socketbinder.o -lskarnet
+s6-tcpserverd: EXTRA_LIBS := ${SOCKET_LIB}
+s6-tcpserverd: src/conn-tools/s6-tcpserverd.o -lskarnet
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6net.a.xyzzy: src/libs6net/s6net_ident_client.o src/libs6net/s6net_ident_reply_get.o src/libs6net/s6net_ident_reply_parse.o src/libs6net/s6net_ident_error.o
 else
-libs6net.a.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
+libs6net.a.xyzzy:src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
 endif
+libs6net.pc: EXTRA_LIBS := -lskarnet
 libs6net.so.xyzzy: EXTRA_LIBS := -lskarnet
-libs6net.so.xyzzy: src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
+libs6net.so.xyzzy:src/libs6net/s6net_ident_client.lo src/libs6net/s6net_ident_reply_get.lo src/libs6net/s6net_ident_reply_parse.lo src/libs6net/s6net_ident_error.lo
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libsbearssl.a.xyzzy: src/sbearssl/sbearssl_append.o src/sbearssl/sbearssl_cert_from.o src/sbearssl/sbearssl_cert_readbigpem.o src/sbearssl/sbearssl_cert_readfile.o src/sbearssl/sbearssl_cert_to.o src/sbearssl/sbearssl_choose_algos_ec.o src/sbearssl/sbearssl_choose_algos_rsa.o src/sbearssl/sbearssl_choose_hash.o src/sbearssl/sbearssl_client_init_and_run.o src/sbearssl/sbearssl_drop.o src/sbearssl/sbearssl_ec_issuer_keytype.o src/sbearssl/sbearssl_ec_pkey_from.o src/sbearssl/sbearssl_ec_pkey_to.o src/sbearssl/sbearssl_ec_skey_from.o src/sbearssl/sbearssl_ec_skey_to.o src/sbearssl/sbearssl_error_str.o src/sbearssl/sbearssl_get_keycert.o src/sbearssl/sbearssl_get_tas.o src/sbearssl/sbearssl_isder.o src/sbearssl/sbearssl_pem_decode_from_buffer.o src/sbearssl/sbearssl_pem_decode_from_string.o src/sbearssl/sbearssl_pem_push.o src/sbearssl/sbearssl_pkey_from.o src/sbearssl/sbearssl_pkey_to.o src/sbearssl/sbearssl_rsa_pkey_from.o src/sbearssl/sbearssl_rsa_pkey_to.o src/sbearssl/sbearssl_rsa_skey_from.o src/sbearssl/sbearssl_rsa_skey_to.o src/sbearssl/sbearssl_run.o src/sbearssl/sbearssl_sctx_init_full_generic.o src/sbearssl/sbearssl_sctx_set_policy_sni.o src/sbearssl/sbearssl_send_environment.o src/sbearssl/sbearssl_server_init_and_run.o src/sbearssl/sbearssl_skey_from.o src/sbearssl/sbearssl_skey_readfile.o src/sbearssl/sbearssl_skey_storagelen.o src/sbearssl/sbearssl_skey_to.o src/sbearssl/sbearssl_skey_wipe.o src/sbearssl/sbearssl_sni_policy_add_keypair_file.o src/sbearssl/sbearssl_sni_policy_init.o src/sbearssl/sbearssl_sni_policy_nkeypairs.o src/sbearssl/sbearssl_sni_policy_vtable.o src/sbearssl/sbearssl_suite_bits.o src/sbearssl/sbearssl_suite_list.o src/sbearssl/sbearssl_suite_name.o src/sbearssl/sbearssl_ta_cert.o src/sbearssl/sbearssl_ta_certs.o src/sbearssl/sbearssl_ta_from.o src/sbearssl/sbearssl_ta_readdir.o src/sbearssl/sbearssl_ta_readfile.o src/sbearssl/sbearssl_ta_to.o src/sbearssl/sbearssl_x500_from_ta.o src/sbearssl/sbearssl_x500_name_len.o src/sbearssl/sbearssl_x509_minimal_set_tai.o src/sbearssl/sbearssl_x509_small_init_full.o src/sbearssl/sbearssl_x509_small_vtable.o src/sbearssl/sbearssl_dayseconds_from_tai.o src/sbearssl/sbearssl_tai_from_dayseconds.o src/sbearssl/sbearssl_x509_time_check.o
 else
-libsbearssl.a.xyzzy: src/sbearssl/sbearssl_append.lo src/sbearssl/sbearssl_cert_from.lo src/sbearssl/sbearssl_cert_readbigpem.lo src/sbearssl/sbearssl_cert_readfile.lo src/sbearssl/sbearssl_cert_to.lo src/sbearssl/sbearssl_choose_algos_ec.lo src/sbearssl/sbearssl_choose_algos_rsa.lo src/sbearssl/sbearssl_choose_hash.lo src/sbearssl/sbearssl_client_init_and_run.lo src/sbearssl/sbearssl_drop.lo src/sbearssl/sbearssl_ec_issuer_keytype.lo src/sbearssl/sbearssl_ec_pkey_from.lo src/sbearssl/sbearssl_ec_pkey_to.lo src/sbearssl/sbearssl_ec_skey_from.lo src/sbearssl/sbearssl_ec_skey_to.lo src/sbearssl/sbearssl_error_str.lo src/sbearssl/sbearssl_get_keycert.lo src/sbearssl/sbearssl_get_tas.lo src/sbearssl/sbearssl_isder.lo src/sbearssl/sbearssl_pem_decode_from_buffer.lo src/sbearssl/sbearssl_pem_decode_from_string.lo src/sbearssl/sbearssl_pem_push.lo src/sbearssl/sbearssl_pkey_from.lo src/sbearssl/sbearssl_pkey_to.lo src/sbearssl/sbearssl_rsa_pkey_from.lo src/sbearssl/sbearssl_rsa_pkey_to.lo src/sbearssl/sbearssl_rsa_skey_from.lo src/sbearssl/sbearssl_rsa_skey_to.lo src/sbearssl/sbearssl_run.lo src/sbearssl/sbearssl_sctx_init_full_generic.lo src/sbearssl/sbearssl_sctx_set_policy_sni.lo src/sbearssl/sbearssl_send_environment.lo src/sbearssl/sbearssl_server_init_and_run.lo src/sbearssl/sbearssl_skey_from.lo src/sbearssl/sbearssl_skey_readfile.lo src/sbearssl/sbearssl_skey_storagelen.lo src/sbearssl/sbearssl_skey_to.lo src/sbearssl/sbearssl_skey_wipe.lo src/sbearssl/sbearssl_sni_policy_add_keypair_file.lo src/sbearssl/sbearssl_sni_policy_init.lo src/sbearssl/sbearssl_sni_policy_nkeypairs.lo src/sbearssl/sbearssl_sni_policy_vtable.lo src/sbearssl/sbearssl_suite_bits.lo src/sbearssl/sbearssl_suite_list.lo src/sbearssl/sbearssl_suite_name.lo src/sbearssl/sbearssl_ta_cert.lo src/sbearssl/sbearssl_ta_certs.lo src/sbearssl/sbearssl_ta_from.lo src/sbearssl/sbearssl_ta_readdir.lo src/sbearssl/sbearssl_ta_readfile.lo src/sbearssl/sbearssl_ta_to.lo src/sbearssl/sbearssl_x500_from_ta.lo src/sbearssl/sbearssl_x500_name_len.lo src/sbearssl/sbearssl_x509_minimal_set_tai.lo src/sbearssl/sbearssl_x509_small_init_full.lo src/sbearssl/sbearssl_x509_small_vtable.lo src/sbearssl/sbearssl_dayseconds_from_tai.lo src/sbearssl/sbearssl_tai_from_dayseconds.lo src/sbearssl/sbearssl_x509_time_check.lo
+libsbearssl.a.xyzzy:src/sbearssl/sbearssl_append.lo src/sbearssl/sbearssl_cert_from.lo src/sbearssl/sbearssl_cert_readbigpem.lo src/sbearssl/sbearssl_cert_readfile.lo src/sbearssl/sbearssl_cert_to.lo src/sbearssl/sbearssl_choose_algos_ec.lo src/sbearssl/sbearssl_choose_algos_rsa.lo src/sbearssl/sbearssl_choose_hash.lo src/sbearssl/sbearssl_client_init_and_run.lo src/sbearssl/sbearssl_drop.lo src/sbearssl/sbearssl_ec_issuer_keytype.lo src/sbearssl/sbearssl_ec_pkey_from.lo src/sbearssl/sbearssl_ec_pkey_to.lo src/sbearssl/sbearssl_ec_skey_from.lo src/sbearssl/sbearssl_ec_skey_to.lo src/sbearssl/sbearssl_error_str.lo src/sbearssl/sbearssl_get_keycert.lo src/sbearssl/sbearssl_get_tas.lo src/sbearssl/sbearssl_isder.lo src/sbearssl/sbearssl_pem_decode_from_buffer.lo src/sbearssl/sbearssl_pem_decode_from_string.lo src/sbearssl/sbearssl_pem_push.lo src/sbearssl/sbearssl_pkey_from.lo src/sbearssl/sbearssl_pkey_to.lo src/sbearssl/sbearssl_rsa_pkey_from.lo src/sbearssl/sbearssl_rsa_pkey_to.lo src/sbearssl/sbearssl_rsa_skey_from.lo src/sbearssl/sbearssl_rsa_skey_to.lo src/sbearssl/sbearssl_run.lo src/sbearssl/sbearssl_sctx_init_full_generic.lo src/sbearssl/sbearssl_sctx_set_policy_sni.lo src/sbearssl/sbearssl_send_environment.lo src/sbearssl/sbearssl_server_init_and_run.lo src/sbearssl/sbearssl_skey_from.lo src/sbearssl/sbearssl_skey_readfile.lo src/sbearssl/sbearssl_skey_storagelen.lo src/sbearssl/sbearssl_skey_to.lo src/sbearssl/sbearssl_skey_wipe.lo src/sbearssl/sbearssl_sni_policy_add_keypair_file.lo src/sbearssl/sbearssl_sni_policy_init.lo src/sbearssl/sbearssl_sni_policy_nkeypairs.lo src/sbearssl/sbearssl_sni_policy_vtable.lo src/sbearssl/sbearssl_suite_bits.lo src/sbearssl/sbearssl_suite_list.lo src/sbearssl/sbearssl_suite_name.lo src/sbearssl/sbearssl_ta_cert.lo src/sbearssl/sbearssl_ta_certs.lo src/sbearssl/sbearssl_ta_from.lo src/sbearssl/sbearssl_ta_readdir.lo src/sbearssl/sbearssl_ta_readfile.lo src/sbearssl/sbearssl_ta_to.lo src/sbearssl/sbearssl_x500_from_ta.lo src/sbearssl/sbearssl_x500_name_len.lo src/sbearssl/sbearssl_x509_minimal_set_tai.lo src/sbearssl/sbearssl_x509_small_init_full.lo src/sbearssl/sbearssl_x509_small_vtable.lo src/sbearssl/sbearssl_dayseconds_from_tai.lo src/sbearssl/sbearssl_tai_from_dayseconds.lo src/sbearssl/sbearssl_x509_time_check.lo
 endif
+libsbearssl.pc: EXTRA_LIBS := -lskarnet -lbearssl
 libsbearssl.so.xyzzy: EXTRA_LIBS := -lskarnet -lbearssl
-libsbearssl.so.xyzzy: src/sbearssl/sbearssl_append.lo src/sbearssl/sbearssl_cert_from.lo src/sbearssl/sbearssl_cert_readbigpem.lo src/sbearssl/sbearssl_cert_readfile.lo src/sbearssl/sbearssl_cert_to.lo src/sbearssl/sbearssl_choose_algos_ec.lo src/sbearssl/sbearssl_choose_algos_rsa.lo src/sbearssl/sbearssl_choose_hash.lo src/sbearssl/sbearssl_client_init_and_run.lo src/sbearssl/sbearssl_drop.lo src/sbearssl/sbearssl_ec_issuer_keytype.lo src/sbearssl/sbearssl_ec_pkey_from.lo src/sbearssl/sbearssl_ec_pkey_to.lo src/sbearssl/sbearssl_ec_skey_from.lo src/sbearssl/sbearssl_ec_skey_to.lo src/sbearssl/sbearssl_error_str.lo src/sbearssl/sbearssl_get_keycert.lo src/sbearssl/sbearssl_get_tas.lo src/sbearssl/sbearssl_isder.lo src/sbearssl/sbearssl_pem_decode_from_buffer.lo src/sbearssl/sbearssl_pem_decode_from_string.lo src/sbearssl/sbearssl_pem_push.lo src/sbearssl/sbearssl_pkey_from.lo src/sbearssl/sbearssl_pkey_to.lo src/sbearssl/sbearssl_rsa_pkey_from.lo src/sbearssl/sbearssl_rsa_pkey_to.lo src/sbearssl/sbearssl_rsa_skey_from.lo src/sbearssl/sbearssl_rsa_skey_to.lo src/sbearssl/sbearssl_run.lo src/sbearssl/sbearssl_sctx_init_full_generic.lo src/sbearssl/sbearssl_sctx_set_policy_sni.lo src/sbearssl/sbearssl_send_environment.lo src/sbearssl/sbearssl_server_init_and_run.lo src/sbearssl/sbearssl_skey_from.lo src/sbearssl/sbearssl_skey_readfile.lo src/sbearssl/sbearssl_skey_storagelen.lo src/sbearssl/sbearssl_skey_to.lo src/sbearssl/sbearssl_skey_wipe.lo src/sbearssl/sbearssl_sni_policy_add_keypair_file.lo src/sbearssl/sbearssl_sni_policy_init.lo src/sbearssl/sbearssl_sni_policy_nkeypairs.lo src/sbearssl/sbearssl_sni_policy_vtable.lo src/sbearssl/sbearssl_suite_bits.lo src/sbearssl/sbearssl_suite_list.lo src/sbearssl/sbearssl_suite_name.lo src/sbearssl/sbearssl_ta_cert.lo src/sbearssl/sbearssl_ta_certs.lo src/sbearssl/sbearssl_ta_from.lo src/sbearssl/sbearssl_ta_readdir.lo src/sbearssl/sbearssl_ta_readfile.lo src/sbearssl/sbearssl_ta_to.lo src/sbearssl/sbearssl_x500_from_ta.lo src/sbearssl/sbearssl_x500_name_len.lo src/sbearssl/sbearssl_x509_minimal_set_tai.lo src/sbearssl/sbearssl_x509_small_init_full.lo src/sbearssl/sbearssl_x509_small_vtable.lo src/sbearssl/sbearssl_dayseconds_from_tai.lo src/sbearssl/sbearssl_tai_from_dayseconds.lo src/sbearssl/sbearssl_x509_time_check.lo
+libsbearssl.so.xyzzy:src/sbearssl/sbearssl_append.lo src/sbearssl/sbearssl_cert_from.lo src/sbearssl/sbearssl_cert_readbigpem.lo src/sbearssl/sbearssl_cert_readfile.lo src/sbearssl/sbearssl_cert_to.lo src/sbearssl/sbearssl_choose_algos_ec.lo src/sbearssl/sbearssl_choose_algos_rsa.lo src/sbearssl/sbearssl_choose_hash.lo src/sbearssl/sbearssl_client_init_and_run.lo src/sbearssl/sbearssl_drop.lo src/sbearssl/sbearssl_ec_issuer_keytype.lo src/sbearssl/sbearssl_ec_pkey_from.lo src/sbearssl/sbearssl_ec_pkey_to.lo src/sbearssl/sbearssl_ec_skey_from.lo src/sbearssl/sbearssl_ec_skey_to.lo src/sbearssl/sbearssl_error_str.lo src/sbearssl/sbearssl_get_keycert.lo src/sbearssl/sbearssl_get_tas.lo src/sbearssl/sbearssl_isder.lo src/sbearssl/sbearssl_pem_decode_from_buffer.lo src/sbearssl/sbearssl_pem_decode_from_string.lo src/sbearssl/sbearssl_pem_push.lo src/sbearssl/sbearssl_pkey_from.lo src/sbearssl/sbearssl_pkey_to.lo src/sbearssl/sbearssl_rsa_pkey_from.lo src/sbearssl/sbearssl_rsa_pkey_to.lo src/sbearssl/sbearssl_rsa_skey_from.lo src/sbearssl/sbearssl_rsa_skey_to.lo src/sbearssl/sbearssl_run.lo src/sbearssl/sbearssl_sctx_init_full_generic.lo src/sbearssl/sbearssl_sctx_set_policy_sni.lo src/sbearssl/sbearssl_send_environment.lo src/sbearssl/sbearssl_server_init_and_run.lo src/sbearssl/sbearssl_skey_from.lo src/sbearssl/sbearssl_skey_readfile.lo src/sbearssl/sbearssl_skey_storagelen.lo src/sbearssl/sbearssl_skey_to.lo src/sbearssl/sbearssl_skey_wipe.lo src/sbearssl/sbearssl_sni_policy_add_keypair_file.lo src/sbearssl/sbearssl_sni_policy_init.lo src/sbearssl/sbearssl_sni_policy_nkeypairs.lo src/sbearssl/sbearssl_sni_policy_vtable.lo src/sbearssl/sbearssl_suite_bits.lo src/sbearssl/sbearssl_suite_list.lo src/sbearssl/sbearssl_suite_name.lo src/sbearssl/sbearssl_ta_cert.lo src/sbearssl/sbearssl_ta_certs.lo src/sbearssl/sbearssl_ta_from.lo src/sbearssl/sbearssl_ta_readdir.lo src/sbearssl/sbearssl_ta_readfile.lo src/sbearssl/sbearssl_ta_to.lo src/sbearssl/sbearssl_x500_from_ta.lo src/sbearssl/sbearssl_x500_name_len.lo src/sbearssl/sbearssl_x509_minimal_set_tai.lo src/sbearssl/sbearssl_x509_small_init_full.lo src/sbearssl/sbearssl_x509_small_vtable.lo src/sbearssl/sbearssl_dayseconds_from_tai.lo src/sbearssl/sbearssl_tai_from_dayseconds.lo src/sbearssl/sbearssl_x509_time_check.lo
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libstls.a.xyzzy: src/stls/stls_drop.o src/stls/stls_handshake.o src/stls/stls_run.o src/stls/stls_client_init_and_handshake.o src/stls/stls_server_init_and_handshake.o src/stls/stls_send_environment.o
 else
-libstls.a.xyzzy: src/stls/stls_drop.lo src/stls/stls_handshake.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
+libstls.a.xyzzy:src/stls/stls_drop.lo src/stls/stls_handshake.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
 endif
+libstls.pc: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${TIMER_LIB}
 libstls.so.xyzzy: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${TIMER_LIB}
-libstls.so.xyzzy: src/stls/stls_drop.lo src/stls/stls_handshake.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
+libstls.so.xyzzy:src/stls/stls_drop.lo src/stls/stls_handshake.lo src/stls/stls_run.lo src/stls/stls_client_init_and_handshake.lo src/stls/stls_server_init_and_handshake.lo src/stls/stls_send_environment.lo
 ifeq ($(strip $(STATIC_LIBS_ARE_PIC)),)
 libs6tls.a.xyzzy: src/tls/s6tls_clean_and_exec.o src/tls/s6tls_io_spawn.o src/tls/s6tls_prep_tlscio.o src/tls/s6tls_prep_tlsdio.o src/tls/s6tls_sync_and_exec_app.o src/tls/s6tls_ucspi_exec_app.o
 else
-libs6tls.a.xyzzy: src/tls/s6tls_clean_and_exec.lo src/tls/s6tls_io_spawn.lo src/tls/s6tls_prep_tlscio.lo src/tls/s6tls_prep_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
+libs6tls.a.xyzzy:src/tls/s6tls_clean_and_exec.lo src/tls/s6tls_io_spawn.lo src/tls/s6tls_prep_tlscio.lo src/tls/s6tls_prep_tlsdio.lo src/tls/s6tls_sync_and_exec_app.lo src/tls/s6tls_ucspi_exec_app.lo
 endif
-s6-tlsc: EXTRA_LIBS := -lskarnet
-s6-tlsc: src/tls/s6-tlsc.o libs6tls.a.xyzzy
-s6-tlsc-io: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-tlsc-io: src/tls/s6-tlsc-io.o ${LIBCRYPTOSUPPORT}
-s6-tlsclient: EXTRA_LIBS := -lskarnet
-s6-tlsclient: src/tls/s6-tlsclient.o
-s6-tlsd: EXTRA_LIBS := -lskarnet
-s6-tlsd: src/tls/s6-tlsd.o libs6tls.a.xyzzy
-s6-tlsd-io: EXTRA_LIBS := -lskarnet ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
-s6-tlsd-io: src/tls/s6-tlsd-io.o ${LIBCRYPTOSUPPORT}
-s6-tlsserver: EXTRA_LIBS := -lskarnet
-s6-tlsserver: src/tls/s6-tlsserver.o
-s6-ucspitlsc: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-ucspitlsc: src/tls/s6-ucspitlsc.o libs6tls.a.xyzzy
-s6-ucspitlsd: EXTRA_LIBS := -lskarnet ${SOCKET_LIB}
-s6-ucspitlsd: src/tls/s6-ucspitlsd.o libs6tls.a.xyzzy
+s6-tlsc: EXTRA_LIBS :=
+s6-tlsc: src/tls/s6-tlsc.o libs6tls.a.xyzzy -lskarnet
+s6-tlsc-io: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-tlsc-io: src/tls/s6-tlsc-io.o ${LIBCRYPTOSUPPORT} -lskarnet
+s6-tlsclient: EXTRA_LIBS :=
+s6-tlsclient: src/tls/s6-tlsclient.o -lskarnet
+s6-tlsd: EXTRA_LIBS :=
+s6-tlsd: src/tls/s6-tlsd.o libs6tls.a.xyzzy -lskarnet
+s6-tlsd-io: EXTRA_LIBS := ${CRYPTO_LIB} ${SOCKET_LIB} ${SYSCLOCK_LIB}
+s6-tlsd-io: src/tls/s6-tlsd-io.o ${LIBCRYPTOSUPPORT} -lskarnet
+s6-tlsserver: EXTRA_LIBS :=
+s6-tlsserver: src/tls/s6-tlsserver.o -lskarnet
+s6-ucspitlsc: EXTRA_LIBS := ${SOCKET_LIB}
+s6-ucspitlsc: src/tls/s6-ucspitlsc.o libs6tls.a.xyzzy -lskarnet
+s6-ucspitlsd: EXTRA_LIBS := ${SOCKET_LIB}
+s6-ucspitlsd: src/tls/s6-ucspitlsd.o libs6tls.a.xyzzy -lskarnet
 INTERNAL_LIBS := libs6tls.a.xyzzy

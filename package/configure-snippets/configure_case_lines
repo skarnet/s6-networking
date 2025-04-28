@@ -1,0 +1,9 @@
+    --enable-nsss|--enable-nsss=yes) usensss=true ;;
+    --disable-nsss|--enable-nsss=no) usensss=false ;;
+    --enable-execline|--enable-execline=yes) useexecline=true ;;
+    --disable-execline|--enable-execline=no) useexecline=false ;;
+    --enable-ssl=libressl|--enable-ssl=libtls) ssl=tls ;;
+    --enable-ssl=bearssl) ssl=bearssl ;;
+    --disable-ssl|--enable-ssl=none) ssl= ;;
+    --with-ssl-path=*) var=${arg#*=} ; stripdir var ; addincpath="$addincpath -I$var/include" ; depincpath="${depincpath}${depincpath:+ }-I$var/include" ; addlibspath="$addlibspath -L$var/lib" ; deplibpath="${deplibpath}${deplibpath:+ }-L$var/lib" ; vpaths="$vpaths $var/lib" ; addlibdpath="$addlibdpath -L$var/lib" ; vpathd="$vpathd $var/lib" ;;
+

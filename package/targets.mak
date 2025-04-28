@@ -15,6 +15,7 @@ s6-taiclockd
 LIBEXEC_TARGETS :=
 
 LIB_DEFS := S6NET=s6net
+S6NET_DESCRIPTION := A client library implementing various networking protocols
 
 ifneq ($(SSL_IMPL),)
 
@@ -23,11 +24,13 @@ BIN_TARGETS += s6-tlsclient s6-tlsc s6-tlsc-io s6-tlsserver s6-tlsd s6-tlsd-io s
 ifeq ($(SSL_IMPL),tls)
 
 LIB_DEFS += CRYPTOSUPPORT=stls
+CRYPTOSUPPORT_DESCRIPTION := A TLS tunnel library, using libtls as backend
 CRYPTO_LIB := -ltls -lssl -lcrypto -lpthread
 
 else ifeq ($(SSL_IMPL),bearssl)
 
 LIB_DEFS += CRYPTOSUPPORT=sbearssl
+CRYPTOSUPPORT_DESCRIPTION := A TLS tunnel library, using BearSSL as backend
 CRYPTO_LIB := -lbearssl
 
 else

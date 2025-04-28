@@ -1,3 +1,4 @@
+/*.pc
 /config.mak
 /src/include/s6-networking/config.h
 *.o

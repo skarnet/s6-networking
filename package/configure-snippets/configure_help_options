@@ -1,0 +1,7 @@
+  --enable-nsss                 use the nsss library for user information [disabled]
+  --disable-execline            don't use the execline library [enabled]
+
+SSL support:
+  --enable-ssl=libtls|bearssl build SSL tools, w/ libtls or bearssl implementation [disabled]
+  --with-ssl-path=DIR           search for SSL headers/libs in DIR/include and DIR/lib [/usr]
+
