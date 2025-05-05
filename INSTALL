@@ -12,8 +12,8 @@ Build Instructions
   - s6-dns version 2.4.1.0 or later: https://skarnet.org/software/s6-dns/
   - Depending on whether you build the SSL tools,
         bearssl version 0.6 or later: https://bearssl.org/
-     or libressl version 4.0.0 or later: https://libressl.org/
-     or openssl version 3.4.1 or later: https://openssl.org/ *in addition to*
+     or libressl version 4.1.0 or later: https://libressl.org/
+     or openssl version 3.5.0 or later: https://openssl.org/ *in addition to*
         libretls version 3.8.1 or later: https://git.causal.agency/libretls/about/
 
  This software will run on any operating system that implements
