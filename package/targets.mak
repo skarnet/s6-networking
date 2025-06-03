@@ -1,4 +1,5 @@
 BIN_TARGETS := \
+proxy-server \
 s6-getservbyname \
 s6-ident-client \
 s6-tcpclient \

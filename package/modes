@@ -1,3 +1,4 @@
+proxy-server			0755
 s6-getservbyname		0755
 s6-ident-client			0755
 s6-tcpclient			0755

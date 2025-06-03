@@ -1,5 +1,12 @@
 Changelog for s6-networking.
 
+In 2.7.2.0
+----------
+
+ - Support for shared libraries on MacOS
+ - New binary: proxy-server, understanding the PROXY protocol
+
+
 In 2.7.1.0
 ----------
 

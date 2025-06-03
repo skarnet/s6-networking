@@ -111,6 +111,8 @@ s6-taiclock: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-taiclock: src/clock/s6-taiclock.o -lskarnet
 s6-taiclockd: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}
 s6-taiclockd: src/clock/s6-taiclockd.o -lskarnet
+proxy-server: EXTRA_LIBS := ${SYSCLOCK_LIB}
+proxy-server: src/conn-tools/proxy-server.o -lskarnet
 s6-getservbyname: EXTRA_LIBS := ${SOCKET_LIB}
 s6-getservbyname: src/conn-tools/s6-getservbyname.o -lskarnet
 s6-ident-client: EXTRA_LIBS := ${SOCKET_LIB} ${SYSCLOCK_LIB}

@@ -5,6 +5,7 @@
 *.lo
 *.a.xyzzy
 *.so.xyzzy
+/proxy-server
 /s6-clockadd
 /s6-clockview
 /s6-getservbyname
