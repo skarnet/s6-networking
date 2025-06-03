@@ -1,0 +1,141 @@
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Language" content="en" />
+    <title>s6-networking: the proxy-server program</title>
+    <meta name="Description" content="s6-networking: the proxy-server program" />
+    <meta name="Keywords" content="s6-networking proxy-server PROXY protocol pp pp2 haproxy" />
+    <!-- <link rel="stylesheet" type="text/css" href="//skarnet.org/default.css" /> -->
+  </head>
+<body>
+
+<p>
+<a href="index.html">s6-networking</a><br />
+<a href="//skarnet.org/software/">Software</a><br />
+<a href="//skarnet.org/">skarnet.org</a>
+</p>
+
+<h1> The <tt>proxy-server</tt> program </h1>
+
+<p>
+<tt>proxy-server</tt> reads a line of text, or a block of binary data, following
+the <a href="https://www.haproxy.org/download/1.8/doc/proxy-protocol.txt">PROXY
+protocol</a>, on its stdin. It sets some environment variables to
+data provided by the protocol, then executes a program.
+</p>
+
+<p>
+ The objective is to make servers running under the
+<a href="s6-tcpserver.html">s6-tcpserver</a> superserver work behind a proxy
+with client connection data provided by the proxy via the PROXY protocol.
+The environment variables reflect what the s6-networking super-servers set
+for a direct connection.
+</p>
+
+<h2> Interface </h2>
+
+<pre>
+     proxy-server [ -1 | -2 ] [ -t <em>timeout</em> ] [ -v <em>verbosity</em> ] <em>prog...</em>
+</pre>
+
+<ul>
+ <li> proxy-server reads its stdin, expecting to see a block of data
+following the PROXY protocol. </li>
+ <li> It parses the block of data to get information on the original
+client connection, normally encoded in that data by a proxy. </li>
+ <li> If at any point it finds invalid data, it exits immediately
+with an error message. </li>
+ <li> It puts the provided client connection information into suitable
+environment variables. </li>
+ <li> It execs into <em>prog...</em>. </li>
+</ul>
+
+<h2> Exit codes </h2>
+
+<dl>
+ <dt> 1 </dt> <dd> invalid PROXY syntax </dd>
+ <dt> 2 </dt> <dd> unsupported protocol </dd>
+ <dt> 100 </dt> <dd> wrong usage </dd>
+ <dt> 111 </dt> <dd> system call failed </dd>
+</dl>
+
+<p>
+ proxy-server never exits 0: on success, it chainloads into the next program.
+</p>
+
+<h2> Options </h2>
+
+<dl>
+ <dt> -t <em>timeout</em> </dt>
+  <dd> If no data is received after <em>timeout</em> milliseconds, exit 111.
+By default, <em>timeout</em> is 0, meaning infinite: proxy-server will wait
+forever for data. </dd>
+ <dt> -v <em>verbosity</em> </dt>
+  <dd> Be more or less verbose. The default is 1. Changing it does not
+have much effect at the moment, leave it alone. </dd>
+ <dt> -1 </dt>
+  <dd> Expect version 1 of the PROXY protocol: a line of text. </dd>
+ <dt> -2 </dt>
+  <dd> Expect version 2 of the PROXY protocol: a binary structure. </dd>
+</dl>
+
+<p>
+ If neither <tt>-1</tt> or <tt>-2</tt> is selected, proxy-server will default
+to expecting version 2. If you pass both options, proxy-server will support
+both versions of the protocol.
+</p>
+
+<h2> Common usage </h2>
+
+<p>
+ proxy-server is a chainloading program that you can interpose on the command
+line between a super-server and a server, if the server does not follow the
+PROXY protocol but you are running it behind a proxy that does.
+</p>
+
+<p>
+ For instance, if you are running the
+<a href="//skarnet.org/software/tipidee/">tipidee</a> web server behind a proxy
+transmitting real client connection information via the PROXY protocol,
+instead of running <code>s6-tlsserver 0.0.0.0 443 tipideed</code>, you would run
+<code>s6-tlsserver 0.0.0.0 443 proxy-server tipideed</code>, and
+<a href="//skarnet.org/software/tipidee/tipideed.html">tipideed</a> would log
+the IPs from the clients rather than from the proxy.
+</p>
+
+<p>
+ proxy-server has no utility if you are not running a server behind a proxy.
+</p>
+
+<h2> Environment variables </h2>
+
+<p>
+ proxy-server sets client information into environment variables the same
+way that <a href="s6-tcpserver.html">s6-tcpserver</a> and similar programs do.
+It tries to map the information provided by the proxy to the same variables, as
+closely as possible. It never deletes variables, it only adds or overrides
+them.
+</p>
+
+<p>
+ Depending on the version of the protocol and the information transmitted by
+the proxy, proxy-server may modify the following variables:
+</p>
+
+<ul>
+ <li> PROTO </li>
+ <li> IPCREMOTEPATH </li>
+ <li> IPCLOCALPATH </li>
+ <li> TCPREMOTEIP </li>
+ <li> TCPLOCALIP </li>
+ <li> TCPREMOTEPORT </li>
+ <li> TCPLOCALPORT </li>
+ <li> SSL_PROTOCOL </li>
+ <li> SSL_CIPHER </li>
+ <li> SSL_PEER_CERT_CN </li>
+ <li> SSL_TLS_SNI_SERVERNAME </li>
+</ul>
+
+</body>
+</html>
