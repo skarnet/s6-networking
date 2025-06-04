@@ -8,6 +8,7 @@
 
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
+#include <skalibs/prog.h>
 #include <skalibs/strerr.h>
 #include <skalibs/sgetopt.h>
 #include <skalibs/buffer.h>
@@ -35,7 +36,8 @@
 
  /* XXX: this file is super ugly and full of tech debt */
 
-#define USAGE "s6-tcpserver-access [ -v verbosity ] [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ] prog..."
+#define NAME "s6-tcpserver-access"
+#define USAGE NAME " [ -v verbosity ] [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "update environment")
 #define X() strerr_dief1x(101, "internal inconsistency. Please submit a bug-report.")
@@ -80,9 +82,7 @@ int main (int argc, char const *const *argv)
   int flagfatal = 0, flagnodelay = 0, flagdnslookup = 1, flaghosts = 0,
     flagident = 0, flagparanoid = 0, e = 0 ;
   uint16_t remoteport, localport ;
-  char progbuf[sizeof(PROGNAME) + sizeof(": pid ") + PID_FMT] = PROGNAME ": pid " ;
-  progbuf[sizeof(PROGNAME ": pid ") - 1 + pid_fmt(progbuf + sizeof(PROGNAME ": pid ") - 1, getpid())] = 0 ;
-  PROG = PROGNAME ;
+  PROG = NAME ;
   {
     unsigned int timeout = 0 ;
     subgetopt l = SUBGETOPT_ZERO ;
@@ -149,7 +149,10 @@ int main (int argc, char const *const *argv)
     if (!uint160_scan(x, &remoteport)) strerr_dieinvalid(100, tmp) ;
   }
 
-  PROG = progbuf ;
+  char prog_storage[PROG_pid_len(NAME)] ;
+  PROG_pid_fill(prog_storage, NAME) ;
+  PROG = prog_storage ;
+
   if (flagnodelay)
   {
     if (socket_tcpnodelay(1) < 0)

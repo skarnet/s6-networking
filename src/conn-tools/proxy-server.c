@@ -329,9 +329,7 @@ int main (int argc, char const *const *argv)
   } ;
 
   uint64_t golb = 0 ;
-  char prog_storage[PROG_pid_len(NAME)] ;
-  PROG_pid_fill(prog_storage, NAME) ;
-  PROG = prog_storage ;
+  PROG = NAME ;
 
   {
     char const *gola[MAIN_GOLA_N] = { 0 } ;
@@ -349,6 +347,10 @@ int main (int argc, char const *const *argv)
     tain_now_set_stopwatch_g() ;
     tain_add_g(&deadline, &tto) ;
   }
+
+  char prog_storage[PROG_pid_len(NAME)] ;
+  PROG_pid_fill(prog_storage, NAME) ;
+  PROG = prog_storage ;
 
   if ((golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2)) == 0) golb |= 1 << MAIN_GOLB_V2 ;
   if ((golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2)) == 1 << MAIN_GOLB_V2) v2() ;
