@@ -36,7 +36,7 @@ for a direct connection.
 <h2> Interface </h2>
 
 <pre>
-     proxy-server [ -1 | -2 ] [ -t <em>timeout</em> ] [ -v <em>verbosity</em> ] <em>prog...</em>
+     proxy-server [ -1||--disable-v2 | -2|--disable-v1 ] [ -t <em>timeout</em> ] [ -v <em>verbosity</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -74,16 +74,18 @@ forever for data. </dd>
  <dt> -v <em>verbosity</em> </dt>
   <dd> Be more or less verbose. The default is 1. Changing it does not
 have much effect at the moment, leave it alone. </dd>
- <dt> -1 </dt>
-  <dd> Expect version 1 of the PROXY protocol: a line of text. </dd>
- <dt> -2 </dt>
-  <dd> Expect version 2 of the PROXY protocol: a binary structure. </dd>
+ <dt> -1 or --disable-v2 </dt>
+  <dd> Disable version 2 of the PROXY protocol, only expect v1, i.e. a line of text. </dd>
+ <dt> -2 or --disable-v1 </dt>
+  <dd> Disable version 1 of the PROXY protocol, only expect v2, i.e. a binary structure. </dd>
 </dl>
 
 <p>
  If neither <tt>-1</tt> or <tt>-2</tt> is selected, proxy-server will default
-to expecting version 2. If you pass both options, proxy-server will support
-both versions of the protocol.
+to supporting both versions of the protocol, at a tiny speed cost. If you pass
+both options, meaning you disable both versions, proxy-server will write a
+warning and directly exec into <em>prog...</em> without expecting a PROXY
+header of any kind.
 </p>
 
 <h2> Common usage </h2>
@@ -135,6 +137,28 @@ the proxy, proxy-server may modify the following variables:
  <li> SSL_CIPHER </li>
  <li> SSL_PEER_CERT_CN </li>
  <li> SSL_TLS_SNI_SERVERNAME </li>
+</ul>
+
+<h2> Notes </h2>
+
+<ul>
+ <li> proxy-server operates by writing UCSPI variables such as <tt>TCPREMOTEIP</tt>.
+These variables are normally set by programs dealing with the TCP connection such as
+<a href="s6-tcpserver.html">s6-tcpserver</a> or
+<a href="s6-tcpserver-access.html">s6-tcpserver-access</a>. To take effect, it needs
+to run <em>after</em> these programs, to override the TCP-provided values with the
+proxy-provided values. </li>
+ <li> When used on a <a href="s6-tlsserver.html">s6-tlsserver</a>, command line,
+proxy-server runs <em>after</em> the TLS connection has been established, i.e. it
+expects the proxy header to be sent in the TLS tunnel. </li>
+ <li> If this is not the case and the proxy header is sent before the TLS connection
+is established, 1. it is probably an insecure setup (if you have a good reason to
+set up a TLS tunnel between your proxy and your server, then the PROXY information
+is worth protecting just as much as the rest of the data), 2. proxy-server needs
+to be run between <a href="s6-tcpserver.html">s6-tcpserver</a> and
+<a href="s6-tlsd.html">s6-tlsd</a>, which you can do by using the (TBD) option
+to <a href="s6-tlsserver.html">s6-tlsserver</a> rather than explicitly calling
+proxy-server on the command line. </li>
 </ul>
 
 </body>

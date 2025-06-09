@@ -19,7 +19,7 @@
 #include <skalibs/unix-timed.h>
 
 #define NAME "proxy-server"
-#define USAGE NAME "[ -1 | -2 ] [ -v verbosity ] [ -t timeout ] prog..."
+#define USAGE NAME "[ --disable-v1 | --disable-v2 ] [ -v verbosity ] [ -t timeout ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
@@ -317,10 +317,8 @@ int main (int argc, char const *const *argv)
 {
   static gol_bool const main_golb[4] =
   {
-    { .so = '1', .lo = "enable-v1", .set = 1, .mask = 1 << MAIN_GOLB_V1 },
-    { .so = '2', .lo = "enable-v2", .set = 1, .mask = 1 << MAIN_GOLB_V2 },
-    { .so = 0,  .lo = "disable-v1", .set = 0, .mask = 1 << MAIN_GOLB_V1 },
-    { .so = 0,  .lo = "disable-v2", .set = 0, .mask = 1 << MAIN_GOLB_V2 }
+    { .so = '1', .lo = "disable-v2", .set = 0, .mask = 1 << MAIN_GOLB_V2 },
+    { .so = '2', .lo = "disable-v1", .set = 0, .mask = 1 << MAIN_GOLB_V1 },
   } ;
   static gol_arg const main_gola[MAIN_GOLA_N] =
   {
@@ -328,7 +326,7 @@ int main (int argc, char const *const *argv)
     { .so = 'v', .lo = "verbosity", .i = MAIN_GOLA_VERBOSITY }
   } ;
 
-  uint64_t golb = 0 ;
+  uint64_t golb = 1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2 ;
   PROG = NAME ;
 
   {
@@ -352,9 +350,10 @@ int main (int argc, char const *const *argv)
   PROG_pid_fill(prog_storage, NAME) ;
   PROG = prog_storage ;
 
-  if ((golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2)) == 0) golb |= 1 << MAIN_GOLB_V2 ;
-  if ((golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2)) == 1 << MAIN_GOLB_V2) v2() ;
-  else if ((golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2)) == 1 << MAIN_GOLB_V1) v1() ;
-  else both() ;
+  uint64_t ver = golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2) ;
+  if (ver == (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2)) both() ;
+  else if (ver == 1 << MAIN_GOLB_V2) v2() ;
+  else if (ver == 1 << MAIN_GOLB_V1) v1() ;
+  else if (verbosity) strerr_warnw1x("both versions disabled, no proxy protocol expected") ;
   xmexec(argv) ;
 }
