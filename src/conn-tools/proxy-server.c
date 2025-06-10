@@ -335,8 +335,11 @@ static void after (void)
     memcpy(bakvar, "tlsbak_", 7) ;
     memcpy(bakvar + 7, *var, len+1) ;
     x = getenv(bakvar) ;
-    if (!x) strerr_dief1x(100, "--after-tlsd can only be used after an invocation with --before-tlsd") ;
-    if (!env_mexec(bakvar, 0) || !env_mexec(*var, x)) dienomem() ;
+    if (x)
+    {
+      if (!env_mexec(bakvar, 0) || !env_mexec(*var, x)) dienomem() ;
+    }
+    else if (!env_mexec(*var, 0)) dienomem() ;
   }
 }
 
