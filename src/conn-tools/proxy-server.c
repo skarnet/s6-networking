@@ -296,7 +296,7 @@ static void both (void)
   }
   if (!memcmp(buf, "PROXY ", 6)) do_v1(buf + 6) ;
   else if (!timed_read_g(0, buf + 15, 1, &deadline)) strerr_diefu1sys(111, "read from stdin") ;
-  maybe_v2(buf) ;
+  else maybe_v2(buf) ;
 }
 
 enum main_golb_e
