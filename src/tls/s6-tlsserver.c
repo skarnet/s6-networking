@@ -13,6 +13,7 @@
 #include <s6-networking/config.h>
 
 #define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
+"proxy-server options: [ -L ]" \
 "s6-tcpserver options: [ -q | -Q | -v ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
 "s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
 "s6-tlsd options: [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ] [ -k snilevel ]"
@@ -36,6 +37,7 @@ struct options_s
   unsigned int kimeout ;
   unsigned int snilevel ;
   unsigned int verbosity : 2 ;
+  unsigned int flagL : 1 ;
   unsigned int flag1 : 1 ;
   unsigned int flagU : 1 ;
   unsigned int flagw : 1 ;
@@ -66,8 +68,9 @@ struct options_s
   .localmaxconn = 0, \
   .timeout = 0, \
   .kimeout = 0, \
-  .verbosity = 1, \
   .snilevel = 0, \
+  .verbosity = 1, \
+  .flagL = 0, \
   .flag1 = 0, \
   .flagU = 0, \
   .flagw = 0, \
@@ -93,7 +96,7 @@ int main (int argc, char const *const *argv)
     subgetopt l = SUBGETOPT_ZERO ;
     for (;;)
     {
-      int opt = subgetopt_r(argc, argv, "qQv1c:C:b:G:g:u:UWwDdHhRrPpl:B:t:i:x:SsJjYyK:Zzk:", &l) ;
+      int opt = subgetopt_r(argc, argv, "qQv1c:C:b:G:g:u:LUWwDdHhRrPpl:B:t:i:x:SsJjYyK:Zzk:", &l) ;
       if (opt == -1) break ;
       switch (opt)
       {
@@ -101,6 +104,7 @@ int main (int argc, char const *const *argv)
         case 'Q' : o.verbosity = 1 ; break ;
         case 'v' : o.verbosity = 2 ; break ;
         case '1' : o.flag1 = 1 ; break ;
+        case 'L' : o.flagL = 1 ; break ;
         case 'c' : if (!uint0_scan(l.arg, &o.maxconn)) dieusage() ; if (!o.maxconn) o.maxconn = 1 ; break ;
         case 'C' : if (!uint0_scan(l.arg, &o.localmaxconn)) dieusage() ; if (!o.localmaxconn) o.localmaxconn = 1 ; break ;
         case 'b' : if (!uint0_scan(l.arg, &o.backlog)) dieusage() ; break ;
@@ -144,7 +148,7 @@ int main (int argc, char const *const *argv)
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 6 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
-    char const *newargv[51 + argc] ;
+    char const *newargv[57 + argc] ;
     int doaccess = o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
     if (o.verbosity != 1)
@@ -216,6 +220,12 @@ int main (int argc, char const *const *argv)
       }
       newargv[m++] = "--" ;
     }
+    if (o.flagL)
+    {
+      newargv[m++] = S6_NETWORKING_BINPREFIX "proxy-server" ;
+      newargv[m++] = "--before-tlsd" ;
+      newargv[m++] = "--" ;
+    }
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsd" ;
     if (o.verbosity != 1)
     {
@@ -262,6 +272,12 @@ int main (int argc, char const *const *argv)
         fmt[pos++] = 0 ;
       }
       if (o.flagU) newargv[m++] = "-Uz" ;
+      newargv[m++] = "--" ;
+    }
+    if (o.flagL)
+    {
+      newargv[m++] = S6_NETWORKING_BINPREFIX "proxy-server" ;
+      newargv[m++] = "--after-tlsd" ;
       newargv[m++] = "--" ;
     }
     while (*argv) newargv[m++] = *argv++ ;

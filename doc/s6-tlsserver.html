@@ -139,12 +139,24 @@ variables will not appear in <em>prog</em>'s environment.
 <h2> Options </h2>
 
 <p>
- <tt>s6-tlsserver</tt> accepts a myriad of options, all of which are
+ <tt>s6-tlsserver</tt> accepts a myriad of options, most of which are
 passed as is to the correct executable. Not giving any options will
 generally work, but unless you're running a very public server
 (such as a Web server) or base your access control on client
 certificates, you probably still want TCP access rules.
 </p>
+
+<h3> Options informing s6-tlsserver behaviour </h3>
+
+<ul>
+ <li> <tt>-L</tt>&nbsp;: if this option is given, s6-tlsserver will
+add an invocation of <a href="proxy-server.html">proxy-server</a> so that
+a PROXY line or binary block is read <em>in cleartext</em> before the
+TLS tunnel is established. If the proxy uses the v2 version of the PROXY
+protocol and transmits SSL information from the client connection, this
+information will be reflected in the SSL environment variables transmitted
+to <em>prog</em>. </li>
+</ul>
 
 <h3> Options passed as is to s6-tcpserver </h3>
 

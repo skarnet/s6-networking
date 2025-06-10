@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include <skalibs/gccattributes.h>
@@ -23,8 +24,25 @@
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
+enum main_golb_e
+{
+  MAIN_GOLB_V1,
+  MAIN_GOLB_V2,
+  MAIN_GOLB_BEFORE,
+  MAIN_GOLB_AFTER,
+  MAIN_GOLB_N
+} ;
+
+enum main_gola_e
+{
+  MAIN_GOLA_TIMEOUT,
+  MAIN_GOLA_VERBOSITY,
+  MAIN_GOLA_N
+} ;
+
 static unsigned int verbosity = 1 ;
 static tain deadline ;
+static uint64_t golb = 1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2 ;
 
 
  /* v2 */
@@ -79,7 +97,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (sub) strerr_dief1x(1, "invalid sub-extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec("SSL_TLS_SNI_SERVERNAME", tmp)) dienomem() ;
+        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_TLS_SNI_SERVERNAME" : "SSL_TLS_SNI_SERVERNAME", tmp)) dienomem() ;
         break ;
       }
       case 0x20 :  /* PP2_TYPE_SSL */
@@ -92,7 +110,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (!sub) strerr_dief1x(1, "invalid main extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec("SSL_PROTOCOL", tmp)) dienomem() ;
+        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_PROTOCOL" : "SSL_PROTOCOL", tmp)) dienomem() ;
         break ;
       }
       case 0x22 :  /* PP2_SUBTYPE_SSL_CN */
@@ -100,7 +118,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (!sub) strerr_dief1x(1, "invalid main extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec("SSL_PEER_CERT_CN", tmp)) dienomem() ;
+        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_PEER_CERT_CN" : "SSL_PEER_CERT_CN", tmp)) dienomem() ;
         break ;
       }
       case 0x23 :  /* PP2_SUBTYPE_SSL_CIPHER */
@@ -108,7 +126,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (!sub) strerr_dief1x(1, "invalid main extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec("SSL_CIPHER", tmp)) dienomem() ;
+        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_CIPHER" : "SSL_CIPHER", tmp)) dienomem() ;
         break ;
       }
       default : break ;
@@ -299,19 +317,28 @@ static void both (void)
   else maybe_v2(buf) ;
 }
 
-enum main_golb_e
+static void after (void)
 {
-  MAIN_GOLB_V1,
-  MAIN_GOLB_V2,
-  MAIN_GOLB_N
-} ;
-
-enum main_gola_e
-{
-  MAIN_GOLA_TIMEOUT,
-  MAIN_GOLA_VERBOSITY,
-  MAIN_GOLA_N
-} ;
+  static char const *const vars[] =
+  {
+    "SSL_TLS_SNI_SERVERNAME",
+    "SSL_PROTOCOL",
+    "SSL_PEER_CERT_CN",
+    "SSL_CIPHER",
+    0
+  } ;
+  for (char const *const *var = vars ; *var ; var++)
+  {
+    size_t len = strlen(*var) ;
+    char const *x ;
+    char bakvar[8 + len] ;
+    memcpy(bakvar, "tlsbak_", 7) ;
+    memcpy(bakvar + 7, *var, len+1) ;
+    x = getenv(bakvar) ;
+    if (!x) strerr_dief1x(100, "--after-tlsd can only be used after an invocation with --before-tlsd") ;
+    if (!env_mexec(bakvar, 0) || !env_mexec(*var, x)) dienomem() ;
+  }
+}
 
 int main (int argc, char const *const *argv)
 {
@@ -319,6 +346,8 @@ int main (int argc, char const *const *argv)
   {
     { .so = '1', .lo = "disable-v2", .set = 0, .mask = 1 << MAIN_GOLB_V2 },
     { .so = '2', .lo = "disable-v1", .set = 0, .mask = 1 << MAIN_GOLB_V1 },
+    { .so = 0,  .lo = "before-tlsd", .set = 1, .mask = 1 << MAIN_GOLB_BEFORE },
+    { .so = 0,  .lo = "after-tlsd", .set = 1, .mask = 1 << MAIN_GOLB_AFTER },
   } ;
   static gol_arg const main_gola[MAIN_GOLA_N] =
   {
@@ -326,7 +355,6 @@ int main (int argc, char const *const *argv)
     { .so = 'v', .lo = "verbosity", .i = MAIN_GOLA_VERBOSITY }
   } ;
 
-  uint64_t golb = 1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2 ;
   PROG = NAME ;
 
   {
@@ -350,10 +378,13 @@ int main (int argc, char const *const *argv)
   PROG_pid_fill(prog_storage, NAME) ;
   PROG = prog_storage ;
 
-  uint64_t ver = golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2) ;
-  if (ver == (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2)) both() ;
-  else if (ver == 1 << MAIN_GOLB_V2) v2() ;
-  else if (ver == 1 << MAIN_GOLB_V1) v1() ;
-  else if (verbosity) strerr_warnw1x("both versions disabled, no proxy protocol expected") ;
+  if (golb & 1 << MAIN_GOLB_AFTER) after() ;
+  else switch (golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2))
+  {
+    case 1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2 : both() ; break ;
+    case 1 << MAIN_GOLB_V2 : v2() ; break ;
+    case 1 << MAIN_GOLB_V1 : v1() ; break ;
+    default : if (verbosity) strerr_warnw1x("both versions disabled, no proxy protocol expected") ;
+  }
   xmexec(argv) ;
 }
