@@ -24,25 +24,25 @@
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "stralloc_catb")
 
-enum main_golb_e
+enum golb_e
 {
-  MAIN_GOLB_V1,
-  MAIN_GOLB_V2,
-  MAIN_GOLB_BEFORE,
-  MAIN_GOLB_AFTER,
-  MAIN_GOLB_N
+  GOLB_V1,
+  GOLB_V2,
+  GOLB_BEFORE,
+  GOLB_AFTER,
+  GOLB_N
 } ;
 
-enum main_gola_e
+enum gola_e
 {
-  MAIN_GOLA_TIMEOUT,
-  MAIN_GOLA_VERBOSITY,
-  MAIN_GOLA_N
+  GOLA_TIMEOUT,
+  GOLA_VERBOSITY,
+  GOLA_N
 } ;
 
 static unsigned int verbosity = 1 ;
 static tain deadline ;
-static uint64_t golb = 1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2 ;
+static uint64_t wgolb = 1 << GOLB_V1 | 1 << GOLB_V2 ;
 
 
  /* v2 */
@@ -97,7 +97,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (sub) strerr_dief1x(1, "invalid sub-extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_TLS_SNI_SERVERNAME" : "SSL_TLS_SNI_SERVERNAME", tmp)) dienomem() ;
+        if (!env_mexec(wgolb & 1 << GOLB_BEFORE ? "tlsbak_SSL_TLS_SNI_SERVERNAME" : "SSL_TLS_SNI_SERVERNAME", tmp)) dienomem() ;
         break ;
       }
       case 0x20 :  /* PP2_TYPE_SSL */
@@ -110,7 +110,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (!sub) strerr_dief1x(1, "invalid main extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_PROTOCOL" : "SSL_PROTOCOL", tmp)) dienomem() ;
+        if (!env_mexec(wgolb & 1 << GOLB_BEFORE ? "tlsbak_SSL_PROTOCOL" : "SSL_PROTOCOL", tmp)) dienomem() ;
         break ;
       }
       case 0x22 :  /* PP2_SUBTYPE_SSL_CN */
@@ -118,7 +118,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (!sub) strerr_dief1x(1, "invalid main extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_PEER_CERT_CN" : "SSL_PEER_CERT_CN", tmp)) dienomem() ;
+        if (!env_mexec(wgolb & 1 << GOLB_BEFORE ? "tlsbak_SSL_PEER_CERT_CN" : "SSL_PEER_CERT_CN", tmp)) dienomem() ;
         break ;
       }
       case 0x23 :  /* PP2_SUBTYPE_SSL_CIPHER */
@@ -126,7 +126,7 @@ static void process_v2_extensions (char const *s, uint16_t len, int sub)
         char tmp[n+1] ;
         if (!sub) strerr_dief1x(1, "invalid main extension type") ;
         memcpy(tmp, s, n) ; tmp[n] = 0 ;
-        if (!env_mexec(golb & 1 << MAIN_GOLB_BEFORE ? "tlsbak_SSL_CIPHER" : "SSL_CIPHER", tmp)) dienomem() ;
+        if (!env_mexec(wgolb & 1 << GOLB_BEFORE ? "tlsbak_SSL_CIPHER" : "SSL_CIPHER", tmp)) dienomem() ;
         break ;
       }
       default : break ;
@@ -345,31 +345,31 @@ static void after (void)
 
 int main (int argc, char const *const *argv)
 {
-  static gol_bool const main_golb[4] =
+  static gol_bool const rgolb[4] =
   {
-    { .so = '1', .lo = "disable-v2", .set = 0, .mask = 1 << MAIN_GOLB_V2 },
-    { .so = '2', .lo = "disable-v1", .set = 0, .mask = 1 << MAIN_GOLB_V1 },
-    { .so = 0,  .lo = "before-tlsd", .set = 1, .mask = 1 << MAIN_GOLB_BEFORE },
-    { .so = 0,  .lo = "after-tlsd", .set = 1, .mask = 1 << MAIN_GOLB_AFTER },
+    { .so = '1', .lo = "only-v1", .clear = 1 << GOLB_V2, .set = 1 << GOLB_V1 },
+    { .so = '2', .lo = "only-v2", .clear = 1 << GOLB_V1, .set = 1 << GOLB_V2 },
+    { .so = 0,  .lo = "before-tlsd", .clear = 0, .set = 1 << GOLB_BEFORE },
+    { .so = 0,  .lo = "after-tlsd",  .clear = 0, .set = 1 << GOLB_AFTER },
   } ;
-  static gol_arg const main_gola[MAIN_GOLA_N] =
+  static gol_arg const rgola[GOLA_N] =
   {
-    { .so = 't', .lo = "timeout", .i = MAIN_GOLA_TIMEOUT },
-    { .so = 'v', .lo = "verbosity", .i = MAIN_GOLA_VERBOSITY }
+    { .so = 't', .lo = "timeout", .i = GOLA_TIMEOUT },
+    { .so = 'v', .lo = "verbosity", .i = GOLA_VERBOSITY }
   } ;
 
   PROG = NAME ;
 
   {
-    char const *gola[MAIN_GOLA_N] = { 0 } ;
+    char const *wgola[GOLA_N] = { 0 } ;
     tain tto = TAIN_INFINITE_RELATIVE ;
     unsigned int t = 0 ;
-    unsigned int golc = gol_main(argc, argv, main_golb, 4, main_gola, MAIN_GOLA_N, &golb, gola) ;
+    unsigned int golc = gol_main(argc, argv, rgolb, 4, rgola, GOLA_N, &wgolb, wgola) ;
     argc -= golc ; argv += golc ;
     if (!argc) dieusage() ;
-    if (gola[MAIN_GOLA_TIMEOUT] && !uint0_scan(gola[MAIN_GOLA_TIMEOUT], &t))
+    if (wgola[GOLA_TIMEOUT] && !uint0_scan(wgola[GOLA_TIMEOUT], &t))
       strerr_dief2x(100, "timeout", " must be an unsigned integer") ;
-    if (gola[MAIN_GOLA_VERBOSITY] && !uint0_scan(gola[MAIN_GOLA_VERBOSITY], &verbosity))
+    if (wgola[GOLA_VERBOSITY] && !uint0_scan(wgola[GOLA_VERBOSITY], &verbosity))
       strerr_dief2x(100, "verbosity", " must be an unsigned integer") ;
 
     if (t) tain_from_millisecs(&tto, t) ;
@@ -381,12 +381,12 @@ int main (int argc, char const *const *argv)
   PROG_pid_fill(prog_storage, NAME) ;
   PROG = prog_storage ;
 
-  if (golb & 1 << MAIN_GOLB_AFTER) after() ;
-  else switch (golb & (1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2))
+  if (wgolb & 1 << GOLB_AFTER) after() ;
+  else switch (wgolb & (1 << GOLB_V1 | 1 << GOLB_V2))
   {
-    case 1 << MAIN_GOLB_V1 | 1 << MAIN_GOLB_V2 : both() ; break ;
-    case 1 << MAIN_GOLB_V2 : v2() ; break ;
-    case 1 << MAIN_GOLB_V1 : v1() ; break ;
+    case 1 << GOLB_V1 | 1 << GOLB_V2 : both() ; break ;
+    case 1 << GOLB_V2 : v2() ; break ;
+    case 1 << GOLB_V1 : v1() ; break ;
     default : if (verbosity) strerr_warnw1x("both versions disabled, no proxy protocol expected") ;
   }
   xmexec(argv) ;

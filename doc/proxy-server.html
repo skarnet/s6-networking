@@ -36,7 +36,7 @@ for a direct connection.
 <h2> Interface </h2>
 
 <pre>
-     proxy-server [ -1||--disable-v2 | -2|--disable-v1 ] [ -t <em>timeout</em> ] [ -v <em>verbosity</em> ] <em>prog...</em>
+     proxy-server [ -1||--only-v1 | -2|--only-v2 ] [ -t <em>timeout</em> ] [ -v <em>verbosity</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -74,18 +74,15 @@ forever for data. </dd>
  <dt> -v <em>verbosity</em> </dt>
   <dd> Be more or less verbose. The default is 1. Changing it does not
 have much effect at the moment, leave it alone. </dd>
- <dt> -1 or --disable-v2 </dt>
+ <dt> -1 or --only-v1 </dt>
   <dd> Disable version 2 of the PROXY protocol, only expect v1, i.e. a line of text. </dd>
- <dt> -2 or --disable-v1 </dt>
+ <dt> -2 or --only-v2 </dt>
   <dd> Disable version 1 of the PROXY protocol, only expect v2, i.e. a binary structure. </dd>
 </dl>
 
 <p>
  If neither <tt>-1</tt> or <tt>-2</tt> is selected, proxy-server will default
-to supporting both versions of the protocol, at a tiny speed cost. If you pass
-both options, meaning you disable both versions, proxy-server will write a
-warning and directly exec into <em>prog...</em> without expecting a PROXY
-header of any kind.
+to supporting both versions of the protocol, at a tiny speed cost.
 </p>
 
 <h2> Common usage </h2>
