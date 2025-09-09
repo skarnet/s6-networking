@@ -178,6 +178,11 @@ void stls_run (struct tls *ctx, int const *fds, uint32_t options, unsigned int v
         fd_close(x[1].fd) ;
         x[1].fd = -1 ;
       }
+      else if (x[1].revents & IOPAUSE_EXCEPT)
+      {
+        errno = EIO ;
+        strerr_diefu1sys(111, "iopause for writing on local") ;
+      }
     }
 
 
