@@ -4,9 +4,7 @@
 #include <limits.h>
 
 #include <skalibs/types.h>
-#include <skalibs/sgetopt.h>
-#include <skalibs/strerr.h>
-#include <skalibs/exec.h>
+#include <skalibs/envexec.h>
 
 #include <s6/config.h>
 
@@ -23,9 +21,6 @@
 typedef struct options_s options_t, *options_t_ref ;
 struct options_s
 {
-  char const *localname ;
-  char const *banner ;
-  char const *rules ;
   gid_t gids[NGROUPS_MAX] ;
   size_t gidn ;
   uid_t uid ;
@@ -36,128 +31,178 @@ struct options_s
   unsigned int timeout ;
   unsigned int kimeout ;
   unsigned int snilevel ;
-  unsigned int verbosity : 2 ;
-  unsigned int flagL : 1 ;
-  unsigned int flag1 : 1 ;
-  unsigned int flagU : 1 ;
-  unsigned int flagw : 1 ;
-  unsigned int flagD : 1 ;
-  unsigned int flagH : 1 ;
-  unsigned int flagh : 1 ;
-  unsigned int flagr : 1 ;
-  unsigned int flagp : 1 ;
-  unsigned int rulesx : 1 ;
-  unsigned int flagS : 1 ;
-  unsigned int flagJ : 1 ;
-  unsigned int flagy : 1 ;
-  unsigned int flagY : 1 ;
-  unsigned int flagZ : 1 ;
-  unsigned int doapply : 1 ;
 } ;
 
 #define OPTIONS_ZERO \
 { \
-  .localname = 0, \
-  .banner = 0, \
-  .rules = 0, \
-  .backlog = (unsigned int)-1, \
   .gidn = (size_t)-1, \
   .uid = 0, \
   .gid = 0, \
   .maxconn = 0, \
   .localmaxconn = 0, \
+  .backlog = (unsigned int)-1, \
   .timeout = 0, \
   .kimeout = 0, \
   .snilevel = 0, \
-  .verbosity = 1, \
-  .flagL = 0, \
-  .flag1 = 0, \
-  .flagU = 0, \
-  .flagw = 0, \
-  .flagD = 0, \
-  .flagH = 0, \
-  .flagh = 0, \
-  .flagr = 0, \
-  .flagp = 0, \
-  .rulesx = 0, \
-  .flagS = 0, \
-  .flagJ = 0, \
-  .flagy = 0, \
-  .flagY = 0, \
-  .flagZ = 0, \
-  .doapply = 0 \
 }
+
+enum golb_e
+{
+  GOLB_QUIET = 0x1,
+  GOLB_VERBOSE = 0x2,
+  GOLB_NOTIF = 0x4,
+  GOLB_PROXY = 0x8,
+  GOLB_UIDGID = 0x10,
+  GOLB_STRICTRES = 0x20,
+  GOLB_NONAGLE = 0x40,
+  GOLB_NOLOOKUPS = 0x80,
+  GOLB_HOSTS = 0x100,
+  GOLB_IDENT = 0x200,
+  GOLB_PARANOID = 0x400,
+  GOLB_CLOSENOTIFY = 0x800,
+  GOLB_FATALEOF = 0x1000,
+  GOLB_OPTCERT = 0x2000,
+  GOLB_MANDCERT = 0x4000,
+  GOLB_KEEPENV = 0x8000,
+} ;
+
+enum gola_e
+{
+  GOLA_MAXCONN,
+  GOLA_LMAXCONN,
+  GOLA_BACKLOG,
+  GOLA_GIDLIST,
+  GOLA_GID,
+  GOLA_UID,
+  GOLA_LOCALNAME,
+  GOLA_BANNER,
+  GOLA_TIMEOUT,
+  GOLA_RULESDIR,
+  GOLA_RULESFILE,
+  GOLA_KIMEOUT,
+  GOLA_SNILEVEL,
+  GOLA_N
+} ;
 
 int main (int argc, char const *const *argv)
 {
-  options_t o = OPTIONS_ZERO ;
-  PROG = "s6-tlsserver" ;
+  static gol_bool const rgolb[] =
   {
-    subgetopt l = SUBGETOPT_ZERO ;
-    for (;;)
-    {
-      int opt = subgetopt_r(argc, argv, "qQv1c:C:b:G:g:u:LUWwDdHhRrPpl:B:t:i:x:SsJjYyK:Zzk:", &l) ;
-      if (opt == -1) break ;
-      switch (opt)
-      {
-        case 'q' : o.verbosity = 0 ; break ;
-        case 'Q' : o.verbosity = 1 ; break ;
-        case 'v' : o.verbosity = 2 ; break ;
-        case '1' : o.flag1 = 1 ; break ;
-        case 'L' : o.flagL = 1 ; break ;
-        case 'c' : if (!uint0_scan(l.arg, &o.maxconn)) dieusage() ; if (!o.maxconn) o.maxconn = 1 ; break ;
-        case 'C' : if (!uint0_scan(l.arg, &o.localmaxconn)) dieusage() ; if (!o.localmaxconn) o.localmaxconn = 1 ; break ;
-        case 'b' : if (!uint0_scan(l.arg, &o.backlog)) dieusage() ; break ;
-        case 'G' : if (!gid_scanlist(o.gids, NGROUPS_MAX, l.arg, &o.gidn) && *l.arg) dieusage() ; o.doapply = 1 ; break ;
-        case 'g' : if (!gid0_scan(l.arg, &o.gid)) dieusage() ; o.doapply = 1 ; break ;
-        case 'u' : if (!uid0_scan(l.arg, &o.uid)) dieusage() ; o.doapply = 1 ; break ;
-        case 'U' : o.flagU = 1 ; o.uid = 0 ; o.gid = 0 ; o.gidn = (size_t)-1 ; o.doapply = 1 ; break ;
-        case 'W' : o.flagw = 0 ; break ;
-        case 'w' : o.flagw = 1 ; break ;
-        case 'D' : o.flagD = 1 ; break ;
-        case 'd' : o.flagD = 0 ; break ;
-        case 'H' : o.flagH = 1 ; break ;
-        case 'h' : o.flagh = 1 ; break ;
-        case 'R' : o.flagr = 0 ; break ;
-        case 'r' : o.flagr = 1 ; break ;
-        case 'P' : o.flagp = 0 ; break ;
-        case 'p' : o.flagp = 1 ; break ;
-        case 'l' : o.localname = l.arg ; break ;
-        case 'B' : o.banner = l.arg ; break ;
-        case 't' : if (!uint0_scan(l.arg, &o.timeout)) dieusage() ; break ;
-        case 'i' : o.rules = l.arg ; o.rulesx = 0 ; break ;
-        case 'x' : o.rules = l.arg ; o.rulesx = 1 ; break ;
-        case 'S' : o.flagS = 1 ; break ;
-        case 's' : o.flagS = 0 ; break ;
-        case 'J' : o.flagJ = 1 ; break ;
-        case 'j' : o.flagJ = 0 ; break ;
-        case 'Y' : o.flagY = 1 ; o.flagy = 0 ; break ;
-        case 'y' : o.flagy = 1 ; o.flagY = 0 ; break ;
-        case 'K' : if (!uint0_scan(l.arg, &o.kimeout)) dieusage() ; break ;
-        case 'Z' : o.flagZ = 1 ; break ;
-        case 'z' : o.flagZ = 0 ; break ;
-        case 'k' : if (!uint0_scan(l.arg, &o.snilevel)) dieusage() ; break ;
-        default : dieusage() ;
-      }
-    }
-    argc -= l.ind ; argv += l.ind ;
-    if (argc < 3) dieusage() ;
+    { .so = 'q', .lo = "quiet", .clear = GOLB_VERBOSE, .set = GOLB_QUIET },
+    { .so = 'Q', .lo = "normally-verbose", .clear = GOLB_QUIET | GOLB_VERBOSE, .set = 0 },
+    { .so = 'v', .lo = "verbose", .clear = GOLB_QUIET, .set = GOLB_VERBOSE },
+    { .so = '1', .lo = "notify", .clear = 0, .set = GOLB_NOTIF },
+    { .so = 'L', .lo = "proxy", .clear = 0, .set = GOLB_PROXY },
+    { .so = 'U', .lo = "with-envuidgid", .clear = 0, .set = GOLB_UIDGID },
+    { .so = 'W', .lo = "no-strict-resolution", .clear = GOLB_STRICTRES, .set = 0 },
+    { .so = 'w', .lo = "strict-resolution", .clear = 0, .set = GOLB_STRICTRES },
+    { .so = 'd', .lo = "enable-nagle", .clear = GOLB_NONAGLE, .set = 0 },
+    { .so = 'D', .lo = "disable-nagle", .clear = 0, .set = GOLB_NONAGLE },
+    { .so = 'H', .lo = "disable-dns-lookups", .clear = 0, .set = GOLB_NOLOOKUPS },
+    { .so = 'h', .lo = "with-etchosts", .clear = 0, .set = GOLB_HOSTS },
+    { .so = 'R', .lo = "disable-ident-lookups", .clear = GOLB_IDENT, .set = 0 },
+    { .so = 'r', .lo = "enable-ident-lookups", .clear = 0, .set = GOLB_IDENT },
+    { .so = 'P', .lo = "disable-paranoid-lookups", .clear = GOLB_PARANOID, .set = 0 },
+    { .so = 'p', .lo = "enable-paranoid-lookups", .clear = 0, .set = GOLB_PARANOID },
+    { .so = 's', .lo = "disable-closenotify", .clear = GOLB_CLOSENOTIFY, .set = 0 },
+    { .so = 'S', .lo = "enable-closenotify", .clear = 0, .set = GOLB_CLOSENOTIFY },
+    { .so = 'j', .lo = "allow-raw-eof", .clear = GOLB_FATALEOF, .set = 0 },
+    { .so = 'J', .lo = "disallow-raw-eof", .clear = 0, .set = GOLB_FATALEOF },
+    { .so = 'Y', .lo = "request-client-certificate", .clear = GOLB_MANDCERT, .set = GOLB_OPTCERT },
+    { .so = 'y', .lo = "demand-client-certificate", .clear = GOLB_OPTCERT, .set = GOLB_MANDCERT },
+    { .so = 'z', .lo = "no-keep-tlsd-environment", .clear = GOLB_KEEPENV, .set = 0 },
+    { .so = 'Z', .lo = "keep-tlsd-environment", .clear = 0, .set = GOLB_KEEPENV },
+  } ;
+  static gol_arg const rgola[] =
+  {
+    { .so = 'c', .lo = "global-max-connections", .i = GOLA_MAXCONN },
+    { .so = 'C', .lo = "local-max-connections", .i = GOLA_LMAXCONN },
+    { .so = 'b', .lo = "backlog", .i = GOLA_BACKLOG },
+    { .so = 'G', .lo = "gidlist", .i = GOLA_GIDLIST },
+    { .so = 'g', .lo = "gid", .i = GOLA_GID },
+    { .so = 'u', .lo = "uid", .i = GOLA_UID },
+    { .so = 'l', .lo = "local-name", .i = GOLA_LOCALNAME },
+    { .so = 'B', .lo = "banner", .i = GOLA_BANNER },
+    { .so = 't', .lo = "timeout", .i = GOLA_TIMEOUT },
+    { .so = 'i', .lo = "rules-directory", .i = GOLA_RULESDIR },
+    { .so = 'x', .lo = "rules-file", .i = GOLA_RULESFILE },
+    { .so = 'K', .lo = "handshake-timeout", .i = GOLA_KIMEOUT },
+    { .so = 'k', .lo = "sni-level", .i = GOLA_SNILEVEL },
+  } ;
+
+  uint64_t wgolb = 0 ;
+  char const *wgola[GOLA_N] = { 0 } ;
+  options_t o = OPTIONS_ZERO ;
+  unsigned int golc ;
+  int doapply = 0 ;
+  PROG = "s6-tlsserver" ;
+
+  golc = GOL_main(argc, argv, rgolb, rgola, &wgolb, wgola) ;
+  argc -= golc ; argv += golc ;
+  if (argc < 3) dieusage() ;
+
+  if (wgola[GOLA_MAXCONN])
+  {
+    if (!uint0_scan(wgola[GOLA_MAXCONN], &o.maxconn)) dieusage() ;
+    if (!o.maxconn) o.maxconn = 1 ;
+  }
+  if (wgola[GOLA_LMAXCONN])
+  {
+    if (!uint0_scan(wgola[GOLA_LMAXCONN], &o.localmaxconn)) dieusage() ;
+    if (!o.localmaxconn) o.localmaxconn = 1 ;
+  }
+  if (wgola[GOLA_BACKLOG])
+  {
+    if (!uint0_scan(wgola[GOLA_BACKLOG], &o.backlog)) dieusage() ;
+  }
+  if (wgola[GOLA_GIDLIST])
+  {
+    if (!gid_scanlist(o.gids, NGROUPS_MAX, wgola[GOLA_GIDLIST], &o.gidn) && wgola[GOLA_GIDLIST]) dieusage() ;
+    doapply = 1 ;
+  }
+  if (wgola[GOLA_GID])
+  {
+    if (!gid0_scan(wgola[GOLA_GID], &o.gid)) dieusage() ;
+    doapply = 1 ;
+  }
+  if (wgola[GOLA_UID])
+  {
+    if (!uid0_scan(wgola[GOLA_UID], &o.uid)) dieusage() ;
+    doapply = 1 ;
+  }
+  if (wgola[GOLA_TIMEOUT])
+  {
+    if (!uint0_scan(wgola[GOLA_TIMEOUT], &o.timeout)) dieusage() ;
+  }
+  if (wgola[GOLA_KIMEOUT])
+  {
+    if (!uint0_scan(wgola[GOLA_KIMEOUT], &o.kimeout)) dieusage() ;
+  }
+  if (wgola[GOLA_SNILEVEL])
+  {
+    if (!uint0_scan(wgola[GOLA_SNILEVEL], &o.snilevel)) dieusage() ;
+  }
+  if (wgolb & GOLB_UIDGID)
+  {
+    o.uid = 0 ;
+    o.gid = 0 ;
+    o.gidn = (size_t)-1 ;
+    doapply = 1 ;
   }
 
   {
     size_t pos = 0 ;
     unsigned int m = 0 ;
-    char fmt[UINT_FMT * 6 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
-    char const *newargv[57 + argc] ;
-    int doaccess = o.flagw || o.flagD || !o.flagH || o.flagr || o.flagp || o.localname || o.banner || o.timeout || o.rules ;
+    int doaccess = !(wgolb & GOLB_NOLOOKUPS)
+     || !!(wgolb & (GOLB_STRICTRES | GOLB_NONAGLE | GOLB_IDENT | GOLB_PARANOID))
+     || !!wgola[GOLA_LOCALNAME] || !!wgola[GOLA_BANNER] || !!wgola[GOLA_RULESDIR] || !!wgola[GOLA_RULESFILE]
+     || !!o.timeout ;
+    char fmt[UINT_FMT * 5 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
+    char const *newargv[54 + argc] ;
+
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
-    if (o.verbosity != 1)
-    {
-      newargv[m++] = o.verbosity ? "-v" : "-q" ;
-      pos = uint_fmt(fmt, o.verbosity) ;
-      fmt[pos++] = 0 ;
-    }
-    if (o.flag1) newargv[m++] = "-1" ;
+    if (wgolb & GOLB_QUIET) newargv[m++] = "-q" ; else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v" ;
+    if (wgolb & GOLB_NOTIF) newargv[m++] = "-1" ;
     if (o.maxconn)
     {
       newargv[m++] = "-c" ;
@@ -185,26 +230,22 @@ int main (int argc, char const *const *argv)
     if (doaccess)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-access" ;
-      if (o.verbosity != 1)
-      {
-        newargv[m++] = "-v" ;
-        newargv[m++] = fmt ;
-      }
-      if (o.flagw) newargv[m++] = "-w" ;
-      if (o.flagD) newargv[m++] = "-D" ;
-      if (o.flagH) newargv[m++] = "-H" ;
-      if (o.flagh) newargv[m++] = "-h" ;
-      if (o.flagr) newargv[m++] = "-r" ;
-      if (o.flagp) newargv[m++] = "-p" ;
-      if (o.localname)
+      if (wgolb & GOLB_QUIET) newargv[m++] = "-v0" ; else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v2" ;
+      if (wgolb & GOLB_STRICTRES) newargv[m++] = "-w" ;
+      if (wgolb & GOLB_NONAGLE) newargv[m++] = "-D" ;
+      if (wgolb & GOLB_NOLOOKUPS) newargv[m++] = "-H" ;
+      if (wgolb & GOLB_HOSTS) newargv[m++] = "-h" ;
+      if (wgolb & GOLB_IDENT) newargv[m++] = "-r" ;
+      if (wgolb & GOLB_PARANOID) newargv[m++] = "-p" ;
+      if (wgola[GOLA_LOCALNAME])
       {
         newargv[m++] = "-l" ;
-        newargv[m++] = o.localname ;
+        newargv[m++] = wgola[GOLA_LOCALNAME] ;
       }
-      if (o.banner)
+      if (wgola[GOLA_BANNER])
       {
         newargv[m++] = "-B" ;
-        newargv[m++] = o.banner ;
+        newargv[m++] = wgola[GOLA_BANNER] ;
       }
       if (o.timeout)
       {
@@ -213,29 +254,30 @@ int main (int argc, char const *const *argv)
         pos += uint_fmt(fmt + pos, o.timeout) ;
         fmt[pos++] = 0 ;
       }
-      if (o.rules)
+      if (wgola[GOLA_RULESDIR])
       {
-        newargv[m++] = o.rulesx ? "-x" : "-i" ;
-        newargv[m++] = o.rules ;
+        newargv[m++] = "-i" ;
+        newargv[m++] = wgola[GOLA_RULESDIR] ;
+      }
+      else if (wgola[GOLA_RULESFILE])
+      {
+        newargv[m++] = "-x" ;
+        newargv[m++] = wgola[GOLA_RULESFILE] ;
       }
       newargv[m++] = "--" ;
     }
-    if (o.flagL)
+    if (wgolb & GOLB_PROXY)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "proxy-server" ;
       newargv[m++] = "--before-tlsd" ;
       newargv[m++] = "--" ;
     }
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsd" ;
-    if (o.verbosity != 1)
-    {
-      newargv[m++] = "-v" ;
-      newargv[m++] = fmt ;
-    }
-    if (o.flagS) newargv[m++] = "-S" ;
-    if (o.flagJ) newargv[m++] = "-J" ;
-    if (o.flagy) newargv[m++] = "-y" ;
-    else if (o.flagY) newargv[m++] = "-Y" ;
+    if (wgolb & GOLB_QUIET) newargv[m++] = "-v0" ; else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v2" ;
+    if (wgolb & GOLB_CLOSENOTIFY) newargv[m++] = "-S" ;
+    if (wgolb & GOLB_FATALEOF) newargv[m++] = "-J" ;
+    if (wgolb & GOLB_MANDCERT) newargv[m++] = "-y" ;
+    else if (wgolb & GOLB_OPTCERT) newargv[m++] = "-Y" ;
     if (o.kimeout)
     {
       newargv[m++] = "-K" ;
@@ -243,11 +285,11 @@ int main (int argc, char const *const *argv)
       pos += uint_fmt(fmt + pos, o.kimeout) ;
       fmt[pos++] = 0 ;
     }
-    if (o.flagZ) newargv[m++] = "-Z" ;
+    if (wgolb & GOLB_KEEPENV) newargv[m++] = "-Z" ;
     if (o.snilevel >= 2) newargv[m++] = "-k2" ;
     else if (o.snilevel) newargv[m++] = "-k1" ;
     newargv[m++] = "--" ;
-    if (o.doapply)
+    if (doapply)
     {
       newargv[m++] = S6_EXTBINPREFIX "s6-applyuidgid" ;
       if (o.gidn != (size_t)-1)
@@ -271,10 +313,10 @@ int main (int argc, char const *const *argv)
         pos += uid_fmt(fmt + pos, o.uid) ;
         fmt[pos++] = 0 ;
       }
-      if (o.flagU) newargv[m++] = "-Uz" ;
+      if (wgolb & GOLB_UIDGID) newargv[m++] = "-Uz" ;
       newargv[m++] = "--" ;
     }
-    if (o.flagL)
+    if (wgolb & GOLB_PROXY)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "proxy-server" ;
       newargv[m++] = "--after-tlsd" ;

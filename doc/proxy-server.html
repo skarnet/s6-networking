@@ -36,7 +36,7 @@ for a direct connection.
 <h2> Interface </h2>
 
 <pre>
-     proxy-server [ -1||--only-v1 | -2|--only-v2 ] [ -t <em>timeout</em> ] [ -v <em>verbosity</em> ] <em>prog...</em>
+     proxy-server [ -1|--only-v1 | -2|--only-v2 ] [ -t <em>timeout</em> ] [ -v <em>verbosity</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -153,7 +153,7 @@ is established, 1. it is probably an insecure setup (if you have a good reason t
 set up a TLS tunnel between your proxy and your server, then the PROXY information
 is worth protecting just as much as the rest of the data), 2. proxy-server needs
 to be run between <a href="s6-tcpserver.html">s6-tcpserver</a> and
-<a href="s6-tlsd.html">s6-tlsd</a>, which you can do by using the (TBD) option
+<a href="s6-tlsd.html">s6-tlsd</a>, which you can do by using the -L option
 to <a href="s6-tlsserver.html">s6-tlsserver</a> rather than explicitly calling
 proxy-server on the command line. </li>
 </ul>
