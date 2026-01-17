@@ -27,12 +27,14 @@ ifeq ($(SSL_IMPL),tls)
 LIB_DEFS += CRYPTOSUPPORT=stls
 CRYPTOSUPPORT_DESCRIPTION := A TLS tunnel library, using libtls as backend
 CRYPTO_LIB := -ltls -lssl -lcrypto -lpthread
+EXTRA_TARGETS += libsbearssl.a.xyzzy libsbearssl.so libsbearssl.pc
 
 else ifeq ($(SSL_IMPL),bearssl)
 
 LIB_DEFS += CRYPTOSUPPORT=sbearssl
 CRYPTOSUPPORT_DESCRIPTION := A TLS tunnel library, using BearSSL as backend
 CRYPTO_LIB := -lbearssl
+EXTRA_TARGETS += libstls.a.xyzzy libstls.so libstls.pc
 
 else
 
