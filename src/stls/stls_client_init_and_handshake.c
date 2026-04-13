@@ -64,7 +64,9 @@ struct tls *stls_client_init_and_handshake (int const *fds, tain const *tto, uin
   if (tls_config_set_ecdhecurve(cfg, "auto") < 0)
     diecfg(cfg, "tls_config_set_ecdhecurve") ;
 
-  tls_config_verify(cfg) ;
+  if (preoptions & 2) tls_config_insecure_noverifycert(cfg) ;
+  else tls_config_verify(cfg) ;
+
   tls_config_set_protocols(cfg, TLS_PROTOCOLS_ALL) ;
   tls_config_prefer_ciphers_server(cfg) ;
   if (!servername) tls_config_insecure_noverifyname(cfg) ;

@@ -25,9 +25,10 @@ void s6tls_prep_tlscio (char const **argv, char *buf, int const *p, uint32_t opt
     n += uint_fmt(buf + n, p[5]) ;
     buf[n++] = 0 ;
   }
-  if (options & 4) argv[m++] = "-S" ;
+  if (options & 1) argv[m++] = "-S" ;
   if (options & 2) argv[m++] = "-J" ;
-  if (options & 1) argv[m++] = "-y" ;
+  if (options & 4) argv[m++] = "-y" ;
+  if (options & 8) argv[m++] = "--no-verify-cert" ;
   if (kimeout)
   {
     argv[m++] = "-K" ;

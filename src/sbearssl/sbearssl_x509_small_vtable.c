@@ -43,6 +43,7 @@ static unsigned int end_chain (br_x509_class const **c)
 {
   sbearssl_x509_small_context *ctx = INSTANCE(c) ;
   unsigned int r = ctx->minimal.vtable->end_chain(&ctx->minimal.vtable) ;
+  if (ctx->flags & 1 && r == BR_ERR_X509_NOT_TRUSTED) r = 0 ;
   if (!r)
   {
     uint8_t mask = 1 ;
