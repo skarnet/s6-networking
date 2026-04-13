@@ -3,11 +3,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <skalibs/uint64.h>
 #include <skalibs/types.h>
-#include <skalibs/sgetopt.h>
-#include <skalibs/strerr.h>
 #include <skalibs/ip46.h>
-#include <skalibs/exec.h>
+#include <skalibs/envexec.h>
 
 #include <s6-networking/config.h>
 
@@ -20,135 +19,154 @@
 typedef struct options_s options_t, *options_t_ref ;
 struct options_s
 {
-  char const *localname ;
-  char const *servername ;
   unsigned int timeout ;
   unsigned int ximeout ;
   unsigned int yimeout ;
   unsigned int kimeout ;
-  ip46full localip ;
   uint16_t localport ;
-  unsigned int verbosity : 2 ;
-  unsigned int flag4 : 1 ;
-  unsigned int flag6 : 1 ;
-  unsigned int flagD : 1 ;
-  unsigned int flagH : 1 ;
-  unsigned int flagh : 1 ;
-  unsigned int flagr : 1 ;
-  unsigned int flagN : 1 ;
-  unsigned int flagS : 1 ;
-  unsigned int flagJ : 1 ;
-  unsigned int flagy : 1 ;
-  unsigned int flagZ : 1 ;
-  unsigned int doxy : 1 ;
+  ip46full localip ;
+  uint8_t doxy : 1 ;
 } ;
 
 #define OPTIONS_ZERO \
 { \
-  .localname = 0, \
-  .servername = 0, \
   .timeout = 0, \
   .ximeout = 2, \
   .yimeout = 58, \
   .kimeout = 0, \
   .localport = 0, \
   .localip = IP46FULL_ZERO, \
-  .verbosity = 1, \
-  .flag4 = 0, \
-  .flag6 = 0, \
-  .flagD = 0, \
-  .flagH = 0, \
-  .flagh = 0, \
-  .flagr = 0, \
-  .flagN = 0, \
-  .flagS = 0, \
-  .flagJ = 0, \
-  .flagy = 0, \
-  .flagZ = 0, \
   .doxy = 0 \
 }
 
+enum golb_e
+{
+  GOLB_QUIET = 0x0001,
+  GOLB_VERBOSE = 0x0002,
+  GOLB_V4 = 0x0004,
+  GOLB_V6 = 0x0008,
+  GOLB_NONAGLE = 0x0010,
+  GOLB_NODNS = 0x0020,
+  GOLB_HOSTS = 0x0040,
+  GOLB_IDENT = 0x0080,
+  GOLB_QUALIFY = 0x0100,
+  GOLB_CLOSENOTIFY = 0x0200,
+  GOLB_STRICTCN = 0x0400,
+  GOLB_CLIENTCERT = 0x0800,
+  GOLB_NOVERIFY = 0x1000,
+  GOLB_KEEP = 0x2000,
+} ;
+
+enum gola_e
+{
+  GOLA_TIMEOUT,
+  GOLA_LOCALNAME,
+  GOLA_XYIMEOUT,
+  GOLA_IP,
+  GOLA_PORT,
+  GOLA_KIMEOUT,
+  GOLA_SERVERNAME,
+  GOLA_N
+} ;
+
 int main (int argc, char const *const *argv)
 {
-  options_t o = OPTIONS_ZERO ;
-  PROG = "s6-tlsclient" ;
+  static gol_bool const rgolb[] =
   {
-    subgetopt l = SUBGETOPT_ZERO ;
-    for (;;)
+    { .so = 'q', .lo = "quiet", .clear = GOLB_VERBOSE, .set = GOLB_QUIET },
+    { .so = 'Q', .lo = "normally-verbose", .clear = GOLB_QUIET | GOLB_VERBOSE, .set = 0 },
+    { .so = 'v', .lo = "verbose", .clear = GOLB_QUIET, .set = GOLB_VERBOSE },
+    { .so = '4', .lo = "ipv4", .clear = 0, .set = GOLB_V4 },
+    { .so = '6', .lo = "ipv6", .clear = 0, .set = GOLB_V6 },
+    { .so = 'd', .lo = "nagle", .clear = GOLB_NONAGLE, .set = 0 },
+    { .so = 'D', .lo = "no-nagle", .clear = 0, .set = GOLB_NONAGLE },
+    { .so = 0, .lo = "dns", .clear = GOLB_NODNS, .set = 0 },
+    { .so = 'H', .lo = "no-dns", .clear = 0, .set = GOLB_NODNS },
+    { .so = 0, .lo = "no-hosts", .clear = GOLB_HOSTS, .set = 0 },
+    { .so = 'h', .lo = "hosts", .clear = 0, .set = GOLB_HOSTS },
+    { .so = 'R', .lo = "no-ident", .clear = GOLB_IDENT, .set = 0 },
+    { .so = 'r', .lo = "ident", .clear = 0, .set = GOLB_IDENT },
+    { .so = 'N', .lo = "no-qualify", .clear = GOLB_QUALIFY, .set = 0 },
+    { .so = 'n', .lo = "qualify", .clear = 0, .set = GOLB_QUALIFY },
+    { .so = 's', .lo = "no-close-notify", .clear = GOLB_CLOSENOTIFY, .set = 0 },
+    { .so = 'S', .lo = "close-notify", .clear = 0, .set = GOLB_CLOSENOTIFY },
+    { .so = 'j', .lo = "no-enforce-close-notify", .clear = GOLB_STRICTCN, .set = 0 },
+    { .so = 'J', .lo = "enforce-close-notify", .clear = 0, .set = GOLB_STRICTCN },
+    { .so = 'Y', .lo = "no-client-cert", .clear = GOLB_CLIENTCERT, .set = 0 },
+    { .so = 'y', .lo = "client-cert", .clear = 0, .set = GOLB_CLIENTCERT },
+    { .so = 0, .lo = "verify-cert", .clear = GOLB_NOVERIFY, .set = 0 },
+    { .so = 0, .lo = "no-verify-cert", .clear = 0, .set = GOLB_NOVERIFY },
+    { .so = 'z', .lo = "no-keep", .clear = GOLB_KEEP, .set = 0 },
+    { .so = 'Z', .lo = "keep", .clear = 0, .set = GOLB_KEEP },
+  } ;
+  static gol_arg const rgola[] =
+  {
+    { .so = 't', .lo = "timeout", .i = GOLA_TIMEOUT },
+    { .so = 'l', .lo = "localname", .i = GOLA_LOCALNAME },
+    { .so = 'T', .lo = "connection-timeouts", .i = GOLA_XYIMEOUT },
+    { .so = 'i', .lo = "local-ip", .i = GOLA_IP },
+    { .so = 'p', .lo = "local-port", .i = GOLA_PORT },
+    { .so = 'K', .lo = "handshake-timeout", .i = GOLA_KIMEOUT },
+    { .so = 'k', .lo = "servername", .i = GOLA_SERVERNAME },
+  } ;
+  options_t o = OPTIONS_ZERO ;
+  uint64_t wgolb = 0 ;
+  char const *wgola[GOLA_N] = { 0 } ;
+  unsigned int golc ;
+
+  PROG = "s6-tlsclient" ;
+  golc = GOL_main(argc, argv, rgolb, rgola, &wgolb, wgola) ;
+  argc -= golc ; argv += golc ;
+  if (argc < 3) dieusage() ;
+
+  if (wgola[GOLA_TIMEOUT])
+    if (!uint0_scan(wgola[GOLA_TIMEOUT], &o.timeout))
+      strerr_dief(100, "timeout", " needs to be a", "n unsigned integer") ;
+  if (wgola[GOLA_KIMEOUT])
+    if (!uint0_scan(wgola[GOLA_KIMEOUT], &o.kimeout))
+      strerr_dief(100, "handshake-timeout", " needs to be a", "n unsigned integer") ;
+  if (wgola[GOLA_IP])
+    if (!ip46full_scan(wgola[GOLA_IP], &o.localip))
+      strerr_dief(100, "local-ip", " needs to be a", " valid IP address") ;
+  if (wgola[GOLA_PORT])
+    if (!uint160_scan(wgola[GOLA_PORT], &o.localport))
+      strerr_dief(100, "handshake-timeout", " needs to be a", "valid port number") ;
+  if (wgola[GOLA_XYIMEOUT])
+  {
+    size_t n = uint_scan(wgola[GOLA_XYIMEOUT], &o.ximeout) ;
+    if (!n) strerr_dief(100, "connection-timeouts must be x+y") ;
+    o.doxy = 1 ;
+    if (!wgola[GOLA_XYIMEOUT][n]) o.yimeout = 0 ;
+    else
     {
-      int opt = subgetopt_r(argc, argv, "qQv46DdHhRrnNt:l:T:i:p:SsJjYyK:k:Zz", &l) ;
-      if (opt == -1) break ;
-      switch (opt)
-      {
-        case 'q' : o.verbosity = 0 ; break ;
-        case 'Q' : o.verbosity = 1 ; break ;
-        case 'v' : o.verbosity = 2 ; break ;
-        case '4' : o.flag4 = 1 ; break ;
-        case '6' : o.flag6 = 1 ; break ;
-        case 'D' : o.flagD = 1 ; break ;
-        case 'd' : o.flagD = 0 ; break ;
-        case 'H' : o.flagH = 1 ; break ;
-        case 'h' : o.flagh = 1 ; break ;
-        case 'R' : o.flagr = 0 ; break ;
-        case 'r' : o.flagr = 1 ; break ;
-        case 'n' : o.flagN = 0 ; break ;
-        case 'N' : o.flagN = 1 ; break ;
-        case 't' : if (!uint0_scan(l.arg, &o.timeout)) dieusage() ; break ;
-        case 'l' : o.localname = l.arg ; break ;
-        case 'T' :
-        {
-          size_t n = uint_scan(l.arg, &o.ximeout) ;
-          if (!n) dieusage() ;
-          o.doxy = 1 ;
-          if (!l.arg[n])
-          {
-            o.yimeout = 0 ;
-            break ;
-          }
-          if (l.arg[n] != '+') dieusage() ;
-          if (!uint0_scan(l.arg + n + 1, &o.yimeout)) dieusage() ;
-          break ;
-        }
-        case 'i' : if (!ip46full_scan(l.arg, &o.localip)) dieusage() ; break ;
-        case 'p' : if (!uint160_scan(l.arg, &o.localport)) dieusage() ; break ;
-        case 'S' : o.flagS = 1 ; break ;
-        case 's' : o.flagS = 0 ; break ;
-        case 'J' : o.flagJ = 1 ; break ;
-        case 'j' : o.flagJ = 0 ; break ;
-        case 'Y' : o.flagy = 0 ; break ;
-        case 'y' : o.flagy = 1 ; break ;
-        case 'K' : if (!uint0_scan(l.arg, &o.kimeout)) dieusage() ; break ;
-        case 'k' : o.servername = l.arg ; break ;
-        case 'Z' : o.flagZ = 1 ; break ;
-        case 'z' : o.flagZ = 0 ; break ;
-        default : dieusage() ;
-      }
+      if (wgola[GOLA_XYIMEOUT][n] != '+') strerr_dief(100, "connection-timeouts must be x+y") ;
+      if (!uint0_scan(wgola[GOLA_XYIMEOUT] + n + 1, &o.yimeout)) strerr_dief(100, "connection-timeouts must be x+y") ;
     }
-    argc -= l.ind ; argv += l.ind ;
-    if (argc < 3) dieusage() ;
   }
 
-  if (!o.servername && !o.flagH)
+  if (!wgola[GOLA_SERVERNAME] && !(wgolb & GOLB_NODNS))
   {
     ip46full ip ;
     if (!ip46full_scan(argv[0], &ip))
-      o.servername = argv[0] ;
+      wgola[GOLA_SERVERNAME] = argv[0] ;
   }
 
   {
     size_t pos = 0 ;
     unsigned int m = 0 ;
     char fmt[UINT_FMT * 4 + UINT16_FMT + IP46_FMT] ;
-    char const *newargv[33 + argc] ;
+    char const *newargv[32 + argc] ;
+
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpclient" ;
-    if (o.verbosity != 1) newargv[m++] = o.verbosity ? "-v" : "-q" ;
-    if (o.flag4) newargv[m++] = "-4" ;
-    if (o.flag6) newargv[m++] = "-6" ;
-    if (o.flagD) newargv[m++] = "-D" ;
-    if (o.flagH) newargv[m++] = "-H" ;
-    if (o.flagh) newargv[m++] = "-h" ;
-    if (o.flagr) newargv[m++] = "-r" ;
-    if (o.flagN) newargv[m++] = "-N" ;
+    if (wgolb & GOLB_QUIET) newargv[m++] = "-q" ;
+    else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v" ;
+    if (wgolb & GOLB_V4) newargv[m++] = "-4" ;
+    if (wgolb & GOLB_V6) newargv[m++] = "-6" ;
+    if (wgolb & GOLB_NONAGLE) newargv[m++] = "-D" ;
+    if (wgolb & GOLB_NODNS) newargv[m++] = "-H" ;
+    if (wgolb & GOLB_HOSTS) newargv[m++] = "-h" ;
+    if (wgolb & GOLB_IDENT) newargv[m++] = "-r" ;
+    if (wgolb & GOLB_QUALIFY) newargv[m++] = "-N" ;
     if (o.timeout)
     {
       newargv[m++] = "-t" ;
@@ -156,10 +174,10 @@ int main (int argc, char const *const *argv)
       pos += uint_fmt(fmt + pos, o.timeout) ;
       fmt[pos++] = 0 ;
     }
-    if (o.localname)
+    if (wgola[GOLA_LOCALNAME])
     {
       newargv[m++] = "-l" ;
-      newargv[m++] = o.localname ;
+      newargv[m++] = wgola[GOLA_LOCALNAME] ;
     }
     if (o.doxy)
     {
@@ -188,9 +206,11 @@ int main (int argc, char const *const *argv)
     newargv[m++] = *argv++ ;
     newargv[m++] = *argv++ ;
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsc" ;
-    if (o.flagS) newargv[m++] = "-S" ;
-    if (o.flagJ) newargv[m++] = "-J" ;
-    if (o.flagy) newargv[m++] = "-y" ;
+    if (wgolb & GOLB_CLOSENOTIFY) newargv[m++] = "-S" ;
+    if (wgolb & GOLB_STRICTCN) newargv[m++] = "-J" ;
+    if (wgolb & GOLB_CLIENTCERT) newargv[m++] = "-y" ;
+    if (wgolb & GOLB_NOVERIFY) newargv[m++] = "--no-verify-cert" ;
+    if (wgolb & GOLB_KEEP) newargv[m++] = "-Z" ;
     if (o.kimeout)
     {
       newargv[m++] = "-K" ;
@@ -198,12 +218,11 @@ int main (int argc, char const *const *argv)
       pos += uint_fmt(fmt + pos, o.kimeout) ;
       fmt[pos++] = 0 ;
     }
-    if (o.servername)
+    if (wgola[GOLA_SERVERNAME])
     {
       newargv[m++] = "-k" ;
-      newargv[m++] = o.servername ;
+      newargv[m++] = wgola[GOLA_SERVERNAME] ;
     }
-    if (o.flagZ) newargv[m++] = "-Z" ;
     newargv[m++] = "--" ;
     while (*argv) newargv[m++] = *argv++ ;
     newargv[m++] = 0 ;
