@@ -102,7 +102,7 @@ int main (int argc, char const *const *argv)
   static gol_arg const rgola[] =
   {
     { .so = 't', .lo = "timeout", .i = GOLA_TIMEOUT },
-    { .so = 'l', .lo = "localname", .i = GOLA_LOCALNAME },
+    { .so = 'l', .lo = "local-name", .i = GOLA_LOCALNAME },
     { .so = 'T', .lo = "connection-timeouts", .i = GOLA_XYIMEOUT },
     { .so = 'i', .lo = "local-ip", .i = GOLA_IP },
     { .so = 'p', .lo = "local-port", .i = GOLA_PORT },

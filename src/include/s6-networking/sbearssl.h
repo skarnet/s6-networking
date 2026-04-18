@@ -74,8 +74,7 @@ extern int sbearssl_x509_minimal_set_tai (br_x509_minimal_context *, tai const *
 extern int sbearssl_x509_time_check (void *, uint32_t, uint32_t, uint32_t, uint32_t) ;  /* br_x509_time_check */
 
 extern br_x509_class const sbearssl_x509_small_vtable ;
-extern void sbearssl_x509_small_init_full (sbearssl_x509_small_context *, br_x509_trust_anchor *, size_t, sbearssl_dn *, uint8_t *, char *) ;
-extern void sbearssl_x509_small_init_full_options (sbearssl_x509_small_context *, br_x509_trust_anchor *, size_t, sbearssl_dn *, uint8_t *, char *, uint32_t) ;
+extern void sbearssl_x509_small_init_full (sbearssl_x509_small_context *, br_x509_trust_anchor *, size_t, sbearssl_dn *, uint8_t *, char *, uint32_t) ;
 
 
  /* Cipher suites */

@@ -50,7 +50,7 @@ int main (int argc, char const *const *argv)
   static gol_arg const rgola[] =
   {
     { .so = 'v', .lo = "verbosity", .i = GOLA_VERBOSITY },
-    { .so = 'K', .lo = "kimeout", .i = GOLA_KIMEOUT },
+    { .so = 'K', .lo = "handshake-timeout", .i = GOLA_KIMEOUT },
     { .so = 'k', .lo = "servername", .i = GOLA_SERVERNAME },
     { .so = '6', .lo = "read-fd", .i = GOLA_RFD },
     { .so = '7', .lo = "write-fd", .i = GOLA_WFD },
@@ -75,7 +75,7 @@ int main (int argc, char const *const *argv)
       strerr_dief2x(100, "verbosity", " must be an unsigned integer") ;
   if (wgola[GOLA_KIMEOUT])
     if (!uint0_scan(wgola[GOLA_KIMEOUT], &kimeout))
-      strerr_dief2x(100, "kimeout", " must be an unsigned integer") ;
+      strerr_dief2x(100, "handshake-timeout", " must be an unsigned integer") ;
   if (wgola[GOLA_RFD])
   {
     unsigned int fd ;

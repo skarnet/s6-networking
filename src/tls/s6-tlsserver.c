@@ -17,6 +17,7 @@
 "s6-tlsd options: [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ] [ -k snilevel ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
+#define dieint(s) strerr_dief(100, (s), " must be an unsigned integer")
 
 typedef struct options_s options_t, *options_t_ref ;
 struct options_s
@@ -30,7 +31,6 @@ struct options_s
   unsigned int backlog ;
   unsigned int timeout ;
   unsigned int kimeout ;
-  unsigned int snilevel ;
 } ;
 
 #define OPTIONS_ZERO \
@@ -43,7 +43,6 @@ struct options_s
   .backlog = (unsigned int)-1, \
   .timeout = 0, \
   .kimeout = 0, \
-  .snilevel = 0, \
 }
 
 enum golb_e
@@ -64,6 +63,8 @@ enum golb_e
   GOLB_OPTCERT = 0x2000,
   GOLB_MANDCERT = 0x4000,
   GOLB_KEEPENV = 0x8000,
+  GOLB_SNI = 0x10000,
+  GOLB_SNI_ONLY = 0x20000,
 } ;
 
 enum gola_e
@@ -93,25 +94,27 @@ int main (int argc, char const *const *argv)
     { .so = 'v', .lo = "verbose", .clear = GOLB_QUIET, .set = GOLB_VERBOSE },
     { .so = '1', .lo = "notify", .clear = 0, .set = GOLB_NOTIF },
     { .so = 'L', .lo = "proxy", .clear = 0, .set = GOLB_PROXY },
-    { .so = 'U', .lo = "with-envuidgid", .clear = 0, .set = GOLB_UIDGID },
+    { .so = 'U', .lo = "envuidgid", .clear = 0, .set = GOLB_UIDGID },
     { .so = 'W', .lo = "no-strict-resolution", .clear = GOLB_STRICTRES, .set = 0 },
     { .so = 'w', .lo = "strict-resolution", .clear = 0, .set = GOLB_STRICTRES },
-    { .so = 'd', .lo = "enable-nagle", .clear = GOLB_NONAGLE, .set = 0 },
-    { .so = 'D', .lo = "disable-nagle", .clear = 0, .set = GOLB_NONAGLE },
-    { .so = 'H', .lo = "disable-dns-lookups", .clear = 0, .set = GOLB_NOLOOKUPS },
-    { .so = 'h', .lo = "with-etchosts", .clear = 0, .set = GOLB_HOSTS },
-    { .so = 'R', .lo = "disable-ident-lookups", .clear = GOLB_IDENT, .set = 0 },
-    { .so = 'r', .lo = "enable-ident-lookups", .clear = 0, .set = GOLB_IDENT },
-    { .so = 'P', .lo = "disable-paranoid-lookups", .clear = GOLB_PARANOID, .set = 0 },
-    { .so = 'p', .lo = "enable-paranoid-lookups", .clear = 0, .set = GOLB_PARANOID },
-    { .so = 's', .lo = "disable-closenotify", .clear = GOLB_CLOSENOTIFY, .set = 0 },
-    { .so = 'S', .lo = "enable-closenotify", .clear = 0, .set = GOLB_CLOSENOTIFY },
-    { .so = 'j', .lo = "allow-raw-eof", .clear = GOLB_FATALEOF, .set = 0 },
-    { .so = 'J', .lo = "disallow-raw-eof", .clear = 0, .set = GOLB_FATALEOF },
-    { .so = 'Y', .lo = "request-client-certificate", .clear = GOLB_MANDCERT, .set = GOLB_OPTCERT },
-    { .so = 'y', .lo = "demand-client-certificate", .clear = GOLB_OPTCERT, .set = GOLB_MANDCERT },
-    { .so = 'z', .lo = "no-keep-tlsd-environment", .clear = GOLB_KEEPENV, .set = 0 },
-    { .so = 'Z', .lo = "keep-tlsd-environment", .clear = 0, .set = GOLB_KEEPENV },
+    { .so = 'd', .lo = "nagle", .clear = GOLB_NONAGLE, .set = 0 },
+    { .so = 'D', .lo = "no-nagle", .clear = 0, .set = GOLB_NONAGLE },
+    { .so = 0, .lo = "dns", .clear = GOLB_NOLOOKUPS, .set = 0 },
+    { .so = 'H', .lo = "no-dns", .clear = 0, .set = GOLB_NOLOOKUPS },
+    { .so = 0, .lo = "no-hosts", .clear = GOLB_HOSTS, .set = 0 },
+    { .so = 'h', .lo = "hosts", .clear = 0, .set = GOLB_HOSTS },
+    { .so = 'R', .lo = "no-ident", .clear = GOLB_IDENT, .set = 0 },
+    { .so = 'r', .lo = "ident", .clear = 0, .set = GOLB_IDENT },
+    { .so = 'P', .lo = "no-paranoid", .clear = GOLB_PARANOID, .set = 0 },
+    { .so = 'p', .lo = "paranoid", .clear = 0, .set = GOLB_PARANOID },
+    { .so = 's', .lo = "no-close-notify", .clear = GOLB_CLOSENOTIFY, .set = 0 },
+    { .so = 'S', .lo = "close-notify", .clear = 0, .set = GOLB_CLOSENOTIFY },
+    { .so = 'j', .lo = "no-enforce-close-notify", .clear = GOLB_FATALEOF, .set = 0 },
+    { .so = 'J', .lo = "enforce-close-notify", .clear = 0, .set = GOLB_FATALEOF },
+    { .so = 'Y', .lo = "client-cert", .clear = GOLB_MANDCERT, .set = GOLB_OPTCERT },
+    { .so = 'y', .lo = "mandatory-client-cert", .clear = GOLB_OPTCERT, .set = GOLB_MANDCERT },
+    { .so = 'z', .lo = "no-keep", .clear = GOLB_KEEPENV, .set = 0 },
+    { .so = 'Z', .lo = "keep", .clear = 0, .set = GOLB_KEEPENV },
   } ;
   static gol_arg const rgola[] =
   {
@@ -143,17 +146,17 @@ int main (int argc, char const *const *argv)
 
   if (wgola[GOLA_MAXCONN])
   {
-    if (!uint0_scan(wgola[GOLA_MAXCONN], &o.maxconn)) dieusage() ;
+    if (!uint0_scan(wgola[GOLA_MAXCONN], &o.maxconn)) dieint("global-max-connections") ;
     if (!o.maxconn) o.maxconn = 1 ;
   }
   if (wgola[GOLA_LMAXCONN])
   {
-    if (!uint0_scan(wgola[GOLA_LMAXCONN], &o.localmaxconn)) dieusage() ;
+    if (!uint0_scan(wgola[GOLA_LMAXCONN], &o.localmaxconn)) dieint("local-max-connections") ;
     if (!o.localmaxconn) o.localmaxconn = 1 ;
   }
   if (wgola[GOLA_BACKLOG])
   {
-    if (!uint0_scan(wgola[GOLA_BACKLOG], &o.backlog)) dieusage() ;
+    if (!uint0_scan(wgola[GOLA_BACKLOG], &o.backlog)) dieint("backlog") ;
   }
   if (wgola[GOLA_GIDLIST])
   {
@@ -162,25 +165,29 @@ int main (int argc, char const *const *argv)
   }
   if (wgola[GOLA_GID])
   {
-    if (!gid0_scan(wgola[GOLA_GID], &o.gid)) dieusage() ;
+    if (!gid0_scan(wgola[GOLA_GID], &o.gid)) dieint("gid") ;
     doapply = 1 ;
   }
   if (wgola[GOLA_UID])
   {
-    if (!uid0_scan(wgola[GOLA_UID], &o.uid)) dieusage() ;
+    if (!uid0_scan(wgola[GOLA_UID], &o.uid)) dieint("uid") ;
     doapply = 1 ;
   }
   if (wgola[GOLA_TIMEOUT])
   {
-    if (!uint0_scan(wgola[GOLA_TIMEOUT], &o.timeout)) dieusage() ;
+    if (!uint0_scan(wgola[GOLA_TIMEOUT], &o.timeout)) dieint("timeout") ;
   }
   if (wgola[GOLA_KIMEOUT])
   {
-    if (!uint0_scan(wgola[GOLA_KIMEOUT], &o.kimeout)) dieusage() ;
+    if (!uint0_scan(wgola[GOLA_KIMEOUT], &o.kimeout)) dieint("handshake-timeout") ;
   }
   if (wgola[GOLA_SNILEVEL])
   {
-    if (!uint0_scan(wgola[GOLA_SNILEVEL], &o.snilevel)) dieusage() ;
+    unsigned int snilevel ;
+    if (!uint0_scan(wgola[GOLA_SNILEVEL], &snilevel))
+      strerr_dief2x(100, "snilevel", " must be an unsigned integer") ;
+    wgolb &= ~(GOLB_SNI | GOLB_SNI_ONLY) ;
+    wgolb |= (snilevel ? GOLB_SNI : 0) | (snilevel >= 2 ? GOLB_SNI_ONLY : 0) ;
   }
   if (wgolb & GOLB_UIDGID)
   {
@@ -197,11 +204,12 @@ int main (int argc, char const *const *argv)
      || !!(wgolb & (GOLB_STRICTRES | GOLB_NONAGLE | GOLB_IDENT | GOLB_PARANOID))
      || !!wgola[GOLA_LOCALNAME] || !!wgola[GOLA_BANNER] || !!wgola[GOLA_RULESDIR] || !!wgola[GOLA_RULESFILE]
      || !!o.timeout ;
-    char fmt[UINT_FMT * 5 + UID_FMT + GID_FMT * (NGROUPS_MAX + 1)] ;
-    char const *newargv[54 + argc] ;
+    char const *newargv[55 + argc] ;
+    char fmt[UINT_FMT * 5 + UID_FMT + GID_FMT + (o.gidn == (size_t)-1 ? 0 : o.gidn * GID_FMT)] ;
 
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
-    if (wgolb & GOLB_QUIET) newargv[m++] = "-q" ; else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v" ;
+    if (wgolb & GOLB_QUIET) newargv[m++] = "-q" ;
+    else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v" ;
     if (wgolb & GOLB_NOTIF) newargv[m++] = "-1" ;
     if (o.maxconn)
     {
@@ -230,7 +238,8 @@ int main (int argc, char const *const *argv)
     if (doaccess)
     {
       newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver-access" ;
-      if (wgolb & GOLB_QUIET) newargv[m++] = "-v0" ; else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v2" ;
+      if (wgolb & GOLB_QUIET) newargv[m++] = "-v0" ;
+      else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v2" ;
       if (wgolb & GOLB_STRICTRES) newargv[m++] = "-w" ;
       if (wgolb & GOLB_NONAGLE) newargv[m++] = "-D" ;
       if (wgolb & GOLB_NOLOOKUPS) newargv[m++] = "-H" ;
@@ -273,7 +282,8 @@ int main (int argc, char const *const *argv)
       newargv[m++] = "--" ;
     }
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tlsd" ;
-    if (wgolb & GOLB_QUIET) newargv[m++] = "-v0" ; else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v2" ;
+    if (wgolb & GOLB_QUIET) newargv[m++] = "-v0" ;
+    else if (wgolb & GOLB_VERBOSE) newargv[m++] = "-v2" ;
     if (wgolb & GOLB_CLOSENOTIFY) newargv[m++] = "-S" ;
     if (wgolb & GOLB_FATALEOF) newargv[m++] = "-J" ;
     if (wgolb & GOLB_MANDCERT) newargv[m++] = "-y" ;
@@ -286,8 +296,7 @@ int main (int argc, char const *const *argv)
       fmt[pos++] = 0 ;
     }
     if (wgolb & GOLB_KEEPENV) newargv[m++] = "-Z" ;
-    if (o.snilevel >= 2) newargv[m++] = "-k2" ;
-    else if (o.snilevel) newargv[m++] = "-k1" ;
+    if (wgolb & GOLB_SNI) newargv[m++] = wgolb & GOLB_SNI_ONLY ? "--mandatory-sni" : "--sni" ;
     newargv[m++] = "--" ;
     if (doapply)
     {

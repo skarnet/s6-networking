@@ -98,7 +98,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   static gol_arg const rgola[] =
   {
     { .so = 'v', .lo = "verbosity", .i = GOLA_VERBOSITY },
-    { .so = 'K', .lo = "kimeout", .i = GOLA_KIMEOUT },
+    { .so = 'K', .lo = "handshake-timeout", .i = GOLA_KIMEOUT },
     { .so = 'k', .lo = "servername", .i = GOLA_SERVERNAME },
     { .so = 'd', .lo = "notification-fd", .i = GOLA_NOTIF },
   } ;
@@ -122,7 +122,7 @@ int main (int argc, char const *const *argv, char const *const *envp)
   {
     unsigned int kimeout ;
     if (!uint0_scan(wgola[GOLA_KIMEOUT], &kimeout))
-      strerr_dief2x(100, "kimeout", " must be an unsigned integer") ;
+      strerr_dief2x(100, "handshake-timeout", " must be an unsigned integer") ;
     if (kimeout) tain_from_millisecs(&tto, kimeout) ;
   }
   if (wgola[GOLA_NOTIF])

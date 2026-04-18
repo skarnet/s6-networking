@@ -3,10 +3,12 @@
 #include <stdint.h>
 #include <signal.h>
 
+#include <skalibs/uint64.h>
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
-#include <skalibs/sgetopt.h>
+#include <skalibs/prog.h>
 #include <skalibs/strerr.h>
+#include <skalibs/gol.h>
 #include <skalibs/tai.h>
 #include <skalibs/sig.h>
 #include <skalibs/djbunix.h>
@@ -15,6 +17,25 @@
 
 #define USAGE "s6-tlsd-io [ -v verbosity ] [ -d notif ] [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -k snilevel ] fdr fdw"
 #define dieusage() strerr_dieusage(100, USAGE)
+
+enum golb_e
+{
+  GOLB_CLOSENOTIFY = 0x01,
+  GOLB_STRICTCN = 0x02,
+  GOLB_CLIENTCERT = 0x10,
+  GOLB_CLIENTCERT_ONLY = 0x20,
+  GOLB_SNI = 0x40,
+  GOLB_SNI_ONLY = 0x80,
+} ;
+
+enum gola_e
+{
+  GOLA_VERBOSITY,
+  GOLA_KIMEOUT,
+  GOLA_SNILEVEL,
+  GOLA_NOTIF,
+  GOLA_N
+} ;
 
 static inline void doit (int *, tain const *tto, uint32_t, uint32_t, unsigned int, unsigned int) gccattr_noreturn ;
 
@@ -65,47 +86,59 @@ static inline void doit (int *fds, tain const *tto, uint32_t preoptions, uint32_
 
 int main (int argc, char const *const *argv)
 {
-  tain tto ;
+  static gol_bool const rgolb[] =
+  {
+    { .so = 's', .lo = "no-close-notify", .clear = GOLB_CLOSENOTIFY, .set = 0 },
+    { .so = 'S', .lo = "close-notify", .clear = 0, .set = GOLB_CLOSENOTIFY },
+    { .so = 'j', .lo = "no-enforce-close-notify", .clear = GOLB_STRICTCN, .set = 0 },
+    { .so = 'J', .lo = "enforce-close-notify", .clear = 0, .set = GOLB_STRICTCN },
+    { .so = 'Y', .lo = "client-cert", .clear = GOLB_CLIENTCERT_ONLY, .set = GOLB_CLIENTCERT },
+    { .so = 'y', .lo = "mandatory-client-cert", .clear = 0, .set = GOLB_CLIENTCERT | GOLB_CLIENTCERT_ONLY },
+    { .so = 0, .lo = "sni", .clear = GOLB_SNI_ONLY, .set = GOLB_SNI },
+    { .so = 0, .lo = "mandatory-sni", .clear = 0, .set = GOLB_SNI | GOLB_SNI_ONLY },
+  } ;
+  static gol_arg const rgola[] =
+  {
+    { .so = 'v', .lo = "verbosity", .i = GOLA_VERBOSITY },
+    { .so = 'K', .lo = "handshake-timeout", .i = GOLA_KIMEOUT },
+    { .so = 'k', .lo = "sni-level", .i = GOLA_SNILEVEL },
+    { .so = 'd', .lo = "notification-fd", .i = GOLA_NOTIF },
+  } ;
   int fds[4] = { [2] = 0, [3] = 1 } ;
+  tain tto = TAIN_INFINITE_RELATIVE ;
   unsigned int verbosity = 1 ;
   unsigned int notif = 0 ;
-  uint32_t preoptions = 0 ;
-  uint32_t options = 0 ;
-
+  uint64_t wgolb = 0 ;
+  char const *wgola[GOLA_N] = { 0 } ;
+  unsigned int golc ;
   PROG = "s6-tlsd-io" ;
-  {
-    subgetopt l = SUBGETOPT_ZERO ;
-    unsigned int t = 0 ;
-    for (;;)
-    {
-      int opt = subgetopt_r(argc, argv, "d:SsJjYyv:K:k:", &l) ;
-      if (opt == -1) break ;
-      switch (opt)
-      {
-        case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
-        case 'd' : if (!uint0_scan(l.arg, &notif)) dieusage() ; break ;
-        case 'S' : options |= 1 ; break ;
-        case 's' : options &= ~1 ; break ;
-        case 'J' : options |= 2 ; break ;
-        case 'j' : options &= ~2 ; break ;
-        case 'Y' : preoptions |= 1 ; preoptions &= ~2 ; break ;
-        case 'y' : preoptions |= 3 ; break ;
-        case 'K' : if (!uint0_scan(l.arg, &t)) dieusage() ; break ;
-        case 'k' :
-        {
-          unsigned int snilevel ;
-          if (!uint0_scan(l.arg, &snilevel)) dieusage() ;
-          if (snilevel) preoptions |= 4 ;
-          if (snilevel >= 2) preoptions |= 8 ;
-          break ;
-        }
-        default : dieusage() ;
-      }
-    }
-    argc -= l.ind ; argv += l.ind ;
-    if (t) tain_from_millisecs(&tto, t) ; else tto = tain_infinite_relative ;
-  }
+
+  golc = GOL_main(argc, argv, rgolb, rgola, &wgolb, wgola) ;
+  argc -= golc ; argv += golc ;
   if (argc < 2) dieusage() ;
+
+  if (wgola[GOLA_VERBOSITY])
+    if (!uint0_scan(wgola[GOLA_VERBOSITY], &verbosity))
+      strerr_dief2x(100, "verbosity", " must be an unsigned integer") ;
+  if (wgola[GOLA_KIMEOUT])
+  {
+    unsigned int kimeout ;
+    if (!uint0_scan(wgola[GOLA_KIMEOUT], &kimeout))
+      strerr_dief2x(100, "handshake-timeout", " must be an unsigned integer") ;
+    if (kimeout) tain_from_millisecs(&tto, kimeout) ;
+  }
+  if (wgola[GOLA_SNILEVEL])
+  {
+    unsigned int snilevel ;
+    if (!uint0_scan(wgola[GOLA_SNILEVEL], &snilevel))
+      strerr_dief2x(100, "sni-level", " must be an unsigned integer") ;
+    wgolb &= ~(GOLB_SNI | GOLB_SNI_ONLY) ;
+    wgolb |= (snilevel ? GOLB_SNI : 0) | (snilevel >= 2 ? GOLB_SNI_ONLY : 0) ;
+  }
+  if (wgola[GOLA_NOTIF])
+    if (!uint0_scan(wgola[GOLA_NOTIF], &notif))
+      strerr_dief2x(100, "notification-fd", " must be an unsigned integer") ;
+
   {
     unsigned int u ;
     if (!uint0_scan(argv[0], &u)) dieusage() ;
@@ -116,5 +149,5 @@ int main (int argc, char const *const *argv)
 
   if (!sig_ignore(SIGPIPE)) strerr_diefu1sys(111, "ignore SIGPIPE") ;
   tain_now_set_stopwatch_g() ;
-  doit(fds, &tto, preoptions, options, verbosity, notif) ;
+  doit(fds, &tto, wgolb >> 4, wgolb & 0xf, verbosity, notif) ;
 }

@@ -5,7 +5,7 @@
 #include <s6-networking/config.h>
 #include "s6tls-internal.h"
 
-void s6tls_prep_tlsdio (char const **argv, char *buf, int const *p, uint32_t options, unsigned int verbosity, unsigned int kimeout, unsigned int snilevel)
+void s6tls_prep_tlsdio (char const **argv, char *buf, int const *p, uint32_t options, unsigned int verbosity, unsigned int kimeout)
 {
   size_t m = 0 ;
   size_t n = 0 ;
@@ -25,10 +25,10 @@ void s6tls_prep_tlsdio (char const **argv, char *buf, int const *p, uint32_t opt
     n += uint_fmt(buf + n, p[5]) ;
     buf[n++] = 0 ;
   }
-  if (options & 4) argv[m++] = "-S" ;
-  if (options & 8) argv[m++] = "-J" ;
-  if (options & 1)
-    argv[m++] = options & 2 ? "-y" : "-Y" ;
+  if (options & 0x01) argv[m++] = "-S" ;
+  if (options & 0x02) argv[m++] = "-J" ;
+  if (options & 0x04)
+    argv[m++] = options & 0x08 ? "-y" : "-Y" ;
   if (kimeout)
   {
     argv[m++] = "-K" ;
@@ -36,13 +36,8 @@ void s6tls_prep_tlsdio (char const **argv, char *buf, int const *p, uint32_t opt
     n += uint_fmt(buf + n, kimeout) ;
     buf[n++] = 0 ;
   }
-  if (snilevel)
-  {
-    argv[m++] = "-k" ;
-    argv[m++] = buf + n ;
-    n += uint_fmt(buf + n, snilevel) ;
-    buf[n++] = 0 ;
-  }
+  if (options & 0x20) argv[m++] = "--mandatory-sni" ;
+  else if (options & 0x10) argv[m++] = "--sni" ;
   argv[m++] = "--" ;
   argv[m++] = buf + n ;
   n += uint_fmt(buf + n, p[0]) ;
