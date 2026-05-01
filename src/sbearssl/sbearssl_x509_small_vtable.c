@@ -1,5 +1,7 @@
 /* ISC license. */
 
+#include <stdlib.h>
+
 #include <bearssl.h>
 
 #include <s6-networking/sbearssl.h>
@@ -39,11 +41,25 @@ static void end_cert (br_x509_class const **c)
   ctx->i++ ;
 }
 
+static inline int isin (unsigned int key, unsigned int const *table, unsigned int n)
+{
+  for (unsigned int i = 0 ; i < n ; i++)
+    if (key == table[i]) return 1 ;
+  return 0 ;
+}
+
 static unsigned int end_chain (br_x509_class const **c)
 {
+  static unsigned int const ignored_errors[] =
+  {
+    BR_ERR_X509_EXPIRED,
+    BR_ERR_X509_DN_MISMATCH,
+    BR_ERR_X509_BAD_SERVER_NAME,
+    BR_ERR_X509_NOT_TRUSTED,
+  } ;
   sbearssl_x509_small_context *ctx = INSTANCE(c) ;
   unsigned int r = ctx->minimal.vtable->end_chain(&ctx->minimal.vtable) ;
-  if (ctx->flags & 1 && r == BR_ERR_X509_NOT_TRUSTED) r = 0 ;
+  if (ctx->flags & 1 && isin(r, ignored_errors, sizeof(ignored_errors)/sizeof(unsigned int))) r = 0 ;
   if (!r)
   {
     uint8_t mask = 1 ;
