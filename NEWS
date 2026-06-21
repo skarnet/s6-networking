@@ -1,6 +1,12 @@
 Changelog for s6-networking.
 
-In 2.7.3.0
+In 2.8.0.1
+----------
+
+ - Documentation fixes.
+
+
+In 2.8.0.0
 ----------
 
  - Support for disabling RPATH at configure time.
