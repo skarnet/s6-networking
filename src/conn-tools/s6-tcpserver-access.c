@@ -123,6 +123,7 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
   if (!*argv[0]) dieusage() ;
+  if (flagparanoid) flagdnslookup = flagfatal = 1 ;
 
   proto = getenv("PROTO") ;
   if (!proto) strerr_dienotset(100, "PROTO") ;
@@ -367,7 +368,7 @@ int main (int argc, char const *const *argv)
           r = ip46_is6(&remoteip) ? s6dns_resolve_aaaa_g(&data[1].ds, remotebuf, remotelen, 0, &deadline) : s6dns_resolve_a_g(&data[1].ds, remotebuf, remotelen, 0, &deadline) ;
           if (r <= 0)
           {
-            if (verbosity >= 3) strerr_warnwu4x("(paranoidly) resolve ", remotebuf, ": ", s6dns_constants_error_str(errno)) ;
+            if (verbosity >= 3) strerr_warnwu("(paranoidly) resolve ", remotebuf, ": ", s6dns_constants_error_str(errno)) ;
             if (flagfatal)
             {
               e = errno == ETIMEDOUT ? 99 : errno == ENOENT ? 1 : 111 ;
@@ -384,6 +385,15 @@ int main (int argc, char const *const *argv)
           }
         }
         stralloc_free(&data[1].ds) ;
+      }
+      else if (!remotelen && flagparanoid)
+      {
+        if (verbosity >= 3) strerr_warnwu("(paranoidly) resolve PTR for client address", ": ", s6dns_constants_error_str(blob[1].status)) ;
+        if (flagfatal)
+        {
+          e = errno == ETIMEDOUT ? 99 : errno == ENOENT ? 1 : 111 ;
+          goto reject ;
+        }
       }
     }
     if (!env_addmodif(&modifs, tcpremotehost, remotelen ? remotebuf : 0)) dienomem() ;
