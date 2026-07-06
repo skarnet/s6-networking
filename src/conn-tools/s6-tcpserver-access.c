@@ -123,7 +123,7 @@ int main (int argc, char const *const *argv)
   }
   if (!argc) dieusage() ;
   if (!*argv[0]) dieusage() ;
-  if (flagparanoid) flagdnslookup = flagfatal = 1 ;
+  if (flagparanoid) flagdnslookup = 1 ;
 
   proto = getenv("PROTO") ;
   if (!proto) strerr_dienotset(100, "PROTO") ;

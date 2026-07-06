@@ -123,8 +123,9 @@ for legacy programs that need it. </li>
  <li> <tt>-p</tt>&nbsp;: paranoid. After looking up a name for the remote
 host, s6-tcpserver-access will lookup IP addresses for this name, and drop
 the connection if none of the results matches the address the connection
-is originating from. Note that this still does not replace real
-authentication via a cryptographic protocol. </li>
+is originating from. For safest results, pair that option with <tt>-w</tt>
+so any DNS error drops the connection. (Note that this still does not replace real
+authentication via a cryptographic protocol.) </li>
  <li> <tt>-l&nbsp;<em>localname</em></tt>&nbsp;: use <em>localname</em>
 as the value for the ${PROTO}LOCALHOST environment variable, instead of
 looking it up in the DNS. </li>
