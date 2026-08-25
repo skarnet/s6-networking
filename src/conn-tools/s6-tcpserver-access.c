@@ -8,19 +8,15 @@
 
 #include <skalibs/gccattributes.h>
 #include <skalibs/types.h>
-#include <skalibs/prog.h>
-#include <skalibs/strerr.h>
-#include <skalibs/sgetopt.h>
+#include <skalibs/envexec.h>
 #include <skalibs/buffer.h>
 #include <skalibs/stralloc.h>
 #include <skalibs/genalloc.h>
 #include <skalibs/cdb.h>
 #include <skalibs/tai.h>
-#include <skalibs/env.h>
 #include <skalibs/djbunix.h>
 #include <skalibs/socket.h>
 #include <skalibs/ip46.h>
-#include <skalibs/exec.h>
 #include <skalibs/unix-timed.h>
 
 #include <s6/accessrules.h>
@@ -34,100 +30,119 @@
 #include <execline/config.h>
 #endif
 
- /* XXX: this file is super ugly and full of tech debt */
-
 #define NAME "s6-tcpserver-access"
 #define USAGE NAME " [ -v verbosity ] [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ] prog..."
 #define dieusage() strerr_dieusage(100, USAGE)
 #define dienomem() strerr_diefu1sys(111, "update environment")
-#define X() strerr_dief1x(101, "internal inconsistency. Please submit a bug-report.")
+#define X() strerr_dief(101, "internal inconsistency. Please submit a bug-report.")
 
-static void logit (pid_t pid, ip46 const *ip, int h)
+enum golb_e
 {
-  char fmtpid[PID_FMT] ;
+  GOLB_FATAL = 0x01,
+  GOLB_NODELAY = 0x02,
+  GOLB_NODNS = 0x04,
+  GOLB_HOSTS = 0x08,
+  GOLB_IDENT = 0x10,
+  GOLB_PARANOID = 0x20,
+} ;
+
+enum gola_e
+{
+  GOLA_VERBOSITY,
+  GOLA_LOCALNAME,
+  GOLA_BANNER,
+  GOLA_TIMEOUT,
+  GOLA_RULESDIR,
+  GOLA_RULESFILE,
+  GOLA_N
+} ;
+
+static inline void logit (ip46 const *ip, int h)
+{
   char fmtip[IP46_FMT] ;
   fmtip[ip46_fmt(fmtip, ip)] = 0 ;
-  fmtpid[pid_fmt(fmtpid, pid)] = 0 ;
-  if (h) strerr_warni5x("allow", " pid ", fmtpid, " ip ", fmtip) ;
-  else strerr_warni5x("deny", " pid ", fmtpid, " ip ", fmtip) ;
+  if (h) strerr_warni("allow", " ip ", fmtip) ;
+  else strerr_warni("deny", " ip ", fmtip) ;
 }
 
-static inline void log_accept (pid_t pid, ip46 const *ip)
+static inline void log_accept (ip46 const *ip)
 {
-  logit(pid, ip, 1) ;
+  logit(ip, 1) ;
 }
 
-static inline void log_deny (pid_t pid, ip46 const *ip)
+static inline void log_deny (ip46 const *ip)
 {
-  logit(pid, ip, 0) ;
+  logit(ip, 0) ;
 }
-
-#define PROGNAME "s6-tcpserver-access"
 
 int main (int argc, char const *const *argv)
 {
-  s6_accessrules_params_t params = S6_ACCESSRULES_PARAMS_ZERO ;
+  static gol_bool const rgolb[] =
+  {
+    { .so = 'W', .lo = "no-fatal", .clear = GOLB_FATAL, .set = 0 },
+    { .so = 'w', .lo = "fatal", .clear = 0, .set = GOLB_FATAL },
+    { .so = 'd', .lo = "delay", .clear = GOLB_NODELAY, .set = 0 },
+    { .so = 'D', .lo = "no-delay", .clear = 0, .set = GOLB_NODELAY },
+    { .so = 0, .lo = "dns", .clear = GOLB_NODNS, .set = 0 },
+    { .so = 'H', .lo = "no-dns", .clear = GOLB_HOSTS | GOLB_PARANOID, .set = GOLB_NODNS },
+    { .so = 0, .lo = "no-hosts", .clear = GOLB_HOSTS, .set = 0 },
+    { .so = 'h', .lo = "hosts", .clear = 0, .set = GOLB_HOSTS },
+    { .so = 'R', .lo = "no-ident", .clear = GOLB_IDENT, .set = 0 },
+    { .so = 'r', .lo = "ident", .clear = 0, .set = GOLB_IDENT },
+    { .so = 'p', .lo = "no-paranoid", .clear = GOLB_PARANOID, .set = 0 },
+    { .so = 'P', .lo = "paranoid", .clear = GOLB_NODNS, .set = GOLB_PARANOID },
+  } ;
+  static gol_arg const rgola[] =
+  {
+    { .so = 'v', .lo = "verbosity", .i = GOLA_VERBOSITY },
+    { .so = 'l', .lo = "localname", .i = GOLA_LOCALNAME },
+    { .so = 'B', .lo = "banner", .i = GOLA_BANNER },
+    { .so = 't', .lo = "timeout", .i = GOLA_TIMEOUT },
+    { .so = 'i', .lo = "rulesdir", .i = GOLA_RULESDIR },
+    { .so = 'x', .lo = "rulesfile", .i = GOLA_RULESFILE },
+  } ;
+  uint64_t wgolb = 0 ;
+  char const *wgola[GOLA_N] = { 0 } ;
   stralloc modifs = STRALLOC_ZERO ;
-  tain deadline, tto ;
-  char const *rulestypestr[3] = { "no", "fs", "cdb" } ;
-  char const *rules = 0 ;
-  char const *localname = 0 ;
+  tain deadline = TAIN_INFINITE_RELATIVE ;
   char const *proto ;
   cdb c = CDB_ZERO ;
-  unsigned int rulestype = 0 ;
   unsigned int verbosity = 1 ;
+  int e = 0 ;
   size_t protolen ;
-  s6_accessrules_result_t accepted ;
-  ip46 remoteip, localip ;
-  int flagfatal = 0, flagnodelay = 0, flagdnslookup = 1, flaghosts = 0,
-    flagident = 0, flagparanoid = 0, e = 0 ;
+  s6_accessrules_params_t params = S6_ACCESSRULES_PARAMS_ZERO ;
+  s6_accessrules_result_t accepted = S6_ACCESSRULES_ALLOW ;
   uint16_t remoteport, localport ;
-  PROG = NAME ;
+  ip46 remoteip, localip ;
+  char prog_storage[PROG_pid_len(NAME)] ;
+  PROG_pid_fill(prog_storage, NAME) ;
+  PROG = prog_storage ;
+
+  {
+    unsigned int golc = GOL_main(argc, argv, rgolb, rgola, &wgolb, wgola) ;
+    argc -= golc ; argv += golc ;
+    if (!argc) dieusage() ;
+  }
+
+  if (wgola[GOLA_VERBOSITY])
+  {
+    if (!uint0_scan(wgola[GOLA_VERBOSITY], &verbosity)) dieusage() ;
+  }
+
+  if (wgola[GOLA_TIMEOUT])
   {
     unsigned int timeout = 0 ;
-    subgetopt l = SUBGETOPT_ZERO ;
-    for (;;)
-    {
-      int opt = subgetopt_r(argc, argv, "WwDdHhRrPpv:l:B:t:i:x:", &l) ;
-      if (opt == -1) break ;
-      switch (opt)
-      {
-        case 'W' : flagfatal = 0 ; break ;
-        case 'w' : flagfatal = 1 ; break ;
-        case 'D' : flagnodelay = 1 ; break ;
-        case 'd' : flagnodelay = 0 ; break ;
-        case 'H' : flagdnslookup = 0 ; break ;
-        case 'h' : flaghosts = 1 ; break ;
-        case 'R' : flagident = 0 ; break ;
-        case 'r' : flagident = 1 ; break ;
-        case 'P' : flagparanoid = 0 ; break ;
-        case 'p' : flagparanoid = 1 ; break ;
-        case 'v' : if (!uint0_scan(l.arg, &verbosity)) dieusage() ; break ;
-        case 'l' : localname = l.arg ; break ;
-        case 'B' :
-        {
-          size_t n = strlen(l.arg) ;
-          if (buffer_putnoflush(buffer_1small, l.arg, n) < (ssize_t)n)
-            strerr_dief1x(100, "banner too long") ;
-          break ;
-        }
-        case 't' : if (!uint0_scan(l.arg, &timeout)) dieusage() ; break ;
-        case 'i' : rules = l.arg ; rulestype = 1 ; break ;
-        case 'x' : rules = l.arg ; rulestype = 2 ; break ;
-        default : dieusage() ;
-      }
-    }
-    argc -= l.ind ; argv += l.ind ;
-    if (timeout) tain_from_millisecs(&tto, timeout) ;
-    else tto = tain_infinite_relative ;
+    if (!uint0_scan(wgola[GOLA_TIMEOUT], &timeout)) dieusage() ;
+    if (timeout) tain_from_millisecs(&deadline, timeout) ;
   }
+
   if (!argc) dieusage() ;
   if (!*argv[0]) dieusage() ;
-  if (flagparanoid) flagdnslookup = 1 ;
 
   proto = getenv("PROTO") ;
   if (!proto) strerr_dienotset(100, "PROTO") ;
   protolen = strlen(proto) ;
+
   {
     char const *x ;
     char tmp[protolen + 11] ;
@@ -150,47 +165,40 @@ int main (int argc, char const *const *argv)
     if (!uint160_scan(x, &remoteport)) strerr_dieinvalid(100, tmp) ;
   }
 
-  char prog_storage[PROG_pid_len(NAME)] ;
-  PROG_pid_fill(prog_storage, NAME) ;
-  PROG = prog_storage ;
+  tain_now_set_stopwatch_g() ;
+  tain_add_g(&deadline, &deadline) ;
 
-  if (flagnodelay)
+  if (wgolb & GOLB_NODELAY)
   {
     if (socket_tcpnodelay(1) < 0)
       if (verbosity) strerr_warnwu1sys("socket_tcpnodelay") ;
   }
-  tain_now_set_stopwatch_g() ;
-  tain_add_g(&deadline, &tto) ;
-  if (!buffer_timed_flush_g(buffer_1small, &deadline))
-    strerr_diefu1sys(111, "write banner") ;
 
-  switch (rulestype)
+  if (wgola[GOLA_BANNER])
   {
-    case 0 :
-      accepted = S6_ACCESSRULES_ALLOW ;
-      break ;
-    case 1 :
-      accepted = s6_accessrules_ip46_fs(&remoteip, (void *)rules, &params) ;
-      break ;
-    case 2 :
-      if (!cdb_init(&c, rules)) strerr_diefu2sys(111, "cdb_init ", rules) ;
-      accepted = s6_accessrules_ip46_cdb(&remoteip, &c, &params) ;
-      if (accepted == S6_ACCESSRULES_ALLOW) cdb_free(&c) ;
-      break ;
-    default : X() ;
+    size_t bannerlen = strlen(wgola[GOLA_BANNER]) ;
+    if (buffer_timed_put_g(buffer_1small, wgola[GOLA_BANNER], bannerlen, &deadline) < bannerlen
+     || !buffer_timed_flush_g(buffer_1small, &deadline))
+      strerr_diefusys(111, "write banner") ;
   }
+
+  if (wgola[GOLA_RULESDIR])
+    accepted = s6_accessrules_ip46_fs(&remoteip, wgola[GOLA_RULESDIR], &params) ;
+  else if (wgola[GOLA_RULESFILE])
+  {
+    if (!cdb_init(&c, wgola[GOLA_RULESFILE])) strerr_diefusys(111, "cdb_init ", wgola[GOLA_RULESFILE]) ;
+    accepted = s6_accessrules_ip46_cdb(&remoteip, &c, &params) ;
+    if (accepted == S6_ACCESSRULES_ALLOW) cdb_free(&c) ;
+  }
+
   switch (accepted)
   {
     case S6_ACCESSRULES_ERROR :
-      strerr_diefu6sys(111, "check ", rulestypestr[rulestype], " ruleset for ", "IP", " in ", rules) ;
+      strerr_diefusys(111, "check ruleset for ", "IP", " in ", wgola[GOLA_RULESDIR] ? wgola[GOLA_RULESDIR] : wgola[GOLA_RULESFILE]) ;
     case S6_ACCESSRULES_ALLOW : break ;
-    case S6_ACCESSRULES_DENY :
-      if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
-      return 1 ;
     case S6_ACCESSRULES_NOTFOUND :
-      if (flagdnslookup) break ;
-      if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
-      return 1 ;
+      if (!(wgolb & GOLB_NODNS)) break ;
+    case S6_ACCESSRULES_DENY : e = 1 ; goto reject ;
     default: X() ;
   }
 
@@ -200,13 +208,13 @@ int main (int argc, char const *const *argv)
     char tmp[protolen + 11] ;
     memcpy(tmp, proto, protolen) ;
     memcpy(tmp + protolen, "REMOTEINFO", 11) ;
-    if (flagident)
+    if (wgolb & GOLB_IDENT)
     {
       ssize_t r = s6net_ident_client_g(idbuf, S6NET_IDENT_ID_SIZE, &remoteip, remoteport, &localip, localport, &deadline) ;
       if (r < 0)
       {
-        if (verbosity >= 3) strerr_warnwu1sys("s6net_ident_client") ;
-        if (flagfatal)
+        if (verbosity >= 3) strerr_warnwusys("s6net_ident_client") ;
+        if (wgolb & GOLB_FATAL)
         {
           e = errno == ETIMEDOUT ? 99 : 111 ;
           goto reject ;
@@ -214,8 +222,8 @@ int main (int argc, char const *const *argv)
       }
       else if (!r)
       {
-        if (verbosity >= 3) strerr_warnw2x("ident server replied: ", s6net_ident_error_str(errno)) ;
-        if (flagfatal)
+        if (verbosity >= 3) strerr_warnw("ident server replied: ", s6net_ident_error_str(errno)) ;
+        if (wgolb & GOLB_FATAL)
         {
           e = 2 ;
           goto reject ;
@@ -226,12 +234,12 @@ int main (int argc, char const *const *argv)
     if (!env_addmodif(&modifs, tmp, x)) dienomem() ;
   }
 
-  if (!flagdnslookup)
+  if (wgolb & GOLB_NODNS)
   {
     char tmp[protolen + 11] ;
     memcpy(tmp, proto, protolen) ;
     memcpy(tmp + protolen, "LOCALHOST", 10) ;
-    if (!env_addmodif(&modifs, tmp, localname)) dienomem() ;
+    if (!env_addmodif(&modifs, tmp, wgola[GOLA_LOCALNAME])) dienomem() ;
     memcpy(tmp + protolen, "REMOTEHOST", 11) ;
     if (!env_addmodif(&modifs, tmp, 0)) dienomem() ;
   }
@@ -242,8 +250,7 @@ int main (int argc, char const *const *argv)
     tain infinite ;
     s6dns_dpag_t data[2] = { S6DNS_DPAG_ZERO, S6DNS_DPAG_ZERO } ;
     s6dns_resolve_t blob[2] ;
-    char remotebuf[256] ;
-    size_t remotelen = 0 ;
+    int gotname = 0 ;
     char tcplocalhost[(protolen << 1) + 21] ;
     char *tcpremotehost = tcplocalhost + protolen + 10 ;
     memcpy(tcplocalhost, proto, protolen) ;
@@ -251,56 +258,66 @@ int main (int argc, char const *const *argv)
     memcpy(tcpremotehost, proto, protolen) ;
     memcpy(tcpremotehost + protolen, "REMOTEHOST", 11) ;
     tain_add_g(&infinite, &tain_infinite_relative) ;
-
-    if (!s6dns_init_options(flaghosts))
+    if (wgola[GOLA_LOCALNAME])
     {
-      if (verbosity >= 2) strerr_warnwu1sys("init DNS") ;
-      if (flagfatal)
+      if (!env_addmodif(&modifs, tcplocalhost, wgola[GOLA_LOCALNAME])) dienomem() ;
+      gotname |= 1 ;
+    }
+
+    if (!s6dns_init_options(!!(wgolb & GOLB_HOSTS)))
+    {
+      if (wgolb & GOLB_FATAL)
       {
         e = 111 ;
+        if (verbosity >= 2) strerr_warnfusys("init DNS") ;
         goto reject ;
       }
+      if (verbosity >= 2) strerr_warnwusys("init DNS") ;
+      goto afterdns ;
     }
-    if (flaghosts)
+    if (wgolb & GOLB_HOSTS)
     {
       int r = s6dns_hosts_name(remoteip.ip, &sa, &ga, ip46_is6(&remoteip)) ;
       if (r == -1)
       {
-        if (verbosity >= 2) strerr_warnwu3sys("look up ", "remote", " ip in hosts database") ;
-        if (flagfatal)
+        if (wgolb & GOLB_FATAL)
         {
           e = 111 ;
+          if (verbosity >= 2) strerr_warnfusys("look up ", "remote", " ip in hosts database") ;
           goto reject ;
         }
+        if (verbosity >= 2) strerr_warnwusys("look up ", "remote", " ip in hosts database") ;
       }
-      if (r)
+      else if (r)
       {
-        remotelen = strlen(sa.s + genalloc_s(size_t, &ga)[0]) ;
-        if (remotelen > 255) remotelen = 255 ;
-        memcpy(remotebuf, sa.s + genalloc_s(size_t, &ga)[0], remotelen + 1) ;
+        if (!env_addmodif(&modifs, tcpremotehost, sa.s + genalloc_s(size_t, &ga)[0])) dienomem() ;
         genalloc_setlen(size_t, &ga, 0) ;
         sa.len = 0 ;  
+        gotname |= 2 ;
       }
-      if (!localname)
+      if (!(gotname & 1))
       {
         r = s6dns_hosts_name(localip.ip, &sa, &ga, ip46_is6(&localip)) ;
         if (r == -1)
         {
-          if (verbosity >= 2) strerr_warnwu3sys("look up ", "local", " ip in hosts database") ;
-          if (flagfatal)
+          if (wgolb & GOLB_FATAL)
           {
             e = 111 ;
+            if (verbosity >= 2) strerr_warnfusys("look up ", "local", " ip in hosts database") ;
             goto reject ;
           }
+          if (verbosity >= 2) strerr_warnwusys("look up ", "local", " ip in hosts database") ;
         }
-        if (r) localname = sa.s + genalloc_s(size_t, &ga)[0] ;
+        else if (r)
+        {
+          if (!env_addmodif(&modifs, tcplocalhost, sa.s + genalloc_s(size_t, &ga)[0])) dienomem() ;
+          genalloc_setlen(size_t, &ga, 0) ;
+          sa.len = 0 ;  
+          gotname |= 1 ;
+        }
       }
     }
-    if (localname)
-    {
-      if (!env_addmodif(&modifs, tcplocalhost, localname)) dienomem() ;
-    }
-    else
+    if (!(gotname & 1))
     {
       s6dns_domain_arpafromip46(&blob[0].q, &localip) ;
       s6dns_domain_encode(&blob[0].q) ;
@@ -311,7 +328,7 @@ int main (int argc, char const *const *argv)
       blob[0].options = S6DNS_O_RECURSIVE ;
       data[0].rtype = S6DNS_T_PTR ;
     }
-    if (!remotelen)
+    if (!(gotname & 2))
     {
       s6dns_domain_arpafromip46(&blob[1].q, &remoteip) ;
       s6dns_domain_encode(&blob[1].q) ;
@@ -322,24 +339,22 @@ int main (int argc, char const *const *argv)
       blob[1].options = S6DNS_O_RECURSIVE ;
       data[1].rtype = S6DNS_T_PTR ;
     }
-    if (!(localname && remotelen) && !s6dns_resolven_parse_g(blob + !!localname, !localname + !remotelen, &infinite))
+
+    if (gotname < 3)
     {
-      if (verbosity >= 3) strerr_warnwu2x("resolve IP addresses: ", s6dns_constants_error_str(errno)) ;
-      if (flagfatal)
+      if (!s6dns_resolven_parse_g(blob + (gotname & 1), !(gotname & 1) + !(gotname & 2), &infinite))
       {
-        e = errno == ENOENT ? 1 : 111 ;
-        goto reject ;
-      }
-    }
-    else
-    {
-      if (!localname)
-      {
-        if (blob[0].status)
+        if (wgolb & GOLB_FATAL)
         {
-          if (!env_addmodif(&modifs, tcplocalhost, 0)) dienomem() ;
+          e = errno == ENOENT ? 1 : 111 ;
+          if (verbosity >= 3) strerr_warnfu("resolve IP addresses: ", s6dns_constants_error_str(errno)) ;
+          goto reject ;
         }
-        else
+        if (verbosity >= 3) strerr_warnwu("resolve IP addresses: ", s6dns_constants_error_str(errno)) ;
+      }
+      else
+      {
+        if (!(gotname & 1) && !blob[0].status)
         {
           char s[256] ;
           unsigned int len = 0 ;
@@ -351,88 +366,103 @@ int main (int argc, char const *const *argv)
           genalloc_free(s6dns_domain_t, &data[0].ds) ;
           s[len] = 0 ;
           if (!env_addmodif(&modifs, tcplocalhost, s)) dienomem() ;
+          gotname |= 1 ;
         }
-      }
-      if (!remotelen && !blob[1].status)
-      {
-        if (genalloc_len(s6dns_domain_t, &data[1].ds))
+        if (!(gotname & 2) && !blob[1].status)
         {
-          s6dns_domain_noqualify(genalloc_s(s6dns_domain_t, &data[1].ds)) ;
-          remotelen = s6dns_domain_tostring(remotebuf, 255, genalloc_s(s6dns_domain_t, &data[1].ds)) ;
-        }
-        remotebuf[remotelen] = 0 ;
-        if (flagparanoid)
-        {
-          int r ;
-          data[1].ds.len = 0 ;
-          r = ip46_is6(&remoteip) ? s6dns_resolve_aaaa_g(&data[1].ds, remotebuf, remotelen, 0, &deadline) : s6dns_resolve_a_g(&data[1].ds, remotebuf, remotelen, 0, &deadline) ;
-          if (r <= 0)
+          char s[256] ;
+          unsigned int len = 0 ;
+          if (genalloc_len(s6dns_domain_t, &data[1].ds))
           {
-            if (verbosity >= 3) strerr_warnwu("(paranoidly) resolve ", remotebuf, ": ", s6dns_constants_error_str(errno)) ;
-            if (flagfatal)
+            s6dns_domain_noqualify(genalloc_s(s6dns_domain_t, &data[1].ds)) ;
+            len = s6dns_domain_tostring(s, 255, genalloc_s(s6dns_domain_t, &data[1].ds)) ;
+          }
+          s[len] = 0 ;
+
+          if (wgolb & GOLB_PARANOID)
+          {
+            int r ;
+            data[1].ds.len = 0 ;
+            r = ip46_is6(&remoteip) ? s6dns_resolve_aaaa_g(&data[1].ds, s, len, 0, &deadline) : s6dns_resolve_a_g(&data[1].ds, s, len, 0, &deadline) ;
+            if (r <= 0)
             {
-              e = errno == ETIMEDOUT ? 99 : errno == ENOENT ? 1 : 111 ;
-              goto reject ;
+              if (wgolb & GOLB_FATAL)
+              {
+                e = errno == ETIMEDOUT ? 99 : errno == ENOENT ? 1 : 111 ;
+                if (verbosity >= 3) strerr_warnfu("(paranoidly) resolve ", s, ": ", s6dns_constants_error_str(errno)) ;
+                goto reject ;
+              }
+              if (verbosity >= 3) strerr_warnwu("(paranoidly) resolve ", s, ": ", s6dns_constants_error_str(errno)) ;
             }
-            remotelen = 0 ;
+            else
+            {
+              size_t i = 0 ;
+              for (; i < data[1].ds.len ; i += ip46_is6(&remoteip) ? 16 : 4)
+                if (!memcmp(remoteip.ip, data[1].ds.s + i, ip46_is6(&remoteip) ? 16 : 4)) break ;
+              if (i >= data[1].ds.len)
+              {
+                e = 1 ;
+                if (verbosity >= 3) strerr_warnf("paranoid IP verification", " rejected available IPs") ;
+                goto reject ;
+              }
+            }
           }
-          else
+
+          if (!env_addmodif(&modifs, tcpremotehost, s)) dienomem() ;
+          gotname |= 2 ;
+
+          if (accepted == S6_ACCESSRULES_NOTFOUND)
           {
-            size_t i = 0 ;
-            for (; i < data[1].ds.len ; i += ip46_is6(&remoteip) ? 16 : 4)
-              if (!memcmp(remoteip.ip, data[1].ds.s + i, ip46_is6(&remoteip) ? 16 : 4)) break ;
-            if (i >= data[1].ds.len) remotelen = 0 ;
+            if (wgola[GOLA_RULESDIR])
+              accepted = s6_accessrules_reversedns_fs(s, wgola[GOLA_RULESDIR], &params) ;
+            else if (wgola[GOLA_RULESFILE])
+            {
+              accepted = s6_accessrules_reversedns_cdb(s, &c, &params) ;
+              cdb_free(&c) ;
+            }
+            switch (accepted)
+            {
+              case S6_ACCESSRULES_ERROR :
+                strerr_diefusys(111, "check ruleset for ", "reverse DNS", " in ", wgola[GOLA_RULESDIR] ? wgola[GOLA_RULESDIR] : wgola[GOLA_RULESFILE]) ;
+              case S6_ACCESSRULES_ALLOW : break ;
+              case S6_ACCESSRULES_NOTFOUND :
+              case S6_ACCESSRULES_DENY : e = 1 ; goto reject ;
+              default : X() ;
+            }
           }
         }
-        stralloc_free(&data[1].ds) ;
-      }
-      else if (!remotelen && flagparanoid)
-      {
-        if (verbosity >= 3) strerr_warnwu("(paranoidly) resolve PTR for client address", ": ", s6dns_constants_error_str(blob[1].status)) ;
-        if (flagfatal)
-        {
-          e = errno == ETIMEDOUT ? 99 : errno == ENOENT ? 1 : 111 ;
-          goto reject ;
-        }
-      }
-    }
-    if (!env_addmodif(&modifs, tcpremotehost, remotelen ? remotebuf : 0)) dienomem() ;
-
-
-    if (remotelen && (accepted == S6_ACCESSRULES_NOTFOUND))
-    {
-      switch (rulestype)
-      {
-        case 1 :
-          accepted = s6_accessrules_reversedns_fs(remotebuf, (void *)rules, &params) ;
-          break ;
-        case 2 : 
-          accepted = s6_accessrules_reversedns_cdb(remotebuf, &c, &params) ;
-          break ;
-        default : X() ;
       }
     }
 
-    if ((rulestype == 2) && (accepted != S6_ACCESSRULES_ALLOW)) cdb_free(&c) ;
-
-    switch (accepted)
+    if (!(gotname & 1))
     {
-      case S6_ACCESSRULES_ERROR :
-        strerr_diefu6sys(111, "check ", rulestypestr[rulestype], " ruleset for ", "reverse DNS", " in ", rules) ;
-      case S6_ACCESSRULES_ALLOW : break ;
-      case S6_ACCESSRULES_DENY :
-        if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
-        return 1 ;
-      case S6_ACCESSRULES_NOTFOUND :
-        if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
-        return 1 ;
-      default : X() ;
+      if (!env_addmodif(&modifs, tcplocalhost, 0)) dienomem() ;
+    }
+
+    if (!(gotname & 2))
+    {
+      if (wgolb & GOLB_PARANOID)
+      {
+        if (verbosity >= 3) strerr_warnfu("get a valid remote host name for ", "paranoid IP verification") ;
+        e = 1 ;
+        goto reject ;
+      }
+      if (!env_addmodif(&modifs, tcpremotehost, 0)) dienomem() ;
     }
   }
 
+ afterdns:
+
+  if (accepted != S6_ACCESSRULES_ALLOW)
+  {
+    e = 1 ;
+    if (verbosity >= 3) strerr_warnf("inconclusive access control result") ;
+    goto reject ;
+  }
+
   if (!stralloc_catb(&params.env, modifs.s, modifs.len)) dienomem() ;
-  stralloc_free(&modifs) ;
-  if (verbosity) log_accept(getpid(), &remoteip) ;
+  if (verbosity) log_accept(&remoteip) ;
+
   if (params.exec.len)
 #ifdef S6_NETWORKING_USE_EXECLINE
   {
@@ -440,12 +470,12 @@ int main (int argc, char const *const *argv)
     xmexec_m((char const *const *)specialargv, params.env.s, params.env.len) ;
   }
 #else
-  strerr_warnw1x("exec file found but ignored because s6-networking was compiled without execline support!") ;
+  strerr_warnw("exec file found but ignored because s6-networking was compiled without execline support!") ;
 #endif
 
   xmexec_m(argv, params.env.s, params.env.len) ;
 
  reject:
-  if (verbosity >= 2) log_deny(getpid(), &remoteip) ;
-  return e ;
+  if (verbosity >= 2) log_deny(&remoteip) ;
+  _exit(e) ;
 }
