@@ -1,5 +1,13 @@
 Changelog for s6-networking.
 
+In 2.8.1.0
+----------
+
+ - New options to s6-tcpserver-access: -A, -a.
+Used to control default policy if a client matches no rule.
+ - New -A, -a options to s6-tlsserver to mirror them.
+
+
 In 2.8.0.1
 ----------
 

@@ -13,7 +13,7 @@
 #define USAGE "s6-tlsserver [ options ] ip port prog...\n" \
 "proxy-server options: [ -L ]" \
 "s6-tcpserver options: [ -q | -Q | -v ] [ -1 ] [ -c maxconn ] [ -C localmaxconn ] [ -b backlog ] [ -G gidlist ] [ -g gid ] [ -u uid ] [ -U ]\n" \
-"s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
+"s6-tcpserver-access options: [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -A | -a ] [ -l localname ] [ -B banner ] [ -t timeout ] [ -i rulesdir | -x rulesfile ]\n" \
 "s6-tlsd options: [ -S | -s ] [ -J | -j ] [ -Y | -y ] [ -K timeout ] [ -Z | -z ] [ -k snilevel ]"
 
 #define dieusage() strerr_dieusage(100, USAGE)
@@ -65,6 +65,7 @@ enum golb_e
   GOLB_KEEPENV = 0x8000,
   GOLB_SNI = 0x10000,
   GOLB_SNI_ONLY = 0x20000,
+  GOLB_ACCEPT = 0x40000,
 } ;
 
 enum gola_e
@@ -107,6 +108,8 @@ int main (int argc, char const *const *argv)
     { .so = 'r', .lo = "ident", .clear = 0, .set = GOLB_IDENT },
     { .so = 'P', .lo = "no-paranoid", .clear = GOLB_PARANOID, .set = 0 },
     { .so = 'p', .lo = "paranoid", .clear = 0, .set = GOLB_PARANOID },
+    { .so = 'A', .lo = "no-default-accept", .clear = GOLB_ACCEPT, .set = 0 },
+    { .so = 'a', .lo = "default-accept", .clear = 0, .set = GOLB_ACCEPT },
     { .so = 's', .lo = "no-close-notify", .clear = GOLB_CLOSENOTIFY, .set = 0 },
     { .so = 'S', .lo = "close-notify", .clear = 0, .set = GOLB_CLOSENOTIFY },
     { .so = 'j', .lo = "no-enforce-close-notify", .clear = GOLB_FATALEOF, .set = 0 },
@@ -204,7 +207,7 @@ int main (int argc, char const *const *argv)
      || !!(wgolb & (GOLB_STRICTRES | GOLB_NONAGLE | GOLB_IDENT | GOLB_PARANOID))
      || !!wgola[GOLA_LOCALNAME] || !!wgola[GOLA_BANNER] || !!wgola[GOLA_RULESDIR] || !!wgola[GOLA_RULESFILE]
      || !!o.timeout ;
-    char const *newargv[55 + argc] ;
+    char const *newargv[56 + argc] ;
     char fmt[UINT_FMT * 5 + UID_FMT + GID_FMT + (o.gidn == (size_t)-1 ? 0 : o.gidn * GID_FMT)] ;
 
     newargv[m++] = S6_NETWORKING_BINPREFIX "s6-tcpserver" ;
@@ -246,6 +249,7 @@ int main (int argc, char const *const *argv)
       if (wgolb & GOLB_HOSTS) newargv[m++] = "-h" ;
       if (wgolb & GOLB_IDENT) newargv[m++] = "-r" ;
       if (wgolb & GOLB_PARANOID) newargv[m++] = "-p" ;
+      if (wgolb & GOLB_ACCEPT) newargv[m++] = "-a" ;
       if (wgola[GOLA_LOCALNAME])
       {
         newargv[m++] = "-l" ;

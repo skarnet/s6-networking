@@ -31,7 +31,7 @@ just like tcpwrappers' <tt>tcpd</tt> program.
 <h2> Interface </h2>
 
 <pre>
-     s6-tcpserver-access [ -v <em>verbosity</em> ] [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -l <em>localname</em> ] [ -B <em>banner</em> ] [ -t <em>timeout</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
+     s6-tcpserver-access [ -v <em>verbosity</em> ] [ -W | -w ] [ -D | -d ] [ -H ] [ -h ] [ -R | -r ] [ -P | -p ] [ -A | -a ] [ -l <em>localname</em> ] [ -B <em>banner</em> ] [ -t <em>timeout</em> ] [ -i <em>rulesdir</em> | -x <em>rulesfile</em> ] <em>prog...</em>
 </pre>
 
 <ul>
@@ -126,6 +126,16 @@ the connection if none of the results matches the address the connection
 is originating from. For safest results, pair that option with <tt>-w</tt>
 so any DNS error drops the connection. (Note that this still does not replace real
 authentication via a cryptographic protocol.) </li>
+ <li> <tt>-A</tt>&nbsp;: do not accept by default. If the <tt>-i</tt> or
+<tt>-x</tt> option is given, and the IP address and host name of the client
+do not match any rule in the ruleset, deny the connection. This is the
+default. </li>
+ <li> <tt>-a</tt>&nbsp;: accept by default. If the <tt>-i</tt> or
+<tt>-x</tt> option is given, and the IP address and host name of the client
+do not match any rule in the ruleset, accept the connection. This is
+useful for instance when expecting clients that may have a broken reverse
+DNS and so cannot match against rules involving host names, and these
+clients need to be able to connect. </li>
  <li> <tt>-l&nbsp;<em>localname</em></tt>&nbsp;: use <em>localname</em>
 as the value for the ${PROTO}LOCALHOST environment variable, instead of
 looking it up in the DNS. </li>
