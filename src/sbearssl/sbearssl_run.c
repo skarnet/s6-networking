@@ -125,22 +125,6 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fd, tain const *tto, uint32_
       }
       state = br_ssl_engine_current_state(ctx) ;
     }
-    else if (x[y[1]].revents & IOPAUSE_EXCEPT)
-    {
-      fd_close(fd[1]) ;
-      fd[1] = -1 ;
-      if (fd[2] >= 0)
-      {
-        fd_shutdown(fd[2], 0) ;
-        fd_close(fd[2]) ;
-        fd[2] = -1 ;
-        if (!br_ssl_engine_in_isempty(ctx))
-        {
-          br_ssl_engine_fail(ctx, BR_ERR_IO) ;
-          state = br_ssl_engine_current_state(ctx) ;
-        }
-      }
-    }
 
 
    /* Flush to remote */
@@ -176,17 +160,6 @@ void sbearssl_run (br_ssl_engine_context *ctx, int *fd, tain const *tto, uint32_
         }
       }
       state = br_ssl_engine_current_state(ctx) ;
-    }
-    else if (x[y[3]].revents & IOPAUSE_EXCEPT)
-    {
-      fd_shutdown(fd[3], 1) ;
-      fd_close(fd[3]) ;
-      fd[3] = -1 ;
-      if (fd[0] >= 0)
-      {
-        fd_close(fd[0]) ;
-        fd[0] = -1 ;
-      }
     }
 
 
