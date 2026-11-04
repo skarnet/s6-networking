@@ -295,7 +295,7 @@ static inline void new_connection (int s, char const *ip, uint16_t port, char co
 
 int main (int argc, char const *const *argv)
 {
-  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ | IOPAUSE_EXCEPT } } ;
+  iopause_fd x[2] = { { .events = IOPAUSE_READ }, { .fd = 0, .events = IOPAUSE_READ } } ;
   size_t m = 21 ;
   uint16_t port ;
   char ip[SKALIBS_IP_SIZE] ;
@@ -409,9 +409,9 @@ int main (int argc, char const *const *argv)
       if (iopause_g(x, 1 + (numconn < maxconn), 0) == -1)
         strerr_diefu1sys(111, "iopause") ;
 
-      if (x[0].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT)) { handle_signals() ; continue ; }
+      if (x[0].revents & IOPAUSE_READ) { handle_signals() ; continue ; }
       if (numconn >= maxconn) continue ;
-      if (x[1].revents & (IOPAUSE_READ | IOPAUSE_EXCEPT))
+      if (x[1].revents & IOPAUSE_READ)
       {
         int fd = is6 ? socket_accept6(x[1].fd, ip, &port) : socket_accept4(x[1].fd, ip, &port) ;
         if (fd == -1)
